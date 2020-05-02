@@ -1,0 +1,547 @@
+
+
+Starting up. (ID: b6X-bzbp) 12:17.48
+---------------------
+[20:00:00] b6X-bzbp MISC: Saved mode is 'traitor'
+[20:00:00] b6X-bzbp MISC: Failed to connect to database in load_admins(). Reverting to legacy system.
+[20:00:00] b6X-bzbp MISC: Database connection failed. Reverting to the legacy ban system.
+[20:00:00] b6X-bzbp ASGEN: Found 27702 ore turfs.
+[20:00:00] b6X-bzbp ASGEN: Set 1495 turfs to random minerals.
+[20:00:00] b6X-bzbp ASGEN: Set 505 turfs to high-chance random minerals.
+[20:00:00] b6X-bzbp ASGEN: Applied 532 turfs.
+[20:00:00] b6X-bzbp ASGEN: Found 7948 ore turfs.
+[20:00:00] b6X-bzbp ASGEN: Set 1377 turfs to random minerals.
+[20:00:00] b6X-bzbp ASGEN: Set 485 turfs to high-chance random minerals.
+[20:00:00] b6X-bzbp ASGEN: Applied 34969 turfs.
+
+
+Starting up. (ID: b6X-bFEt) 12:59.15
+---------------------
+[05:00:00] b6X-bFEt MISC: Saved mode is 'traitor'
+[05:00:00] b6X-bFEt MISC: Failed to connect to database in load_admins(). Reverting to legacy system.
+[05:00:00] b6X-bFEt MISC: Database connection failed. Reverting to the legacy ban system.
+
+
+Starting up. (ID: b6X-bGTN) 13:07.14
+---------------------
+[15:00:00] b6X-bGTN MISC: Saved mode is 'traitor'
+[15:00:00] b6X-bGTN MISC: Failed to connect to database in load_admins(). Reverting to legacy system.
+[15:00:00] b6X-bGTN MISC: Database connection failed. Reverting to the legacy ban system.
+[15:00:00] b6X-bGTN ASGEN: Found 28154 ore turfs.
+[15:00:00] b6X-bGTN ASGEN: Set 1469 turfs to random minerals.
+[15:00:00] b6X-bGTN ASGEN: Set 531 turfs to high-chance random minerals.
+[15:00:00] b6X-bGTN ASGEN: Applied 532 turfs.
+[15:00:00] b6X-bGTN ASGEN: Found 26629 ore turfs.
+[15:00:00] b6X-bGTN ASGEN: Set 1491 turfs to random minerals.
+[15:00:00] b6X-bGTN ASGEN: Set 509 turfs to high-chance random minerals.
+[15:00:00] b6X-bGTN ASGEN: Applied 8151 turfs.
+[15:00:00] b6X-bGTN ASGEN: Found 8532 ore turfs.
+[15:00:00] b6X-bGTN ASGEN: Set 1520 turfs to random minerals.
+[15:00:00] b6X-bGTN ASGEN: Set 480 turfs to high-chance random minerals.
+[15:00:00] b6X-bGTN ASGEN: Applied 34225 turfs.
+[15:00:00] b6X-bGTN DEBUG: Next event of severity Mundane in 14.398 minutes.
+[15:00:00] b6X-bGTN DEBUG: Next event of severity Moderate in 47.056 minutes.
+[15:00:00] b6X-bGTN DEBUG: Next event of severity Major in 80.255 minutes.
+[15:00:00] b6X-bGTN DEBUG: Moved - the unknown was deleted while still being listened to by the mob.
+[15:00:00] b6X-bGTN DEBUG: See In Dark Set - the unknown was deleted while still being listened to by the mob.
+[15:00:00] b6X-bGTN DEBUG: See Invisible Set - the unknown was deleted while still being listened to by the mob.
+[15:00:00] b6X-bGTN DEBUG: Sight Set - the unknown was deleted while still being listened to by the mob.
+
+
+Starting up. (ID: b6X-bJF9) 13:25.04
+---------------------
+[05:00:00] b6X-bJF9 MISC: Saved mode is 'traitor'
+[05:00:00] b6X-bJF9 ADMIN: Loading jobban_rank
+[05:00:00] b6X-bJF9 ADMIN: jobban_keylist was empty
+[05:00:00] b6X-bJF9 ADMIN: Loading Banlist
+[05:00:00] b6X-bJF9 ASGEN: Found 26722 ore turfs.
+[05:00:00] b6X-bJF9 ASGEN: Set 1517 turfs to random minerals.
+[05:00:00] b6X-bJF9 ASGEN: Set 483 turfs to high-chance random minerals.
+[05:00:00] b6X-bJF9 ASGEN: Applied 21301 turfs.
+[05:00:00] b6X-bJF9 ASGEN: Found 27366 ore turfs.
+[05:00:00] b6X-bJF9 ASGEN: Set 1480 turfs to random minerals.
+[05:00:00] b6X-bJF9 ASGEN: Set 520 turfs to high-chance random minerals.
+[05:00:00] b6X-bJF9 ASGEN: Applied 21535 turfs.
+[05:00:00] b6X-bJF9 GAME: Z-level Fallen Icarus loaded at 1,1,11
+[05:00:00] b6X-bJF9 ASGEN: Found 27011 ore turfs.
+[05:00:00] b6X-bJF9 ASGEN: Set 1488 turfs to random minerals.
+[05:00:00] b6X-bJF9 ASGEN: Set 512 turfs to high-chance random minerals.
+[05:00:00] b6X-bJF9 ASGEN: Applied 8151 turfs.
+[05:00:00] b6X-bJF9 GAME: Z-level Mining - Orb loaded at 1,1,12
+[05:00:00] b6X-bJF9 ACCESS: Login: ChillRaccoon/(ChillRaccoon) from 127.0.0.1-379466178 || BYOND v513
+[05:00:00] b6X-bJF9 ACCESS: Logout: ChillRaccoon/(ChillRaccoon)
+[05:00:00] b6X-bJF9 ACCESS: Login: ChillRaccoon/(ChillRaccoon) from 127.0.0.1-379466178 || BYOND v513
+[05:00:00] b6X-bJF9 ASGEN: Found 8792 ore turfs.
+[05:00:00] b6X-bJF9 ASGEN: Set 1401 turfs to random minerals.
+[05:00:00] b6X-bJF9 ASGEN: Set 461 turfs to high-chance random minerals.
+[05:00:00] b6X-bJF9 ASGEN: Applied 34969 turfs.
+[05:00:00] b6X-bJF9 GAME: drill site loaded at at 66,69,17
+[05:00:00] b6X-bJF9 GAME: Fountain of Youth loaded at at 101,149,17
+[05:00:00] b6X-bJF9 GAME: random datapod contents #2 (spiders) loaded at at 93,136,17
+[05:00:00] b6X-bJF9 GAME: ejected data capsule loaded at at 91,134,17
+[05:00:00] b6X-bJF9 DEBUG: Next event of severity Mundane in 16.622 minutes.
+[05:00:00] b6X-bJF9 DEBUG: Next event of severity Moderate in 38.756 minutes.
+[05:00:00] b6X-bJF9 DEBUG: Next event of severity Major in 91.4483 minutes.
+[05:00:00] b6X-bJF9 GAME: MC crashed or runtimed, restarting
+[05:00:00] b6X-bJF9 ACCESS: Logout: ChillRaccoon/(ChillRaccoon)
+
+
+Starting up. (ID: b6X-bKiu) 13:29.02
+---------------------
+[15:00:00] b6X-bKiu MISC: Saved mode is 'traitor'
+[15:00:00] b6X-bKiu ADMIN: Loading jobban_rank
+[15:00:00] b6X-bKiu ADMIN: jobban_keylist was empty
+[15:00:00] b6X-bKiu ADMIN: Loading Banlist
+[15:00:00] b6X-bKiu ACCESS: Login: ChillRaccoon/(ChillRaccoon) from 127.0.0.1-379466178 || BYOND v513
+[15:00:00] b6X-bKiu GAME: Z-level Magshield loaded at 1,1,10
+[15:00:00] b6X-bKiu ASGEN: Found 26963 ore turfs.
+[15:00:00] b6X-bKiu ASGEN: Set 1480 turfs to random minerals.
+[15:00:00] b6X-bKiu ASGEN: Set 520 turfs to high-chance random minerals.
+[15:00:00] b6X-bKiu ASGEN: Applied 1117 turfs.
+[15:00:00] b6X-bKiu GAME: Z-level Lost Supply Base loaded at 50,50,11
+[15:00:00] b6X-bKiu GAME: Z-level Errant Pisces loaded at 1,1,12
+[15:00:00] b6X-bKiu OOC: ChillRaccoon - usr: ChillRaccoon/(ChillRaccoon) : вввввв
+[15:00:00] b6X-bKiu OOC: ChillRaccoon - usr: ChillRaccoon/(ChillRaccoon) : ааааа
+[15:00:00] b6X-bKiu OOC: ChillRaccoon - usr: ChillRaccoon/(ChillRaccoon) : ххххх
+[15:00:00] b6X-bKiu OOC: ChillRaccoon - usr: ChillRaccoon/(ChillRaccoon) : ууууу
+[15:00:00] b6X-bKiu OOC: ChillRaccoon - usr: ChillRaccoon/(ChillRaccoon) : ййййй
+[15:00:00] b6X-bKiu ASGEN: Found 8096 ore turfs.
+[15:00:00] b6X-bKiu ASGEN: Set 1419 turfs to random minerals.
+[15:00:00] b6X-bKiu ASGEN: Set 443 turfs to high-chance random minerals.
+[15:00:00] b6X-bKiu ASGEN: Applied 34969 turfs.
+[15:00:00] b6X-bKiu GAME: radshrine loaded at at 42,148,17
+[15:00:00] b6X-bKiu GAME: drill site loaded at at 113,155,17
+[15:00:00] b6X-bKiu GAME: hut loaded at at 148,41,17
+[15:00:00] b6X-bKiu ADMIN: ChillRaccoon has started the game.
+[15:00:00] b6X-bKiu DEBUG: Next event of severity Mundane in 12.272 minutes.
+[15:00:00] b6X-bKiu DEBUG: Next event of severity Moderate in 38.424 minutes.
+[15:00:00] b6X-bKiu DEBUG: Next event of severity Major in 83.9783 minutes.
+[15:00:00] b6X-bKiu GAME: MC crashed or runtimed, restarting
+[15:00:00] b6X-bKiu ACCESS: Logout: ChillRaccoon/(ChillRaccoon)
+
+
+Starting up. (ID: b6X-bKOo) 13:32.18
+---------------------
+[05:00:00] b6X-bKOo MISC: Saved mode is 'traitor'
+[05:00:00] b6X-bKOo ADMIN: Loading jobban_rank
+[05:00:00] b6X-bKOo ADMIN: jobban_keylist was empty
+[05:00:00] b6X-bKOo ADMIN: Loading Banlist
+[05:00:00] b6X-bKOo GAME: Z-level Vox Base loaded at 50,50,10
+[05:00:00] b6X-bKOo GAME: Z-level Casino loaded at 50,50,11
+[05:00:00] b6X-bKOo GAME: Z-level Derelict Station loaded at 1,1,12
+[05:00:00] b6X-bKOo GAME: Z-level Ascent seedship loaded at 40,40,13
+[05:00:00] b6X-bKOo ACCESS: Login: ChillRaccoon/(ChillRaccoon) from 127.0.0.1-379466178 || BYOND v513
+[05:00:00] b6X-bKOo GAME: random datapod contents #2 (servers) loaded at at 67,149,21
+[05:00:00] b6X-bKOo GAME: ejected data capsule loaded at at 65,147,21
+[05:00:00] b6X-bKOo DEBUG: Moved - the zeq was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the zeq was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the zeq was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the zeq was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Moved - the yithian was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the yithian was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the yithian was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the yithian was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Moved - the tindalos was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the tindalos was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the tindalos was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the tindalos was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Moved - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Moved - the yithian was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the yithian was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the yithian was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the yithian was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Moved - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Moved - the tindalos was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the tindalos was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the tindalos was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the tindalos was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo GAME: hydroponics base loaded at at 99,23,21
+[05:00:00] b6X-bKOo DEBUG: Moved - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Moved - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Moved - the yithian was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the yithian was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the yithian was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the yithian was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Moved - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Moved - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Moved - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the taki was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Moved - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the samak was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo GAME: Marooned loaded at at 146,103,21
+[05:00:00] b6X-bKOo VOTE: Game mode vote started by the server.
+[05:00:00] b6X-bKOo VOTE: <b>Vote Result: Inconclusive - No Votes!</b>
+[05:00:00] b6X-bKOo DEBUG: Next event of severity Mundane in 12.748 minutes.
+[05:00:00] b6X-bKOo DEBUG: Next event of severity Moderate in 49.588 minutes.
+[05:00:00] b6X-bKOo DEBUG: Next event of severity Major in 96.9083 minutes.
+[05:00:00] b6X-bKOo ACCESS: Logout: chillraccoon/(ChillRaccoon)
+[05:00:00] b6X-bKOo ACCESS: Login: ChillRaccoon/(Danielle Magor) from 127.0.0.1-379466178 || BYOND v513
+[05:00:00] b6X-bKOo DEBUG: Moved - the unknown was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See In Dark Set - the unknown was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: See Invisible Set - the unknown was deleted while still being listened to by the mob.
+[05:00:00] b6X-bKOo DEBUG: Sight Set - the unknown was deleted while still being listened to by the mob.
+[05:00:17] b6X-bKOo SAY: Danielle Magor/ChillRaccoon : а.
+[05:00:20] b6X-bKOo SAY: Danielle Magor/ChillRaccoon : Ну блять.
+[05:01:00] b6X-bKOo ADMIN: ChillRaccoon/(Danielle Magor) deleted Elevator Door at (73,105,5)
+[05:01:40] b6X-bKOo EMOTE: Ian/ : <B>Ian</B> shakes its head.
+[05:02:52] b6X-bKOo EMOTE: Ian/ : <B>Ian</B> chases their tail.
+[05:03:08] b6X-bKOo SAY: Ian/ : AUUUUUU.
+[05:03:30] b6X-bKOo ACCESS: Logout: chillraccoon/(Danielle Magor)
+[05:03:30] b6X-bKOo ACCESS: Login: ChillRaccoon/(Danielle Magor) from 127.0.0.1-379466178 || BYOND v513
+[05:03:30] b6X-bKOo ADMIN: chillraccoon/(Danielle Magor) used gibself. (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=106;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x30000b3]'>MOB</a>)
+[05:03:32] b6X-bKOo DEBUG: Moved - Danielle Magor was deleted while still being listened to by the mob.
+[05:03:32] b6X-bKOo DEBUG: See In Dark Set - Danielle Magor was deleted while still being listened to by the mob.
+[05:03:32] b6X-bKOo DEBUG: See Invisible Set - Danielle Magor was deleted while still being listened to by the mob.
+[05:03:32] b6X-bKOo DEBUG: Sight Set - Danielle Magor was deleted while still being listened to by the mob.
+[05:03:32] b6X-bKOo ACCESS: Logout: chillraccoon/(Danielle Magor)
+[05:03:32] b6X-bKOo ACCESS: Login: ChillRaccoon/(Danielle Magor) from 127.0.0.1-379466178 || BYOND v513
+[05:03:50] b6X-bKOo EMOTE: Ian/ : <B>Ian</B> chases their tail.
+[05:04:10] b6X-bKOo ADMIN: ChillRaccoon/(Danielle Magor) created an admin explosion at the Hangar Deck. (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=78;Y=105;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x3000025]'>MOB</a>)
+[05:04:10] b6X-bKOo ADMIN: ChillRaccoon/(Danielle Magor) Explosion with size (3, 5, 7) in area Hangar Deck (78,105,1) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=78;Y=105;Z=1'>JMP</a>) (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=78;Y=105;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x3000025]'>MOB</a>)
+[05:04:54] b6X-bKOo ACCESS: Logout: ChillRaccoon/(Danielle Magor)
+
+
+Starting up. (ID: b6X-cbvg) 16:23.19
+---------------------
+[10:00:00] b6X-cbvg MISC: Saved mode is 'traitor'
+[10:00:00] b6X-cbvg ADMIN: Loading jobban_rank
+[10:00:00] b6X-cbvg ADMIN: jobban_keylist was empty
+[10:00:00] b6X-cbvg ADMIN: Loading Banlist
+[10:00:00] b6X-cbvg GAME: Z-level Errant Pisces loaded at 1,1,10
+[10:00:00] b6X-cbvg ASGEN: Found 27502 ore turfs.
+[10:00:00] b6X-cbvg ASGEN: Set 1525 turfs to random minerals.
+[10:00:00] b6X-cbvg ASGEN: Set 475 turfs to high-chance random minerals.
+[10:00:00] b6X-cbvg ASGEN: Applied 7051 turfs.
+[10:00:00] b6X-cbvg GAME: Z-level Slavers' Base loaded at 1,1,11
+[10:00:00] b6X-cbvg ASGEN: Found 26768 ore turfs.
+[10:00:00] b6X-cbvg ASGEN: Set 1501 turfs to random minerals.
+[10:00:00] b6X-cbvg ASGEN: Set 499 turfs to high-chance random minerals.
+[10:00:00] b6X-cbvg ASGEN: Applied 13332 turfs.
+[10:00:00] b6X-cbvg GAME: Z-level Mining - Asteroid loaded at 1,1,12
+[10:00:00] b6X-cbvg ACCESS: Login: ChillRaccoon/(ChillRaccoon) from 127.0.0.1-379466178 || BYOND v513
+[10:00:00] b6X-cbvg GAME: tar anomaly loaded at at 148,163,17
+[10:00:00] b6X-cbvg DEBUG: Moved - the taki was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See In Dark Set - the taki was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See Invisible Set - the taki was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Sight Set - the taki was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg GAME: old pod loaded at at 35,121,17
+[10:00:00] b6X-cbvg GAME: oasis 1 loaded at at 114,164,17
+[10:00:00] b6X-cbvg DEBUG: Moved - the tindalos was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See In Dark Set - the tindalos was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See Invisible Set - the tindalos was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Sight Set - the tindalos was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Moved - the slug was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See In Dark Set - the slug was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See Invisible Set - the slug was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Sight Set - the slug was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Moved - the taki was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See In Dark Set - the taki was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See Invisible Set - the taki was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Sight Set - the taki was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Moved - the slug was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See In Dark Set - the slug was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See Invisible Set - the slug was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Sight Set - the slug was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Moved - the tindalos was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See In Dark Set - the tindalos was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See Invisible Set - the tindalos was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Sight Set - the tindalos was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Moved - the taki was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See In Dark Set - the taki was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See Invisible Set - the taki was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Sight Set - the taki was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Moved - the slug was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See In Dark Set - the slug was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: See Invisible Set - the slug was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg DEBUG: Sight Set - the slug was deleted while still being listened to by the mob.
+[10:00:00] b6X-cbvg GAME: established colony loaded at at 48,134,17
+[10:00:00] b6X-cbvg DEBUG: Next event of severity Mundane in 12.958 minutes.
+[10:00:00] b6X-cbvg DEBUG: Next event of severity Moderate in 45.238 minutes.
+[10:00:00] b6X-cbvg DEBUG: Next event of severity Major in 87.56 minutes.
+[10:00:00] b6X-cbvg GAME: MC crashed or runtimed, restarting
+[10:00:00] b6X-cbvg ACCESS: Logout: ChillRaccoon/(ChillRaccoon)
+
+
+Starting up. (ID: b6X-cbUz) 16:25.56
+---------------------
+[20:00:00] b6X-cbUz MISC: Saved mode is 'traitor'
+[20:00:00] b6X-cbUz ADMIN: Loading jobban_rank
+[20:00:00] b6X-cbUz ADMIN: jobban_keylist was empty
+[20:00:00] b6X-cbUz ADMIN: Loading Banlist
+[20:00:00] b6X-cbUz ACCESS: Login: ChillRaccoon/(ChillRaccoon) from 127.0.0.1-379466178 || BYOND v513
+[20:00:00] b6X-cbUz GAME: Z-level University Ship loaded at 50,50,12
+[20:00:00] b6X-cbUz GAME: Z-level Errant Pisces loaded at 1,1,13
+[20:00:00] b6X-cbUz ASGEN: Found 7972 ore turfs.
+[20:00:00] b6X-cbUz ASGEN: Set 1386 turfs to random minerals.
+[20:00:00] b6X-cbUz ASGEN: Set 476 turfs to high-chance random minerals.
+[20:00:00] b6X-cbUz ASGEN: Applied 34969 turfs.
+[20:00:00] b6X-cbUz GAME: hut loaded at at 28,45,18
+[20:00:00] b6X-cbUz GAME: Monolith Ring loaded at at 36,117,18
+[20:00:00] b6X-cbUz DEBUG: Moved - the samak was deleted while still being listened to by the mob.
+[20:00:00] b6X-cbUz DEBUG: See In Dark Set - the samak was deleted while still being listened to by the mob.
+[20:00:00] b6X-cbUz DEBUG: See Invisible Set - the samak was deleted while still being listened to by the mob.
+[20:00:00] b6X-cbUz DEBUG: Sight Set - the samak was deleted while still being listened to by the mob.
+[20:00:00] b6X-cbUz GAME: random datapod contents #2 (servers) loaded at at 118,138,18
+[20:00:00] b6X-cbUz GAME: ejected data capsule loaded at at 116,136,18
+[20:00:00] b6X-cbUz GAME: radshrine loaded at at 101,31,18
+[20:00:00] b6X-cbUz VOTE: Game mode vote started by the server.
+[20:00:00] b6X-cbUz VOTE: <b>Vote Result: Inconclusive - No Votes!</b>
+[20:00:00] b6X-cbUz DEBUG: Next event of severity Mundane in 12.072 minutes.
+[20:00:00] b6X-cbUz DEBUG: Next event of severity Moderate in 51.836 minutes.
+[20:00:00] b6X-cbUz DEBUG: Next event of severity Major in 84.7383 minutes.
+[20:00:00] b6X-cbUz ACCESS: Logout: chillraccoon/(ChillRaccoon)
+[20:00:00] b6X-cbUz ACCESS: Login: ChillRaccoon/(Danielle Magor) from 127.0.0.1-379466178 || BYOND v513
+[20:00:00] b6X-cbUz DEBUG: Moved - the unknown was deleted while still being listened to by the mob.
+[20:00:00] b6X-cbUz DEBUG: See In Dark Set - the unknown was deleted while still being listened to by the mob.
+[20:00:00] b6X-cbUz DEBUG: See Invisible Set - the unknown was deleted while still being listened to by the mob.
+[20:00:00] b6X-cbUz DEBUG: Sight Set - the unknown was deleted while still being listened to by the mob.
+[20:00:02] b6X-cbUz EMOTE: cosmoshark/ : <B>The cosmoshark</B> nashes at the space carp.
+[20:00:02] b6X-cbUz EMOTE: space carp/ : <B>The space carp</B> nashes at the cosmoshark.
+[20:00:03] b6X-cbUz EMOTE: cosmoshark/ : <B>The cosmoshark</B> nashes at Ulskeah Haulzo.
+[20:00:04] b6X-cbUz EMOTE: Poppy the Safety Possum/ : <B>Poppy the Safety Possum</B> forages for trash.
+[20:00:06] b6X-cbUz EMOTE: space carp/ : <B>The space carp</B> nashes at the cosmoshark.
+[20:00:06] b6X-cbUz EMOTE: space carp/ : <B>The space carp</B> nashes at the cosmoshark.
+[20:00:06] b6X-cbUz EMOTE: space carp/ : <B>The space carp</B> nashes at the cosmoshark.
+[20:00:06] b6X-cbUz EMOTE: space carp/ : <B>The space carp</B> nashes at the cosmoshark.
+[20:00:06] b6X-cbUz EMOTE: space carp/ : <B>The space carp</B> nashes at the cosmoshark.
+[20:00:06] b6X-cbUz ADMIN: EVENT INFO: Supermatter crystal has been energised.
+[20:00:06] b6X-cbUz ADMIN: EVENT WARN: Supermatter EPR value low. Possible core breach detected.
+[20:00:25] b6X-cbUz SAY: Danielle Magor/ChillRaccoon : ОПА Я БОБА.
+[20:00:38] b6X-cbUz ATTACK: ChillRaccoon/(Danielle Magor) used Syringe (inaprovaline) - Inaprovaline (15) - to violently inject 1u into ChillRaccoon/(Danielle Magor) (INTENT: HELP) (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=82;Y=99;Z=5'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x30000a0]'>MOB</a>)
+[20:00:46] b6X-cbUz SAY: grey baby slime (47)/ : Blorble...
+[20:01:22] b6X-cbUz ACCESS: Logout: chillraccoon/(Danielle Magor)
+[20:01:22] b6X-cbUz ACCESS: Login: ChillRaccoon/(Danielle Magor) from 127.0.0.1-379466178 || BYOND v513
+[20:01:31] b6X-cbUz ADMIN: ChillRaccoon/(Danielle Magor) created an admin explosion at the First Deck Fore Hallway. (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=65;Y=106;Z=5'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x30000c0]'>MOB</a>)
+[20:01:31] b6X-cbUz ADMIN: ChillRaccoon/(Danielle Magor) Explosion with size (2, 3, 4) in area First Deck Fore Hallway (65,106,5) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=65;Y=106;Z=5'>JMP</a>) (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=65;Y=106;Z=5'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x30000c0]'>MOB</a>)
+[20:01:37] b6X-cbUz ADMIN: ChillRaccoon/(Danielle Magor) stuffed chillraccoon into Danielle Magor.
+[20:01:37] b6X-cbUz ACCESS: Logout: chillraccoon/(Danielle Magor)
+[20:01:37] b6X-cbUz ACCESS: Login: chillraccoon/(Danielle Magor) from 127.0.0.1-379466178 || BYOND v513
+[20:01:37] b6X-cbUz DEBUG: Moved - Danielle Magor was deleted while still being listened to by the mob.
+[20:01:37] b6X-cbUz DEBUG: See In Dark Set - Danielle Magor was deleted while still being listened to by the mob.
+[20:01:37] b6X-cbUz DEBUG: See Invisible Set - Danielle Magor was deleted while still being listened to by the mob.
+[20:01:37] b6X-cbUz DEBUG: Sight Set - Danielle Magor was deleted while still being listened to by the mob.
+[20:01:58] b6X-cbUz ACCESS: Logout: chillraccoon/(Danielle Magor)
+[20:01:58] b6X-cbUz ACCESS: Login: chillraccoon/(Danielle Magor) from 127.0.0.1-379466178 || BYOND v513
+[20:02:26] b6X-cbUz SAY: grey adult slime (307)/ : Zap...
+[20:02:36] b6X-cbUz SAY: Medibot/ : Delicious!
+[20:03:10] b6X-cbUz SAY: grey adult slime (307)/ : Brothers...
+[20:03:12] b6X-cbUz DEBUG: Moved - the grey adult slime (307) was deleted while still being listened to by the mob.
+[20:03:12] b6X-cbUz DEBUG: See In Dark Set - the grey adult slime (307) was deleted while still being listened to by the mob.
+[20:03:12] b6X-cbUz DEBUG: See Invisible Set - the grey adult slime (307) was deleted while still being listened to by the mob.
+[20:03:12] b6X-cbUz DEBUG: Sight Set - the grey adult slime (307) was deleted while still being listened to by the mob.
+[20:03:20] b6X-cbUz DEBUG: Moved - the grey adult slime (298) was deleted while still being listened to by the mob.
+[20:03:20] b6X-cbUz DEBUG: See In Dark Set - the grey adult slime (298) was deleted while still being listened to by the mob.
+[20:03:20] b6X-cbUz DEBUG: See Invisible Set - the grey adult slime (298) was deleted while still being listened to by the mob.
+[20:03:20] b6X-cbUz DEBUG: Sight Set - the grey adult slime (298) was deleted while still being listened to by the mob.
+[20:03:24] b6X-cbUz SAY: purple baby slime (285)/ : Blorble...
+[20:03:24] b6X-cbUz DEBUG: Moved - the grey adult slime (340) was deleted while still being listened to by the mob.
+[20:03:24] b6X-cbUz DEBUG: See In Dark Set - the grey adult slime (340) was deleted while still being listened to by the mob.
+[20:03:24] b6X-cbUz DEBUG: See Invisible Set - the grey adult slime (340) was deleted while still being listened to by the mob.
+[20:03:24] b6X-cbUz DEBUG: Sight Set - the grey adult slime (340) was deleted while still being listened to by the mob.
+[20:03:48] b6X-cbUz SAY: purple baby slime (285)/ : Brother...
+[20:04:06] b6X-cbUz SAY: Medibot/ : What kind of infirmary is this? Everyone&#39;s dropping like dead flies.
+[20:04:12] b6X-cbUz SAY: Medibot/ : I knew it, I should&#39;ve been a plastic surgeon.
+[20:04:16] b6X-cbUz SAY: grey baby slime (183)/ : Nom...
+[20:04:20] b6X-cbUz SAY: grey baby slime (12)/ : Rawr...
+[20:04:20] b6X-cbUz SAY: Medibot/ : What kind of infirmary is this? Everyone&#39;s dropping like dead flies.
+[20:04:32] b6X-cbUz SAY: grey baby slime (47)/ : Rawr...
+[20:04:34] b6X-cbUz SAY: grey baby slime (184)/ : Blop...
+[20:04:46] b6X-cbUz SAY: grey adult slime (945)/ : Brother...
+[20:04:55] b6X-cbUz ACCESS: Logout: chillraccoon/(Danielle Magor)
+
+
+Starting up. (ID: b6X-ckJR) 17:22.29
+---------------------
+[05:00:00] b6X-ckJR MISC: Saved mode is 'traitor'
+[05:00:00] b6X-ckJR ADMIN: Loading jobban_rank
+[05:00:00] b6X-ckJR ADMIN: jobban_keylist was empty
+[05:00:00] b6X-ckJR ADMIN: Loading Banlist
+[05:00:00] b6X-ckJR ASGEN: Found 27472 ore turfs.
+[05:00:00] b6X-ckJR ASGEN: Set 1501 turfs to random minerals.
+[05:00:00] b6X-ckJR ASGEN: Set 499 turfs to high-chance random minerals.
+[05:00:00] b6X-ckJR ASGEN: Applied 33144 turfs.
+[05:00:00] b6X-ckJR GAME: Z-level Mining - Planetoid loaded at 1,1,10
+[05:00:00] b6X-ckJR ASGEN: Found 27720 ore turfs.
+[05:00:00] b6X-ckJR ASGEN: Set 1481 turfs to random minerals.
+[05:00:00] b6X-ckJR ASGEN: Set 519 turfs to high-chance random minerals.
+[05:00:00] b6X-ckJR ASGEN: Applied 7051 turfs.
+[05:00:00] b6X-ckJR GAME: Z-level Slavers' Base loaded at 1,1,11
+[05:00:00] b6X-ckJR ASGEN: Found 27603 ore turfs.
+[05:00:00] b6X-ckJR ASGEN: Set 1484 turfs to random minerals.
+[05:00:00] b6X-ckJR ASGEN: Set 516 turfs to high-chance random minerals.
+[05:00:00] b6X-ckJR ASGEN: Applied 8151 turfs.
+[05:00:00] b6X-ckJR GAME: Z-level Mining - Orb loaded at 1,1,12
+[05:00:00] b6X-ckJR ACCESS: Login: ChillRaccoon/(ChillRaccoon) from 127.0.0.1-379466178 || BYOND v513
+[05:00:00] b6X-ckJR OOC: ChillRaccoon - usr: ChillRaccoon/(ChillRaccoon) : Lol
+[05:00:00] b6X-ckJR GAME: Monolith Ring loaded at at 136,95,17
+[05:00:00] b6X-ckJR GAME: random datapod contents #1 (chem vials) loaded at at 70,139,17
+[05:00:00] b6X-ckJR GAME: ejected data capsule loaded at at 68,137,17
+[05:00:00] b6X-ckJR GAME: crashed survival pod loaded at at 130,115,17
+[05:00:00] b6X-ckJR VOTE: Game mode vote started by the server.
+[05:00:00] b6X-ckJR VOTE: <b>Vote Result: Inconclusive - No Votes!</b>
+[05:00:00] b6X-ckJR DEBUG: Next event of severity Mundane in 15.584 minutes.
+[05:00:00] b6X-ckJR DEBUG: Next event of severity Moderate in 53.782 minutes.
+[05:00:00] b6X-ckJR DEBUG: Next event of severity Major in 83.2333 minutes.
+[05:00:00] b6X-ckJR ACCESS: Logout: chillraccoon/(ChillRaccoon)
+[05:00:00] b6X-ckJR ACCESS: Login: ChillRaccoon/(Danielle Magor) from 127.0.0.1-379466178 || BYOND v513
+[05:00:00] b6X-ckJR DEBUG: Moved - the unknown was deleted while still being listened to by the mob.
+[05:00:00] b6X-ckJR DEBUG: See In Dark Set - the unknown was deleted while still being listened to by the mob.
+[05:00:00] b6X-ckJR DEBUG: See Invisible Set - the unknown was deleted while still being listened to by the mob.
+[05:00:00] b6X-ckJR DEBUG: Sight Set - the unknown was deleted while still being listened to by the mob.
+[05:00:28] b6X-ckJR SAY: Runtime/ : HSSSSS.
+[05:00:32] b6X-ckJR SAY: Danielle Magor/ChillRaccoon : НУ ЧЁ БЛЯТЬ.
+[05:00:54] b6X-ckJR SAY: Medibot/ : What kind of infirmary is this? Everyone&#39;s dropping like dead flies.
+[05:01:14] b6X-ckJR EMOTE: Ian/ : <B>Ian</B> dances around.
+[05:01:32] b6X-ckJR ACCESS: Logout: chillraccoon/(Danielle Magor)
+[05:01:32] b6X-ckJR ACCESS: Login: ChillRaccoon/(Danielle Magor) from 127.0.0.1-379466178 || BYOND v513
+[05:01:38] b6X-ckJR ADMIN: ChillRaccoon/(Danielle Magor) created an admin explosion at the lift (fifth deck). (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=108;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x300005a]'>MOB</a>)
+[05:01:38] b6X-ckJR ADMIN: ChillRaccoon/(Danielle Magor) Explosion with size (1, 2, 3) in area lift (fifth deck) (73,108,1) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=108;Z=1'>JMP</a>) (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=108;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x300005a]'>MOB</a>)
+[05:01:43] b6X-ckJR ADMIN: ChillRaccoon/(Danielle Magor) created an admin explosion at the lift (fifth deck). (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=108;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x300005a]'>MOB</a>)
+[05:01:43] b6X-ckJR ADMIN: ChillRaccoon/(Danielle Magor) Explosion with size (1, 2, 3) in area lift (fifth deck) (73,108,1) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=108;Z=1'>JMP</a>) (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=108;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x300005a]'>MOB</a>)
+[05:01:45] b6X-ckJR ADMIN: ChillRaccoon/(Danielle Magor) created an admin explosion at the lift (fifth deck). (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=108;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x300005a]'>MOB</a>)
+[05:01:45] b6X-ckJR ADMIN: ChillRaccoon/(Danielle Magor) Explosion with size (2, 3, 4) in area lift (fifth deck) (73,108,1) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=108;Z=1'>JMP</a>) (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=108;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x300005a]'>MOB</a>)
+[05:01:49] b6X-ckJR ADMIN: ChillRaccoon/(Danielle Magor) created an admin explosion at the lift (fifth deck). (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=108;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x300005a]'>MOB</a>)
+[05:01:49] b6X-ckJR ADMIN: ChillRaccoon/(Danielle Magor) Explosion with size (3, 5, 7) in area lift (fifth deck) (73,108,1) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=108;Z=1'>JMP</a>) (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=108;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x300005a]'>MOB</a>)
+[05:01:51] b6X-ckJR ACCESS: Logout: chillraccoon/(Danielle Magor)
+[05:01:51] b6X-ckJR ACCESS: Login: ChillRaccoon/(Danielle Magor) from 127.0.0.1-379466178 || BYOND v513
+[05:01:51] b6X-ckJR DEBUG: Moved - Danielle Magor was deleted while still being listened to by the mob.
+[05:01:51] b6X-ckJR DEBUG: See In Dark Set - Danielle Magor was deleted while still being listened to by the mob.
+[05:01:51] b6X-ckJR DEBUG: See Invisible Set - Danielle Magor was deleted while still being listened to by the mob.
+[05:01:51] b6X-ckJR DEBUG: Sight Set - Danielle Magor was deleted while still being listened to by the mob.
+[05:01:59] b6X-ckJR ADMIN: ChillRaccoon/(Danielle Magor) healed / revived <a href='?priv_msg=[0x5000000];ticket=[0x0]'>ChillRaccoon</a>/(Danielle Magor)! (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=73;Y=105;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x3000058]'>MOB</a>)
+[05:02:10] b6X-ckJR EMOTE: Poppy the Safety Possum/ : <B>Poppy the Safety Possum</B> hisses.
+[05:02:12] b6X-ckJR SAY: Medibot/ : There&#39;s always a catch, and it&#39;s the best there is.
+[05:02:26] b6X-ckJR EMOTE: Poppy the Safety Possum/ : <B>Poppy the Safety Possum</B> hisses.
+[05:02:30] b6X-ckJR ADMIN: ChillRaccoon/(Danielle Magor) healed / revived <a href='?priv_msg=[0x5000000];ticket=[0x0]'>ChillRaccoon</a>/(Danielle Magor)! (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=64;Y=106;Z=2'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x3000058]'>MOB</a>)
+[05:02:34] b6X-ckJR EMOTE: Ian/ : <B>Ian</B> dances around.
+[05:02:56] b6X-ckJR ACCESS: Logout: ChillRaccoon/(Danielle Magor)
+
+
+Starting up. (ID: b6X-cwxH) 18:38.06
+---------------------
+[15:00:00] b6X-cwxH MISC: Saved mode is 'traitor'
+[15:00:00] b6X-cwxH ADMIN: Loading jobban_rank
+[15:00:00] b6X-cwxH ADMIN: jobban_keylist was empty
+[15:00:00] b6X-cwxH ADMIN: Loading Banlist
+[15:00:00] b6X-cwxH ASGEN: Found 27654 ore turfs.
+[15:00:00] b6X-cwxH ASGEN: Set 1485 turfs to random minerals.
+[15:00:00] b6X-cwxH ASGEN: Set 515 turfs to high-chance random minerals.
+[15:00:00] b6X-cwxH ASGEN: Applied 8151 turfs.
+[15:00:00] b6X-cwxH GAME: Z-level Mining - Orb loaded at 1,1,10
+[15:00:00] b6X-cwxH ACCESS: Login: ChillRaccoon/(ChillRaccoon) from 127.0.0.1-379466178 || BYOND v513
+[15:00:00] b6X-cwxH GAME: Z-level Meatstation loaded at 1,1,11
+[15:00:00] b6X-cwxH GAME: oasis 3 loaded at at 68,164,16
+[15:00:00] b6X-cwxH GAME: oasis 3 loaded at at 133,98,16
+[15:00:00] b6X-cwxH GAME: oasis 3 loaded at at 32,61,16
+[15:00:00] b6X-cwxH GAME: oasis 3 loaded at at 44,155,16
+[15:00:00] b6X-cwxH GAME: spider nest loaded at at 165,41,16
+[15:00:00] b6X-cwxH GAME: oasis 2 loaded at at 47,52,16
+[15:00:00] b6X-cwxH GAME: oasis 1 loaded at at 73,84,16
+[15:00:00] b6X-cwxH VOTE: Game mode vote started by the server.
+[15:00:00] b6X-cwxH VOTE: <b>Vote Result: Inconclusive - No Votes!</b>
+[15:00:00] b6X-cwxH DEBUG: Next event of severity Mundane in 12.482 minutes.
+[15:00:00] b6X-cwxH DEBUG: Next event of severity Moderate in 43.198 minutes.
+[15:00:00] b6X-cwxH DEBUG: Next event of severity Major in 83.3383 minutes.
+[15:00:00] b6X-cwxH ACCESS: Logout: chillraccoon/(ChillRaccoon)
+[15:00:00] b6X-cwxH ACCESS: Login: ChillRaccoon/(Danielle Magor) from 127.0.0.1-379466178 || BYOND v513
+[15:00:00] b6X-cwxH DEBUG: Moved - the unknown was deleted while still being listened to by the mob.
+[15:00:00] b6X-cwxH DEBUG: See In Dark Set - the unknown was deleted while still being listened to by the mob.
+[15:00:00] b6X-cwxH DEBUG: See Invisible Set - the unknown was deleted while still being listened to by the mob.
+[15:00:00] b6X-cwxH DEBUG: Sight Set - the unknown was deleted while still being listened to by the mob.
+[15:00:02] b6X-cwxH SAY: grey baby slime (501)/ : Lonely...
+[15:00:54] b6X-cwxH EMOTE: Runtime/ : <B>Runtime</B> mews.
+[15:02:16] b6X-cwxH SAY: Runtime/ : Esp!
+[15:02:24] b6X-cwxH SAY: Poppy the Safety Possum/ : Hiss!
+[15:02:24] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) deleted the deck at (66,106,5)
+[15:02:26] b6X-cwxH EMOTE: Runtime/ : <B>Runtime</B> shivers.
+[15:02:38] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) healed / revived <a href='?priv_msg=[0x5000000];ticket=[0x0]'>ChillRaccoon</a>/(Danielle Magor)! (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=66;Y=106;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x30000ba]'>MOB</a>)
+[15:02:48] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) deleted the deck at (69,107,1)
+[15:03:23] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) healed / revived <a href='?priv_msg=[0x5000000];ticket=[0x0]'>ChillRaccoon</a>/(Danielle Magor)! (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=66;Y=106;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x30000ba]'>MOB</a>)
+[15:03:40] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) created 1 /turf/unsimulated/wall (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=68;Y=106;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x30000ba]'>MOB</a>)
+[15:03:53] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) created 1 /turf/unsimulated/wall/cult (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=69;Y=107;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x30000ba]'>MOB</a>)
+[15:04:04] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) healed / revived <a href='?priv_msg=[0x5000000];ticket=[0x0]'>ChillRaccoon</a>/(Danielle Magor)! (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=65;Y=107;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x30000ba]'>MOB</a>)
+[15:05:12] b6X-cwxH EMOTE: Ian/ : <B>Ian</B> chases their tail.
+[15:05:19] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) deleted the deck at (66,106,6)
+[15:05:23] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) deleted the deck at (65,106,6)
+[15:05:34] b6X-cwxH SAY: grey baby slime (85)/ : Lonely...
+[15:06:14] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) healed / revived <a href='?priv_msg=[0x5000000];ticket=[0x0]'>ChillRaccoon</a>/(Danielle Magor)! (<a HREF='?_src_=holder;adminplayerobservecoodjump=1;X=66;Y=106;Z=1'>LOC</a>) (<a HREF='?_src_=holder;adminplayerobservefollow=[0x30000ba]'>MOB</a>)
+[15:06:24] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) deleted the wall at (68,106,1)
+[15:07:04] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) deleted the plated catwalk at (73,103,5)
+[15:07:08] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) deleted the plating at (73,103,5)
+[15:07:12] b6X-cwxH EMOTE: Poppy the Safety Possum/ : <B>Poppy the Safety Possum</B> hisses.
+[15:07:13] b6X-cwxH ADMIN: ChillRaccoon/(Danielle Magor) deleted the open space at (73,103,5)
+[15:07:59] b6X-cwxH ACCESS: Logout: ChillRaccoon/(Danielle Magor)
+
+
+Starting up. (ID: b6X-czH7) 18:58.24
+---------------------
+[15:00:00] b6X-czH7 MISC: Saved mode is 'traitor'
+[15:00:00] b6X-czH7 ADMIN: Loading jobban_rank
+[15:00:00] b6X-czH7 ADMIN: jobban_keylist was empty
+[15:00:00] b6X-czH7 ADMIN: Loading Banlist
+[15:00:00] b6X-czH7 ASGEN: Found 27509 ore turfs.
+[15:00:00] b6X-czH7 ASGEN: Set 1507 turfs to random minerals.
+[15:00:00] b6X-czH7 ASGEN: Set 493 turfs to high-chance random minerals.
+[15:00:00] b6X-czH7 ASGEN: Applied 3141 turfs.
+[15:00:00] b6X-czH7 GAME: Z-level Bluespace River loaded at 50,50,11
+[15:00:00] b6X-czH7 ACCESS: Login: ChillRaccoon/(ChillRaccoon) from 127.0.0.1-379466178 || BYOND v513
+[15:00:00] b6X-czH7 ASGEN: Found 27482 ore turfs.
+[15:00:00] b6X-czH7 ASGEN: Set 1483 turfs to random minerals.
+[15:00:00] b6X-czH7 ASGEN: Set 517 turfs to high-chance random minerals.
+[15:00:00] b6X-czH7 ASGEN: Applied 21301 turfs.
+[15:00:00] b6X-czH7 ASGEN: Found 27542 ore turfs.
+[15:00:00] b6X-czH7 ASGEN: Set 1470 turfs to random minerals.
+[15:00:00] b6X-czH7 ASGEN: Set 530 turfs to high-chance random minerals.
+[15:00:00] b6X-czH7 ASGEN: Applied 21535 turfs.
+[15:00:00] b6X-czH7 GAME: Z-level Fallen Icarus loaded at 1,1,13
+[15:00:00] b6X-czH7 GAME: Z-level Yacht loaded at 50,50,14
+[15:00:00] b6X-czH7 GAME: Z-level Ascent seedship loaded at 40,40,15
+[15:00:00] b6X-czH7 OOC: ChillRaccoon - usr: ChillRaccoon/(ChillRaccoon) : аа
+[15:00:00] b6X-czH7 OOC: ChillRaccoon - usr: ChillRaccoon/(ChillRaccoon) : Блять
+[15:00:00] b6X-czH7 OOC: ChillRaccoon - usr: ChillRaccoon/(ChillRaccoon) : Прикольно чё
+[15:00:00] b6X-czH7 OOC: ChillRaccoon - usr: ChillRaccoon/(ChillRaccoon) : гыг
+[15:00:00] b6X-czH7 ASGEN: Found 8156 ore turfs.
+[15:00:00] b6X-czH7 ASGEN: Set 1388 turfs to random minerals.
+[15:00:00] b6X-czH7 ASGEN: Set 474 turfs to high-chance random minerals.
+[15:00:00] b6X-czH7 ASGEN: Applied 34969 turfs.
+[15:00:00] b6X-czH7 GAME: random datapod contents #1 (chem vials) loaded at at 68,79,22
+[15:00:00] b6X-czH7 GAME: ejected data capsule loaded at at 66,77,22
+[15:00:00] b6X-czH7 VOTE: Game mode vote started by the server.
+[15:00:00] b6X-czH7 VOTE: <b>Vote Result: Inconclusive - No Votes!</b>
+[15:00:00] b6X-czH7 DEBUG: Next event of severity Mundane in 13.73 minutes.
+[15:00:00] b6X-czH7 DEBUG: Next event of severity Moderate in 43.088 minutes.
+[15:00:00] b6X-czH7 DEBUG: Next event of severity Major in 83.41 minutes.
+[15:00:00] b6X-czH7 ACCESS: Logout: chillraccoon/(ChillRaccoon)
+[15:00:00] b6X-czH7 ACCESS: Login: ChillRaccoon/(Danielle Magor) from 127.0.0.1-379466178 || BYOND v513
+[15:00:00] b6X-czH7 DEBUG: Moved - the unknown was deleted while still being listened to by the mob.
+[15:00:00] b6X-czH7 DEBUG: See In Dark Set - the unknown was deleted while still being listened to by the mob.
+[15:00:00] b6X-czH7 DEBUG: See Invisible Set - the unknown was deleted while still being listened to by the mob.
+[15:00:00] b6X-czH7 DEBUG: Sight Set - the unknown was deleted while still being listened to by the mob.
+[15:01:38] b6X-czH7 EMOTE: Poppy the Safety Possum/ : <B>Poppy the Safety Possum</B> hisses.
+[15:02:24] b6X-czH7 EMOTE: Ian/ : <B>Ian</B> chases their tail.
+[15:04:58] b6X-czH7 EMOTE: Ian/ : <B>Ian</B> chases their tail.
+[15:05:06] b6X-czH7 EMOTE: Ian/ : <B>Ian</B> chases their tail.
+[15:05:12] b6X-czH7 EMOTE: Ian/ : <B>Ian</B> dances around.
+[15:05:37] b6X-czH7 ACCESS: Logout: ChillRaccoon/(Danielle Magor)
