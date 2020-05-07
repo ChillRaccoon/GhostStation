@@ -240,7 +240,7 @@ proc/sql_sanitize_text(text)
 
 //Returns a string with the first element of the string capitalized.
 /proc/capitalize(t)
-	return uppertext_(copytext(t, 1, 2)) + copytext(t, 2)
+	return r_uppertext(t)
 
 //This proc strips html properly, remove < > and all text between
 //for complete text sanitizing should be used sanitize()
