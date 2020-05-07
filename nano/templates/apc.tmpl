@@ -1,11 +1,3 @@
-{{if data.failTime}}
-<div class='notice'>
-	<b><h3>SYSTEM FAILURE</h3></b>
-	<i>I/O regulators malfunction detected! Waiting for system reboot...</i><br>
-	Automatic reboot in {{:data.failTime}} seconds...
-	{{:helper.link('Reboot Now', 'refresh', {'reboot' : 1})}}<br><br><br>
-</div>
-{{else}}
 <div class='notice'>
 	{{if data.siliconUser}}
 		<div class="itemContentSmall">
@@ -117,13 +109,13 @@
 			</div>
 			<div class="itemContent" style="width: 105px">
 				&nbsp;&nbsp;
-				{{if value.status < data.pChan_On}}
+				{{if value.status <= 1}}
 					<span class='bad'>Off</span>
-				{{else}}
+				{{else value.status >= 2}}
 					<span class='good'>On</span>
 				{{/if}}
 				{{if data.locked}}
-					{{if value.status == data.pChan_Off_A || value.status == data.pChan_On_A}}
+					{{if value.status == 1 || value.status == 3}}
 						&nbsp;&nbsp;Auto
 					{{else}}
 						&nbsp;&nbsp;Manual
@@ -132,9 +124,9 @@
 			</div>
 			{{if !data.locked || data.siliconUser}}
 				<div class="itemContentFull">
-					{{:helper.link('Auto', 'refresh', value.topicParams.auto, (value.status == data.pChan_Off_A || value.status == data.pChan_On_A) ? 'selected' : null)}}
-					{{:helper.link('On', 'power', value.topicParams.on, (value.status == data.pChan_Off_T || value.status == data.pChan_On) ? 'selected' : null)}}
-					{{:helper.link('Off', 'close', value.topicParams.off, (value.status == data.pChan_Off) ? 'selected' : null)}}
+					{{:helper.link('Auto', 'refresh', value.topicParams.auto, (value.status == 1 || value.status == 3) ? 'selected' : null)}}
+					{{:helper.link('On', 'power', value.topicParams.on, (value.status == 2) ? 'selected' : null)}}
+					{{:helper.link('Off', 'close', value.topicParams.off, (value.status == 0) ? 'selected' : null)}}
 				</div>
 			{{/if}}
 		</div>
@@ -186,4 +178,4 @@
 	{{/if}}
 
 </div>
-{{/if}}
+		

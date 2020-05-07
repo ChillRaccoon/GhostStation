@@ -24,106 +24,128 @@
 	// Yay, you're no longer growing 3 arms
 	var/deactivation_message=""
 
-/datum/dna/gene/disability/can_activate(var/mob/M,var/flags)
+/datum/dna/gene/disability/can_activate(mob/M,flags)
 	return 1 // Always set!
 
-/datum/dna/gene/disability/activate(var/mob/M, var/connected, var/flags)
+/datum/dna/gene/disability/activate(mob/M, connected, flags)
 	if(mutation && !(mutation in M.mutations))
 		M.mutations.Add(mutation)
 	if(disability)
 		M.disabilities|=disability
-	if(sdisability)
-		M.set_sdisability(sdisability)
+	if(mutation)
+		M.sdisabilities|=sdisability
 	if(activation_message)
-		to_chat(M, "<span class='warning'>[activation_message]</span>")
-	else
-		testing("[name] has no activation message.")
+		to_chat(M, "\red [activation_message]")
+	//else
+		//testing("[name] has no activation message.")
 
-/datum/dna/gene/disability/deactivate(var/mob/M, var/connected, var/flags)
+/datum/dna/gene/disability/deactivate(mob/M, connected, flags)
 	if(mutation && (mutation in M.mutations))
 		M.mutations.Remove(mutation)
 	if(disability)
-		M.disabilities &= (~disability)
-	if(sdisability)
-		M.unset_sdisability(sdisability)
+		M.disabilities-=disability
+	if(mutation)
+		M.sdisabilities-=sdisability
 	if(deactivation_message)
-		to_chat(M, "<span class='warning'>[deactivation_message]</span>")
-	else
-		testing("[name] has no deactivation message.")
+		to_chat(M, "\red [deactivation_message]")
+	//else
+		//testing("[name] has no deactivation message.")
 
 // Note: Doesn't seem to do squat, at the moment.
 /datum/dna/gene/disability/hallucinate
 	name="Hallucinate"
 	activation_message="Your mind says 'Hello'."
-	mutation=mHallucination
+	mutation=HALLUCINATE
 
-/datum/dna/gene/disability/hallucinate/New()
-	block=GLOB.HALLUCINATIONBLOCK
+	New()
+		block=HALLUCINATIONBLOCK
+
+	OnMobLife(mob/living/carbon/human/M) //#Z2
+		if(!istype(M)) return
+		M.hallucination = 200
+
+	deactivate(mob/living/carbon/human/M, connected, flags)
+		..(M,connected,flags)
+		M.hallucination = 0 //##Z2
 
 /datum/dna/gene/disability/epilepsy
 	name="Epilepsy"
 	activation_message="You get a headache."
 	disability=EPILEPSY
 
-/datum/dna/gene/disability/epilepsy/New()
-	block=GLOB.HEADACHEBLOCK
+	New()
+		block=HEADACHEBLOCK
 
 /datum/dna/gene/disability/cough
 	name="Coughing"
 	activation_message="You start coughing."
 	disability=COUGHING
 
-/datum/dna/gene/disability/cough/New()
-	block=GLOB.COUGHBLOCK
+	New()
+		block=COUGHBLOCK
 
 /datum/dna/gene/disability/clumsy
 	name="Clumsiness"
 	activation_message="You feel lightheaded."
-	mutation=MUTATION_CLUMSY
+	mutation=CLUMSY
 
-/datum/dna/gene/disability/clumsy/New()
-	block=GLOB.CLUMSYBLOCK
+	New()
+		block=CLUMSYBLOCK
 
 /datum/dna/gene/disability/tourettes
 	name="Tourettes"
 	activation_message="You twitch."
 	disability=TOURETTES
 
-/datum/dna/gene/disability/tourettes/New()
-	block=GLOB.TWITCHBLOCK
+	New()
+		block=TWITCHBLOCK
 
 /datum/dna/gene/disability/nervousness
 	name="Nervousness"
 	activation_message="You feel nervous."
 	disability=NERVOUS
 
-/datum/dna/gene/disability/nervousness/New()
-	block=GLOB.NERVOUSBLOCK
+	New()
+		block=NERVOUSBLOCK
 
 /datum/dna/gene/disability/blindness
 	name="Blindness"
 	activation_message="You can't seem to see anything."
-	sdisability=BLINDED
+	sdisability=BLIND
 
-/datum/dna/gene/disability/blindness/New()
-	block=GLOB.BLINDBLOCK
+	New()
+		block=BLINDBLOCK
+
+	OnMobLife(mob/living/carbon/human/M) //#Z2
+		if(!istype(M)) return
+		M.eye_blurry = 200
+		M.eye_blind = 200
+
+	deactivate(mob/living/carbon/human/M, connected, flags)
+		..(M,connected,flags)
+		M.eye_blurry = 0
+		M.eye_blind = 0 //##Z2
 
 /datum/dna/gene/disability/deaf
 	name="Deafness"
 	activation_message="It's kinda quiet."
-	sdisability=DEAFENED
+	sdisability=DEAF
 
-/datum/dna/gene/disability/deaf/New()
-	block=GLOB.DEAFBLOCK
+	New()
+		block=DEAFBLOCK
 
-/datum/dna/gene/disability/deaf/activate(var/mob/M, var/connected, var/flags)
-	..(M,connected,flags)
-	M.ear_deaf = 1
+	OnMobLife(mob/living/carbon/human/M) //#Z2
+		if(!istype(M)) return
+		M.ear_deaf = 200
+
+	deactivate(mob/living/carbon/human/M, connected, flags)
+		..(M,connected,flags)
+		M.ear_deaf = 0 //##Z2
 
 /datum/dna/gene/disability/nearsighted
 	name="Nearsightedness"
 	activation_message="Your eyes feel weird..."
 	disability=NEARSIGHTED
 
-/datum/dna/gene/disability/nearsighted/New()
-	block=GLOB.GLASSESBLOCK
+	New()
+		block=GLASSESBLOCK

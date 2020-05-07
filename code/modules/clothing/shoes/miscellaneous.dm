@@ -4,180 +4,132 @@
 	icon_state = "brown"
 	item_state = "brown"
 	permeability_coefficient = 0.05
-	item_flags = ITEM_FLAG_NOSLIP
-	origin_tech = list(TECH_ESOTERIC = 3)
+	flags = NOSLIP
+	origin_tech = "syndicate=3"
 	var/list/clothing_choices = list()
 	siemens_coefficient = 0.8
-	species_restricted = null
+	species_restricted = list("exclude", TYCHEON)
 
 /obj/item/clothing/shoes/mime
 	name = "mime shoes"
 	icon_state = "mime"
-	can_add_cuffs = FALSE
+	item_color = "mime"
+	clipped_status = CLIPPABLE
 
 /obj/item/clothing/shoes/swat
-	name = "\improper SWAT boots"
+	name = "\improper SWAT shoes"
 	desc = "When you want to turn up the heat."
 	icon_state = "swat"
-	force = 3
-	armor = list(
-		melee = ARMOR_MELEE_VERY_HIGH, 
-		bullet = ARMOR_BALLISTIC_RIFLE, 
-		laser = ARMOR_LASER_HANDGUNS,
-		energy = ARMOR_ENERGY_SMALL, 
-		bomb = ARMOR_BOMB_RESISTANT, 
-		bio = ARMOR_BIO_MINOR
-		)
-	item_flags = ITEM_FLAG_NOSLIP
+	item_state = "wjboots"
+	flags = NOSLIP
 	siemens_coefficient = 0.6
+	clipped_status = CLIPPABLE
 
 /obj/item/clothing/shoes/combat //Basically SWAT shoes combined with galoshes.
 	name = "combat boots"
-	desc = "When you REALLY want to turn up the heat."
-	icon_state = "jungle"
-	force = 5
-	armor = list(
-		melee = ARMOR_MELEE_VERY_HIGH, 
-		bullet = ARMOR_BALLISTIC_RIFLE, 
-		laser = ARMOR_LASER_HANDGUNS,
-		energy = ARMOR_ENERGY_SMALL, 
-		bomb = ARMOR_BOMB_RESISTANT, 
-		bio = ARMOR_BIO_MINOR
-		)
-	item_flags = ITEM_FLAG_NOSLIP
+	desc = "When you REALLY want to turn up the heat"
+	icon_state = "swat"
+	item_state = "wjboots"
+	flags = NOSLIP
 	siemens_coefficient = 0.6
+	clipped_status = CLIPPABLE
 
-	cold_protection = FEET
+	cold_protection = LEGS
 	min_cold_protection_temperature = SHOE_MIN_COLD_PROTECTION_TEMPERATURE
-	heat_protection = FEET
+	heat_protection = LEGS
 	max_heat_protection_temperature = SHOE_MAX_HEAT_PROTECTION_TEMPERATURE
 
-/obj/item/clothing/shoes/jungleboots
-	name = "jungle boots"
-	desc = "A pair of durable brown boots. Waterproofed for use planetside."
-	icon_state = "jungle"
-	force = 3
-	armor = list(
-		melee = ARMOR_MELEE_RESISTANT, 
-		bullet = ARMOR_BALLISTIC_MINOR, 
-		laser = ARMOR_LASER_MINOR, 
-		energy = ARMOR_ENERGY_MINOR, 
-		bomb = ARMOR_BOMB_PADDED, 
-		bio = ARMOR_BIO_MINOR
-		)
-	siemens_coefficient = 0.7
+/obj/item/clothing/shoes/combat/cut //Basically combat shoes but for xenos.
+	name = "mangled combat boots"
+	desc = "When you REALLY want to turn up the heat. They have the toe caps cut off of them."
+	icon_state = "swat_cut"
+	item_state = "wjboots"
+	flags = NOSLIP
+	siemens_coefficient = 0.6
+	species_restricted = list("exclude", TYCHEON)
 
-/obj/item/clothing/shoes/desertboots
-	name = "desert boots"
-	desc = "A pair of durable tan boots. Designed for use in hot climates."
-	icon_state = "desert"
-	force = 3
-	armor = list(
-		melee = ARMOR_MELEE_RESISTANT, 
-		bullet = ARMOR_BALLISTIC_MINOR, 
-		laser = ARMOR_LASER_MINOR, 
-		energy = ARMOR_ENERGY_MINOR, 
-		bomb = ARMOR_BOMB_PADDED, 
-		bio = ARMOR_BIO_MINOR
-		)
-	siemens_coefficient = 0.7
+	cold_protection = LEGS
+	min_cold_protection_temperature = SHOE_MIN_COLD_PROTECTION_TEMPERATURE
+	heat_protection = LEGS
+	max_heat_protection_temperature = SHOE_MAX_HEAT_PROTECTION_TEMPERATURE
 
-/obj/item/clothing/shoes/dutyboots
-	name = "duty boots"
-	desc = "A pair of steel-toed synthleather boots with a mirror shine."
-	icon_state = "duty"
-	armor = list(
-		melee = ARMOR_MELEE_RESISTANT, 
-		energy = ARMOR_ENERGY_MINOR, 
-		bomb = ARMOR_BOMB_PADDED, 
-		rad = ARMOR_RAD_MINOR
-		)
-	siemens_coefficient = 0.7
-	gas_transfer_coefficient = 0.90
-	permeability_coefficient = 0.50
-	body_parts_covered = FEET
-	heat_protection = FEET
-	max_heat_protection_temperature = FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE
-	max_pressure_protection = FIRESUIT_MAX_PRESSURE
+/obj/item/clothing/shoes/space_ninja
+	name = "ninja shoes"
+	desc = "A pair of running shoes. Excellent for running and even better for smashing skulls."
+	icon_state = "s-ninja"
+	permeability_coefficient = 0.01
+	flags = NOSLIP
+	siemens_coefficient = 0.2
+	unacidable = 1
 
-/obj/item/clothing/shoes/tactical
-	name = "tactical boots"
-	desc = "Tan boots with extra padding and armor."
-	icon_state = "desert"
-	force = 3
-	armor = list(
-		melee = ARMOR_MELEE_RESISTANT, 
-		bullet = ARMOR_BALLISTIC_PISTOL, 
-		laser = ARMOR_LASER_HANDGUNS, 
-		energy = ARMOR_ENERGY_SMALL, 
-		bomb = ARMOR_BOMB_RESISTANT)
-	siemens_coefficient = 0.7
+	cold_protection = LEGS
+	min_cold_protection_temperature = SHOE_MIN_COLD_PROTECTION_TEMPERATURE
+	heat_protection = LEGS
+	max_heat_protection_temperature = SHOE_MAX_HEAT_PROTECTION_TEMPERATURE
+	species_restricted = list("exclude", TYCHEON)
 
-/obj/item/clothing/shoes/dress
-	name = "dress shoes"
-	desc = "The height of fashion, and they're pre-polished!"
-	icon_state = "laceups"
-	can_add_hidden_item = FALSE
-	can_add_cuffs = FALSE
-
-/obj/item/clothing/shoes/dress/white
-	name = "white dress shoes"
-	desc = "Brilliantly white shoes, not a spot on them."
-	icon_state = "whitedress"
+/obj/item/clothing/shoes/tourist
+	name = "flip-flops"
+	desc = "These cheap sandals don't look very comfortable."
+	icon_state = "tourist"
+	permeability_coefficient = 1
+	species_restricted = list("exclude", TYCHEON)
+	w_class = 2
 
 /obj/item/clothing/shoes/sandal
 	desc = "A pair of rather plain, wooden sandals."
 	name = "sandals"
 	icon_state = "wizard"
-	species_restricted = null
+	species_restricted = list("exclude", TYCHEON)
 	body_parts_covered = 0
-	wizard_garb = 1
-	can_add_hidden_item = FALSE
-	can_add_cuffs = FALSE
 
 /obj/item/clothing/shoes/sandal/marisa
 	desc = "A pair of magic, black shoes."
 	name = "magic shoes"
 	icon_state = "black"
-	body_parts_covered = FEET
+	body_parts_covered = LEGS
+
+/obj/item/clothing/shoes/galoshes
+	desc = "Rubber boots."
+	name = "galoshes"
+	icon_state = "galoshes"
+	permeability_coefficient = 0.05
+	flags = NOSLIP
+	slowdown = SHOES_SLOWDOWN+1
+	species_restricted = list("exclude", TYCHEON)
 
 /obj/item/clothing/shoes/clown_shoes
 	desc = "The prankster's standard-issue clowning shoes. Damn they're huge!"
 	name = "clown shoes"
 	icon_state = "clown"
-	item_state = "clown"
-	force = 0
-	var/footstep = 1	//used for squeeks whilst walking
-	species_restricted = null
-	can_add_hidden_item = FALSE
+	item_state = "clown_shoes"
+	slowdown = SHOES_SLOWDOWN+1
+	item_color = "clown"
+//	var/footstep = 1	//used for squeeks whilst walking
+	species_restricted = list("exclude", TYCHEON)
 
-/obj/item/clothing/shoes/clown_shoes/New()
-	..()
-	slowdown_per_slot[slot_shoes]  = 1
-
-/obj/item/clothing/shoes/clown_shoes/handle_movement(var/turf/walking, var/running)
-	if(running)
-		if(footstep >= 2)
-			footstep = 0
-			playsound(src, "clownstep", 50, 1) // this will get annoying very fast.
-		else
-			footstep++
-	else
-		playsound(src, "clownstep", 20, 1)
+/obj/item/clothing/shoes/jackboots
+	name = "jackboots"
+	desc = "Nanotrasen-issue Security combat boots for combat scenarios or combat situations. All combat, all the time."
+	icon_state = "wjboots"
+	item_state = "wjboots"
+	item_color = "hosred"
+	siemens_coefficient = 0.7
+	clipped_status = CLIPPABLE
 
 /obj/item/clothing/shoes/cult
 	name = "boots"
 	desc = "A pair of boots worn by the followers of Nar-Sie."
 	icon_state = "cult"
 	item_state = "cult"
-	force = 2
+	item_color = "cult"
 	siemens_coefficient = 0.7
 
-	cold_protection = FEET
+	cold_protection = LEGS
 	min_cold_protection_temperature = SHOE_MIN_COLD_PROTECTION_TEMPERATURE
-	heat_protection = FEET
+	heat_protection = LEGS
 	max_heat_protection_temperature = SHOE_MAX_HEAT_PROTECTION_TEMPERATURE
-	species_restricted = null
+	species_restricted = list("exclude", TYCHEON)
 
 /obj/item/clothing/shoes/cyborg
 	name = "cyborg boots"
@@ -189,61 +141,70 @@
 	desc = "Fluffy!"
 	icon_state = "slippers"
 	item_state = "slippers"
-	force = 0
-	species_restricted = null
-	w_class = ITEM_SIZE_SMALL
-	can_add_hidden_item = FALSE
-	can_add_cuffs = FALSE
+	species_restricted = list("exclude", TYCHEON)
+	w_class = 2
 
-/obj/item/clothing/shoes/slippers/worn
+/obj/item/clothing/shoes/slippers_worn
 	name = "worn bunny slippers"
 	desc = "Fluffy..."
 	icon_state = "slippers_worn"
 	item_state = "slippers_worn"
+	w_class = 2
 
 /obj/item/clothing/shoes/laceup
 	name = "laceup shoes"
 	desc = "The height of fashion, and they're pre-polished!"
 	icon_state = "laceups"
-	can_add_hidden_item = FALSE
-	can_add_cuffs = FALSE
+	clipped_status = CLIPPABLE
 
 /obj/item/clothing/shoes/swimmingfins
 	desc = "Help you swim good."
 	name = "swimming fins"
 	icon_state = "flippers"
-	item_flags = ITEM_FLAG_NOSLIP
-	species_restricted = null
-	can_add_hidden_item = FALSE
-	can_add_cuffs = FALSE
+	flags = NOSLIP
+	slowdown = SHOES_SLOWDOWN+1
+	species_restricted = list("exclude", TYCHEON)
 
-/obj/item/clothing/shoes/swimmingfins/New()
-	..()
-	slowdown_per_slot[slot_shoes] = 1
+/obj/item/clothing/shoes/centcom
+	name = "dress shoes"
+	desc = "They appear impeccably polished."
+	icon_state = "laceups"
+	clipped_status = CLIPPABLE
 
-/obj/item/clothing/shoes/athletic
-	name = "athletic shoes"
-	desc = "A pair of sleek atheletic shoes. Made by and for the sporty types."
-	icon_state = "sportshoe"
+/obj/item/clothing/shoes/rosas_shoes
+	name = "white shoes"
+	icon_state = "rosas_shoes"
+	item_color = "rosas_shoes"
+	permeability_coefficient = 0.01
 
-/obj/item/clothing/shoes/laceup/sneakies
-	desc = "The height of fashion, and they're pre-polished. Upon further inspection, the soles appear to be on backwards. They look uncomfortable."
-	species_restricted = list(SPECIES_HUMAN, SPECIES_IPC)
-	move_trail = /obj/effect/decal/cleanable/blood/tracks/footprints/reversed
-	item_flags = ITEM_FLAG_SILENT
+/obj/item/clothing/shoes/western
+	name = "western boots"
+	icon_state = "western_boots"
+	item_color = "western_boots"
+
+/obj/item/clothing/shoes/magboots/syndie
+	desc = "Light-weighted magnetic boots that have a custom syndicate paintjob for use in combat."
+	name = "gorlex magboots"
+	icon_state = "syndiemag0"
+	magboot_state = "syndiemag"
+	slowdown_off = 1
+
+/obj/item/clothing/shoes/workboots
+	name = "work boots"
+	icon_state = "workboots"
+	item_color = "workboots"
+	item_state = "b_shoes"  // need sprites for this
+	clipped_status = CLIPPABLE
+
+/obj/item/clothing/shoes/roman
+	name = "roman sandals"
+	desc = "Sandals with buckled leather straps on it."
+	icon_state = "roman"
+	item_state = "roman"
 
 /obj/item/clothing/shoes/heels
-	name = "high heels"
-	icon_state = "heels"
-	desc = "A pair of colourable high heels."
-	can_add_cuffs = FALSE
+	name = "Heels"
+	icon_state = "high_shoes"
 
-/obj/item/clothing/shoes/heels/black
-	name = "black high heels"
-	desc = "A pair of black high heels."
-	color = COLOR_GRAY15
-
-obj/item/clothing/shoes/heels/red
-	name = "red high heels"
-	desc = "A pair of red high heels."
-	color = COLOR_RED
+/obj/item/clothing/shoes/heels/alternate
+	icon_state = "high_shoes2"

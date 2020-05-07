@@ -3,33 +3,26 @@
 	desc = "It's some non-descript, slightly suspicious looking, civilian clothing."
 	icon_state = "syndicate"
 	item_state = "bl_suit"
-	worn_state = "syndicate"
+	item_color = "syndicate"
 	has_sensor = 0
-	gender_icons = 1
-	armor = list(
-		melee = ARMOR_MELEE_SMALL, 
-		bullet = ARMOR_BALLISTIC_MINOR, 
-		laser = ARMOR_LASER_MINOR
-		)
+	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0, telepathy = 0)
 	siemens_coefficient = 0.9
+	flags = ONESIZEFITSALL
+
+/obj/item/clothing/under/syndicate/equipped(mob/M)
+	if(M.gender != FEMALE)
+		item_color = "syndicate"
+	else
+		item_color = "syndicate_f"
+	return ..()
 
 /obj/item/clothing/under/syndicate/combat
 	name = "combat turtleneck"
-	desc = "The height of fashion and tactical utility."
-	icon_state = "combat"
-	item_state = "bl_suit"
-	worn_state = "combat"
-	gender_icons = 1
-	has_sensor = SUIT_HAS_SENSORS
 
 /obj/item/clothing/under/syndicate/tacticool
-	name = "\improper Tacticool turtleneck"
+	name = "\improper tacticool turtleneck"
 	desc = "Just looking at it makes you want to buy an SKS, go into the woods, and -operate-."
 	icon_state = "tactifool"
 	item_state = "bl_suit"
-	worn_state = "tactifool"
-	armor = null
+	item_color = "tactifool"
 	siemens_coefficient = 1
-	has_sensor = SUIT_HAS_SENSORS
-
-

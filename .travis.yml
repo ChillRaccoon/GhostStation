@@ -1,35 +1,20 @@
 language: generic
-os: linux
-dist: xenial
-jdk: openjdk8
+sudo: false
+
+after_success:
+  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh success $WEBHOOK_URL
+after_failure:
+  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh failure $WEBHOOK_URL
 
 env:
-  global:
-    BYOND_MAJOR="512"
-    BYOND_MINOR="1485"
-
-# ALL MAPS MUST BE PRESENT HERE
-# IF THEY ARE NOT, YOUR BUILD WILL FAIL
-jobs:
-    include:
-    - name: "DreamChecker"
-      env: SPACEMAN_DMM_VERSION=suite-1.4
-      cache:
-        directories: $HOME/spaceman_dmm/$SPACEMAN_DMM_VERSION
-      install:
-        - ./scripts/install-spaceman-dmm.sh dreamchecker
-      script:
-        - ~/dreamchecker
-    - name: "Code"
-      env: TEST=CODE
-    - name: "Map - Example"
-      env: TEST=MAP MAP_PATH=example
-    - name: "Map - Torch"
-      env: TEST=MAP MAP_PATH=torch
-    - name: "Map - Bearcat"
-      env: TEST=MAP MAP_PATH=bearcat
-    - name: "Map - Away Sites"
-      env: TEST=MAP MAP_PATH=away_sites_testing
+    global:
+    - BYOND_MAJOR="512"
+    - BYOND_MINOR="1454"
+    - DM_BUILDFILE="gammastation.dme"
 
 cache:
   directories:
@@ -41,14 +26,11 @@ addons:
       - libc6-i386
       - libgcc1:i386
       - libstdc++6:i386
-      - python
-      - python-pip
-      - uchardet
+
+before_script:
+  - chmod +x ./install-byond.sh 
+  - ./install-byond.sh
 
 script:
-  - test/run-test.sh
-
-after_failure:
-  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
-  - chmod +x send.sh
-  - ./send.sh failure $WEBHOOK_URL
+  - source $HOME/BYOND-${BYOND_MAJOR}.${BYOND_MINOR}/byond/bin/byondsetup
+  - bash dm.sh ${DM_BUILDFILE}

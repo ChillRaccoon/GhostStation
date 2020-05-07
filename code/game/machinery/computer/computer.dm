@@ -1,37 +1,46 @@
 /obj/machinery/computer
 	name = "computer"
 	icon = 'icons/obj/computer.dmi'
-	icon_state = "computer"
 	density = 1
 	anchored = 1.0
+	use_power = 1
 	idle_power_usage = 300
 	active_power_usage = 300
-	construct_state = /decl/machine_construction/default/panel_closed/computer
-	uncreated_component_parts = null
-	stat_immune = 0
-	frame_type = /obj/machinery/constructable_frame/computerframe/deconstruct
+	allowed_checks = ALLOWED_CHECK_TOPIC
+	var/obj/item/weapon/circuitboard/circuit = null //if circuit==null, computer can't disassembly
 	var/processing = 0
 
-	var/icon_keyboard = "generic_key"
-	var/icon_screen = "generic"
-	var/light_max_bright_on = 0.2
-	var/light_inner_range_on = 0.1
-	var/light_outer_range_on = 2
-	var/overlay_layer
-	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_CLIMBABLE
-	clicksound = "keyboard"
+	var/light_range_on = 1.5
+	var/light_power_on = 3
 
-/obj/machinery/computer/New()
-	overlay_layer = layer
-	..()
-
-/obj/machinery/computer/Initialize()
+/obj/machinery/computer/atom_init(mapload, obj/item/weapon/circuitboard/C)
 	. = ..()
-	update_icon()
+	if(C && istype(C))
+		circuit = C
+	else
+		if(circuit)
+			circuit = new circuit(null)
+	power_change()
+
+/obj/machinery/computer/process()
+	if(stat & (NOPOWER|BROKEN))
+		return 0
+	return 1
+
+/obj/machinery/computer/meteorhit(obj/O)
+	for(var/x in verbs)
+		verbs -= x
+	set_broken()
+	var/datum/effect/effect/system/smoke_spread/smoke = new /datum/effect/effect/system/smoke_spread()
+	smoke.set_up(5, 0, src)
+	smoke.start()
+	return
+
 
 /obj/machinery/computer/emp_act(severity)
-	if(prob(20/severity)) set_broken(TRUE)
+	if(prob(20/severity)) set_broken()
 	..()
+
 
 /obj/machinery/computer/ex_act(severity)
 	switch(severity)
@@ -45,68 +54,128 @@
 			if (prob(50))
 				for(var/x in verbs)
 					verbs -= x
-				set_broken(TRUE)
+				set_broken()
 		if(3.0)
 			if (prob(25))
 				for(var/x in verbs)
 					verbs -= x
-				set_broken(TRUE)
+				set_broken()
+		else
+	return
 
-/obj/machinery/computer/bullet_act(var/obj/item/projectile/Proj)
-	if(prob(Proj.get_structure_damage()))
-		set_broken(TRUE)
+/obj/machinery/computer/bullet_act(obj/item/projectile/Proj)
+	if(prob(Proj.damage))
+		set_broken()
 	..()
 
-/obj/machinery/computer/on_update_icon()
-	overlays.Cut()
-	icon = initial(icon)
+
+/obj/machinery/computer/blob_act()
+	if (prob(75))
+		for(var/x in verbs)
+			verbs -= x
+		set_broken()
+		density = 0
+
+/obj/machinery/computer/update_icon()
+	..()
 	icon_state = initial(icon_state)
+	// Broken
+	if(stat & BROKEN)
+		icon_state += "b"
 
-	if(reason_broken & MACHINE_BROKEN_NO_PARTS)
-		set_light(0)
-		icon = 'icons/obj/computer.dmi'
-		icon_state = "wired"
-		var/screen = get_component_of_type(/obj/item/weapon/stock_parts/console_screen)
-		var/keyboard = get_component_of_type(/obj/item/weapon/stock_parts/keyboard)
-		if(screen)
-			overlays += "comp_screen"
-		if(keyboard)
-			overlays += icon_keyboard ? "[icon_keyboard]_off" : "keyboard"
-		return
+	// Powered
+	else if(stat & NOPOWER)
+		icon_state += "0"
 
+
+
+/obj/machinery/computer/power_change()
+	..()
+	update_icon()
 	if(stat & NOPOWER)
 		set_light(0)
-		if(icon_keyboard)
-			overlays += image(icon,"[icon_keyboard]_off", overlay_layer)
-		return
 	else
-		set_light(light_max_bright_on, light_inner_range_on, light_outer_range_on, 2, light_color)
+		set_light(light_range_on, light_power_on)
+	return
 
-	if(stat & BROKEN)
-		overlays += image(icon,"[icon_state]_broken", overlay_layer)
-	else
-		overlays += get_screen_overlay()
 
-	overlays += get_keyboard_overlay()
-
-/obj/machinery/computer/proc/get_screen_overlay()
-	return image(icon,icon_screen, overlay_layer)
-
-/obj/machinery/computer/proc/get_keyboard_overlay()
-	if(icon_keyboard)
-		overlays += image(icon, icon_keyboard, overlay_layer)
+/obj/machinery/computer/proc/set_broken()
+	if(circuit) //no circuit, no breaking
+		stat |= BROKEN
+		update_icon()
+	return
 
 /obj/machinery/computer/proc/decode(text)
 	// Adds line breaks
 	text = replacetext(text, "\n", "<BR>")
 	return text
 
-/obj/machinery/computer/dismantle(mob/user)
-	if(stat & BROKEN)
-		to_chat(user, "<span class='notice'>The broken glass falls out.</span>")
-		for(var/obj/item/weapon/stock_parts/console_screen/screen in component_parts)
-			qdel(screen)
-			new /obj/item/weapon/material/shard(loc)
-	else
-		to_chat(user, "<span class='notice'>You disconnect the monitor.</span>")
-	return ..()
+/obj/machinery/computer/attackby(obj/item/I, mob/user)
+	user.SetNextMove(CLICK_CD_INTERACT)
+	if(istype(I, /obj/item/weapon/screwdriver) && circuit && !(flags&NODECONSTRUCT))
+		if(user.is_busy(src)) return
+		playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
+		if(do_after(user, 20, target = src))
+			var/obj/structure/computerframe/A = new /obj/structure/computerframe( src.loc )
+			A.circuit = circuit
+			A.anchored = 1
+			circuit = null
+			for (var/obj/C in src)
+				C.loc = src.loc
+			if (src.stat & BROKEN)
+				to_chat(user, "\blue The broken glass falls out.")
+				new /obj/item/weapon/shard( src.loc )
+				A.state = 3
+				A.icon_state = "3"
+			else
+				to_chat(user, "\blue You disconnect the monitor.")
+				set_light(0)
+				A.state = 4
+				A.icon_state = "4"
+			qdel(src)
+
+/obj/machinery/computer/attack_hand(user)
+	if(ishuman(user))
+		var/mob/living/carbon/human/H = user
+		if(HULK in H.mutations)
+			if(stat & (BROKEN))
+				return 1
+			if(H.a_intent == "hurt")
+				H.visible_message("\red [H.name] smashes [src] with \his mighty arms!")
+				set_broken()
+				return 1
+			else
+				H.visible_message("\red [H.name] stares cluelessly at [src] and drools.")
+				return 1
+	. = ..()
+
+/obj/machinery/computer/attack_paw(mob/user)
+	if(circuit)
+		user.SetNextMove(CLICK_CD_MELEE)
+		user.do_attack_animation(src)
+		if(prob(10))
+			user.visible_message("<span class='danger'>[user.name] smashes the [src.name] with /his paws.</span>",\
+			"<span class='danger'>You smash the [src.name] with your paws.</span>",\
+			"<span class='danger'>You hear a smashing sound.</span>")
+			set_broken()
+			return
+	user.visible_message("<span class='danger'>[user.name] smashes against the [src.name] with /his paws.</span>",\
+	"<span class='danger'>You smash against the [src.name] with your paws.</span>",\
+	"<span class='danger'>You hear a clicking sound.</span>")
+
+/obj/machinery/computer/attack_alien(mob/user)
+	if(istype(user, /mob/living/carbon/alien/humanoid/queen))
+		attack_hand(user)
+		return
+	if(circuit)
+		user.do_attack_animation(src)
+		user.SetNextMove(CLICK_CD_MELEE)
+		if(prob(80))
+			user.visible_message("<span class='danger'>[user.name] smashes the [src.name] with /his claws.</span>",\
+			"<span class='danger'>You smash the [src.name] with your claws.</span>",\
+			"<span class='danger'>You hear a smashing sound.</span>")
+			set_broken()
+			return
+	user.visible_message("<span class='danger'>[user.name] smashes against the [src.name] with /his claws.</span>",\
+	"<span class='danger'>You smash against the [src.name] with your claws.</span>",\
+	"<span class='danger'>You hear a clicking sound.</span>")

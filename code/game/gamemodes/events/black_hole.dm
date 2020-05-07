@@ -8,12 +8,12 @@
 	density = 0
 	anchored = 1
 
-/obj/effect/bhole/New()
-	spawn(4)
-		controller()
+/obj/effect/bhole/atom_init()
+	. = ..()
+	addtimer(CALLBACK(src, .proc/controller), 4)
 
 /obj/effect/bhole/proc/controller()
-	while(src)
+	while(!QDELETED(src))
 
 		if(!isturf(loc))
 			qdel(src)
@@ -24,11 +24,8 @@
 			qdel(M)
 		for(var/obj/O in orange(1,src))
 			qdel(O)
-		var/base_turf = get_base_turf_by_area(src)
 		for(var/turf/simulated/ST in orange(1,src))
-			if(ST.type == base_turf)
-				continue
-			ST.ChangeTurf(base_turf)
+			ST.ChangeTurf(/turf/space)
 
 		sleep(6)
 		grav(10, 4, 10, 0 )
@@ -50,15 +47,13 @@
 		grav( 2, 2, 75,25 )
 		sleep(6)
 
-
-
 		//MOVEMENT
 		if( prob(50) )
-			src.anchored = 0
-			step(src,pick(GLOB.alldirs))
-			src.anchored = 1
+			anchored = FALSE
+			step(src,pick(alldirs))
+			anchored = TRUE
 
-/obj/effect/bhole/proc/grav(var/r, var/ex_act_force, var/pull_chance, var/turf_removal_chance)
+/obj/effect/bhole/proc/grav(r, ex_act_force, pull_chance, turf_removal_chance)
 	if(!isturf(loc))	//blackhole cannot be contained inside anything. Weird stuff might happen
 		qdel(src)
 		return
@@ -69,7 +64,7 @@
 		affect_coord(x-r, y-t, ex_act_force, pull_chance, turf_removal_chance)
 	return
 
-/obj/effect/bhole/proc/affect_coord(var/x, var/y, var/ex_act_force, var/pull_chance, var/turf_removal_chance)
+/obj/effect/bhole/proc/affect_coord(x, y, ex_act_force, pull_chance, turf_removal_chance)
 	//Get turf at coordinate
 	var/turf/T = locate(x, y, z)
 	if(isnull(T))	return
@@ -87,6 +82,5 @@
 	//Destroying the turf
 	if( T && istype(T,/turf/simulated) && prob(turf_removal_chance) )
 		var/turf/simulated/ST = T
-		var/base_turf = get_base_turf_by_area(src)
-		if(ST.type != base_turf)
-			ST.ChangeTurf(base_turf)
+		ST.ChangeTurf(/turf/space)
+	return

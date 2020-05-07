@@ -1,7 +1,19 @@
 /datum/game_mode/extended
-	name = "Extended"
+	name = "extended"
 	config_tag = "extended"
 	required_players = 0
-	round_description = "Just have fun and roleplay!"
-	extended_round_description = "There are no antagonists during extended. Just play your character, mess around with your job, and have fun."
-	addantag_allowed = ADDANTAG_ADMIN // No add antag vote allowed on extended, except when manually called by admins.
+
+	votable = 1
+
+	uplink_welcome = "Syndicate Uplink Console:"
+	uplink_uses = 20
+
+/datum/game_mode/announce()
+	to_chat(world, "<B>The current game mode is - Extended Role-Playing!</B>")
+	to_chat(world, "<B>Just have fun and role-play!</B>")
+
+/datum/game_mode/extended/pre_setup()
+	return 1
+
+/datum/game_mode/extended/post_setup()
+	return ..()

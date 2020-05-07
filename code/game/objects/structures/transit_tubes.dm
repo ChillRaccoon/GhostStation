@@ -7,7 +7,7 @@
 	icon = 'icons/obj/pipes/transit_tube.dmi'
 	icon_state = "E-W"
 	density = 1
-	layer = ABOVE_HUMAN_LAYER
+	layer = 3.1
 	anchored = 1.0
 	var/list/tube_dirs = null
 	var/exit_delay = 2
@@ -17,7 +17,7 @@
 	//  the specific order matters to get a usable icon_state, it is
 	//  copied here so that, in the unlikely case that alldirs is changed,
 	//  this continues to work.
-	var/global/list/tube_dir_list = list(NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST)
+	var/static/list/tube_dir_list = list(NORTH, SOUTH, EAST, WEST, NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST)
 
 
 // A place where tube pods stop, and people can get in or out.
@@ -37,144 +37,133 @@
 
 
 /obj/structure/transit_tube_pod
+	name = "transit tube pod"
+	desc = "Used for moving through the tube."
 	icon = 'icons/obj/pipes/transit_tube_pod.dmi'
 	icon_state = "pod"
 	animate_movement = FORWARD_STEPS
-	anchored = 1.0
-	density = 1
+	anchored = TRUE
+	density = TRUE
 	var/moving = 0
 	var/datum/gas_mixture/air_contents = new()
 
-
-
 /obj/structure/transit_tube_pod/Destroy()
-	for(var/atom/movable/AM in contents)
-		AM.dropInto(loc)
+	move_out_content()
+	return ..()
 
-	..()
+/obj/structure/transit_tube_pod/atom_init()
+	. = ..()
 
-
-
-// When destroyed by explosions, properly handle contents.
-obj/structure/ex_act(severity)
-	switch(severity)
-		if(1.0)
-			for(var/atom/movable/AM in contents)
-				AM.dropInto(loc)
-				AM.ex_act(severity++)
-
-			qdel(src)
-			return
-		if(2.0)
-			if(prob(50))
-				for(var/atom/movable/AM in contents)
-					AM.dropInto(loc)
-					AM.ex_act(severity++)
-
-				qdel(src)
-				return
-		if(3.0)
-			return
-
-
-
-/obj/structure/transit_tube_pod/New(loc)
-	..(loc)
-
-	air_contents.adjust_multi(GAS_OXYGEN, MOLES_O2STANDARD * 2, GAS_NITROGEN, MOLES_N2STANDARD)
+	air_contents.adjust_multi("oxygen", MOLES_O2STANDARD * 2, "nitrogen", MOLES_N2STANDARD)
 	air_contents.temperature = T20C
 
 	// Give auto tubes time to align before trying to start moving
-	spawn(5)
-		follow_tube()
+	addtimer(CALLBACK(src, .proc/follow_tube), 5)
 
+/obj/structure/transit_tube_pod/examine(mob/user)
+	..()
+	if(contents.len)
+		to_chat(user, "<span class='notice'>Something in it.</span>")
 
+/obj/structure/transit_tube_pod/proc/move_into_content(mob/M)
+	if(istype(M))
+		M.forceMove(src)
 
-/obj/structure/transit_tube/New(loc)
-	..(loc)
+/obj/structure/transit_tube_pod/proc/move_out_content()
+	for(var/atom/movable/AM in contents)
+		AM.forceMove(loc)
 
+/obj/structure/transit_tube_pod/attack_hand(mob/user)
+	user.SetNextMove(CLICK_CD_MELEE)
+	if(user.is_busy()) return
+	if(contents.len)
+		to_chat(user, "<span class='notice'>You started to get everything out of the [src].</span>")
+
+		var/mob/M = locate(/mob) in contents
+		if(M)
+			to_chat(M, "<span class='warning'>Someone is trying to get you out of the [src].</span>")
+
+		if (do_after(user, 50, target = src) && contents.len)
+			visible_message("<span class='notice'>[user] took out everything from the [src].</span>")
+			move_out_content()
+
+/obj/structure/transit_tube/atom_init()
+	. = ..()
 	if(tube_dirs == null)
 		init_dirs()
 
-
-
-/obj/structure/transit_tube/Bumped(mob/AM as mob|obj)
-	var/obj/structure/transit_tube/T = locate() in AM.loc
+/obj/structure/transit_tube/Bumped(mob/M)
+	var/obj/structure/transit_tube/T = locate() in M.loc
 	if(T)
-		to_chat(AM, "<span class='warning'>The tube's support pylons block your way.</span>")
+		to_chat(M, "<span class='warning'>The tube's support pylons block your way.</span>")
 		return ..()
 	else
-		AM.dropInto(loc)
-		to_chat(AM, "<span class='info'>You slip under the tube.</span>")
+		M.forceMove(loc)
+		to_chat(M, "<span class='info'>You slip under the tube.</span>")
 
-/obj/structure/transit_tube/station/New(loc)
-	..(loc)
-
-/obj/structure/transit_tube/station/Bumped(mob/AM as mob|obj)
-	if(!pod_moving && icon_state == "open" && istype(AM, /mob))
+/obj/structure/transit_tube/station/Bumped(mob/M)
+	if(!pod_moving && icon_state == "open" && istype(M))
 		for(var/obj/structure/transit_tube_pod/pod in loc)
-			if(pod.contents.len)
-				to_chat(AM, "<span class='notice'>The pod is already occupied.</span>")
+			if(locate(/mob) in pod.contents)
+				to_chat(M, "<span class='notice'>The pod is already occupied.</span>")
 				return
-			else if(!pod.moving && (pod.dir in directions()))
-				AM.forceMove(pod)
+			else if(!pod.moving && pod.dir in directions())
+				pod.move_into_content(M)
+				return
 
-/obj/structure/transit_tube/station/attack_hand(mob/user as mob)
+/obj/structure/transit_tube/station/attack_hand(mob/user)
+	user.SetNextMove(CLICK_CD_MELEE)
 	if(!pod_moving)
 		for(var/obj/structure/transit_tube_pod/pod in loc)
-			if(!pod.moving && (pod.dir in directions()))
+			if(!pod.moving && pod.dir in directions())
 				if(icon_state == "closed")
 					open_animation()
-
 				else if(icon_state == "open")
 					close_animation()
-
-
 
 /obj/structure/transit_tube/station/proc/open_animation()
 	if(icon_state == "closed")
 		icon_state = "opening"
-		spawn(OPEN_DURATION)
-			if(icon_state == "opening")
-				icon_state = "open"
+		addtimer(CALLBACK(src, .proc/check_opening_icon), OPEN_DURATION)
 
-
+/obj/structure/transit_tube/station/proc/check_opening_icon()
+	if(icon_state == "opening")
+		icon_state = "open"
 
 /obj/structure/transit_tube/station/proc/close_animation()
 	if(icon_state == "open")
 		icon_state = "closing"
-		spawn(CLOSE_DURATION)
-			if(icon_state == "closing")
-				icon_state = "closed"
+		addtimer(CALLBACK(src, .proc/check_closing_icon), CLOSE_DURATION)
 
-
+/obj/structure/transit_tube/station/proc/check_closing_icon()
+	if(icon_state == "closing")
+		icon_state = "closed"
 
 /obj/structure/transit_tube/station/proc/launch_pod()
 	for(var/obj/structure/transit_tube_pod/pod in loc)
-		if(!pod.moving && (pod.dir in directions()))
-			spawn(5)
-				pod_moving = 1
-				close_animation()
-				sleep(CLOSE_DURATION + 2)
-
-				//reverse directions for automated cycling
-				var/turf/next_loc = get_step(loc, pod.dir)
-				var/obj/structure/transit_tube/nexttube
-				for(var/obj/structure/transit_tube/tube in next_loc)
-					if(tube.has_entrance(pod.dir))
-						nexttube = tube
-						break
-				if(!nexttube)
-					pod.set_dir(turn(pod.dir, 180))
-
-				if(icon_state == "closed" && pod)
-					pod.follow_tube()
-
-				pod_moving = 0
-
+		if(!pod.moving && pod.dir in directions())
+			addtimer(CALLBACK(src, .proc/move_pod, pod), 5)
 			return
 
+/obj/structure/transit_tube/station/proc/move_pod(obj/structure/transit_tube_pod/pod)
+	pod_moving = 1
+	close_animation()
+	sleep(CLOSE_DURATION + 2)
 
+	//reverse directions for automated cycling
+	var/turf/next_loc = get_step(loc, pod.dir)
+	var/obj/structure/transit_tube/nexttube
+	for(var/obj/structure/transit_tube/tube in next_loc)
+		if(tube.has_entrance(pod.dir))
+			nexttube = tube
+			break
+	if(!nexttube)
+		pod.dir = turn(pod.dir, 180)
+
+	if(icon_state == "closed" && pod)
+		pod.follow_tube()
+
+	pod_moving = 0
 
 // Called to check if a pod should stop upon entering this tube.
 /obj/structure/transit_tube/proc/should_stop_pod(pod, from_dir)
@@ -195,25 +184,25 @@ obj/structure/ex_act(severity)
 
 /obj/structure/transit_tube/station/pod_stopped(obj/structure/transit_tube_pod/pod, from_dir)
 	pod_moving = 1
-	spawn(5)
-		open_animation()
-		sleep(OPEN_DURATION + 2)
-		pod_moving = 0
-		pod.mix_air()
+	addtimer(CALLBACK(src, .proc/cycle_stopped_pod, pod, from_dir), 5)
 
-		if(automatic_launch_time)
-			var/const/wait_step = 5
-			var/i = 0
-			while(i < automatic_launch_time)
-				sleep(wait_step)
-				i += wait_step
+/obj/structure/transit_tube/station/proc/cycle_stopped_pod(obj/structure/transit_tube_pod/pod, from_dir)
+	open_animation()
+	sleep(OPEN_DURATION + 2)
+	pod_moving = 0
+	pod.mix_air()
 
-				if(pod_moving || icon_state != "open")
-					return
+	if(automatic_launch_time)
+		var/const/wait_step = 5
+		var/i = 0
+		while(i < automatic_launch_time)
+			sleep(wait_step)
+			i += wait_step
 
-			launch_pod()
+			if(pod_moving || icon_state != "open")
+				return
 
-
+		launch_pod()
 
 // Returns a /list of directions this tube section can connect to.
 //  Tubes that have some sort of logic or changing direction might
@@ -275,87 +264,82 @@ obj/structure/ex_act(severity)
 /obj/structure/transit_tube/proc/enter_delay(pod, to_dir)
 	return enter_delay
 
-
+/obj/structure/transit_tube_pod/Process_Spacemove()
+	if(moving) //No drifting while moving in the tubes
+		return 1
+	else return ..()
 
 /obj/structure/transit_tube_pod/proc/follow_tube()
+	set waitfor = FALSE
+
 	if(moving)
 		return
 
 	moving = 1
 
-	spawn()
-		var/obj/structure/transit_tube/current_tube = null
-		var/next_dir
-		var/next_loc
-		var/last_delay = 0
-		var/exit_delay
+	var/obj/structure/transit_tube/current_tube = null
+	var/next_dir
+	var/next_loc
+	var/last_delay = 0
+	var/exit_delay
 
-		for(var/obj/structure/transit_tube/tube in loc)
-			if(tube.has_exit(dir))
+	for(var/obj/structure/transit_tube/tube in loc)
+		if(tube.has_exit(dir))
+			current_tube = tube
+			break
+
+	while(current_tube)
+		next_dir = current_tube.get_exit(dir)
+
+		if(!next_dir)
+			break
+
+		exit_delay = current_tube.exit_delay(src, dir)
+		last_delay += exit_delay
+
+		sleep(exit_delay)
+
+		next_loc = get_step(loc, next_dir)
+
+		current_tube = null
+		for(var/obj/structure/transit_tube/tube in next_loc)
+			if(tube.has_entrance(next_dir))
 				current_tube = tube
 				break
 
-		while(current_tube)
-			next_dir = current_tube.get_exit(dir)
+		if(current_tube == null)
+			dir = next_dir
+			Move(get_step(loc, dir), dir) // Allow collisions when leaving the tubes.
+			break
 
-			if(!next_dir)
-				break
+		last_delay = current_tube.enter_delay(src, next_dir)
+		sleep(last_delay)
+		dir = next_dir
+		loc = next_loc // When moving from one tube to another, skip collision and such.
+		density = current_tube.density
 
-			exit_delay = current_tube.exit_delay(src, dir)
-			last_delay += exit_delay
+		if(current_tube && current_tube.should_stop_pod(src, next_dir))
+			current_tube.pod_stopped(src, dir)
+			break
 
-			sleep(exit_delay)
+	density = 1
 
-			next_loc = get_step(loc, next_dir)
+	moving = 0
 
-			current_tube = null
-			for(var/obj/structure/transit_tube/tube in next_loc)
-				if(tube.has_entrance(next_dir))
-					current_tube = tube
-					break
-
-			if(current_tube == null)
-				set_dir(next_dir)
-				Move(get_step(loc, dir)) // Allow collisions when leaving the tubes.
-				break
-
-			last_delay = current_tube.enter_delay(src, next_dir)
-			sleep(last_delay)
-			set_dir(next_dir)
-			forceMove(next_loc) // When moving from one tube to another, skip collision and such.
-			set_density(current_tube.density)
-
-			if(current_tube && current_tube.should_stop_pod(src, next_dir))
-				current_tube.pod_stopped(src, dir)
-				break
-
-		set_density(1)
-
-		// If the pod is no longer in a tube, move in a line until stopped or slowed to a halt.
-		//  /turf/inertial_drift appears to only work on mobs, and re-implementing some of the
-		//  logic allows a gradual slowdown and eventual stop when passing over non-space turfs.
-		if(!current_tube && last_delay <= 10)
-			do
-				sleep(last_delay)
-
-				if(!istype(loc, /turf/space))
-					last_delay++
-
-				if(last_delay > 10)
-					break
-
-			while(isturf(loc) && Move(get_step(loc, dir)))
-
-		moving = 0
 
 /obj/structure/transit_tube_pod/return_air()
 	return air_contents
 
+// For now, copying what I found in an unused FEA file (and almost identical in a
+//  used ZAS file). Means that assume_air and remove_air don't actually alter the
+//  air contents.
 /obj/structure/transit_tube_pod/assume_air(datum/gas_mixture/giver)
 	return air_contents.merge(giver)
 
 /obj/structure/transit_tube_pod/remove_air(amount)
 	return air_contents.remove(amount)
+
+
 
 // Called when a pod arrives at, and before a pod departs from a station,
 //  giving it a chance to mix its internal air supply with the turf it is
@@ -375,9 +359,8 @@ obj/structure/ex_act(severity)
 	if(istype(mob, /mob) && mob.client)
 		// If the pod is not in a tube at all, you can get out at any time.
 		if(!(locate(/obj/structure/transit_tube) in loc))
-			var/turf/T = get_turf(src)
-			mob.forceMove(T)
-			mob.client.Move(get_step(T, direction), direction)
+			move_out_content()
+			mob.client.Move(get_step(loc, direction), direction)
 
 			//if(moving && istype(loc, /turf/space))
 				// Todo: If you get out of a moving pod in space, you should move as well.
@@ -389,22 +372,21 @@ obj/structure/ex_act(severity)
 					if(!station.pod_moving)
 						if(direction == station.dir)
 							if(station.icon_state == "open")
-								var/turf/T = get_turf(src)
-								mob.forceMove(T)
-								mob.client.Move(get_step(T, direction), direction)
+								move_out_content()
+								mob.client.Move(get_step(loc, direction), direction)
 
 							else
 								station.open_animation()
 
 						else if(direction in station.directions())
-							set_dir(direction)
+							dir = direction
 							station.launch_pod()
 					return
 
 			for(var/obj/structure/transit_tube/tube in loc)
 				if(dir in tube.directions())
 					if(tube.has_exit(direction))
-						set_dir(direction)
+						dir = direction
 						return
 
 
@@ -417,14 +399,13 @@ obj/structure/ex_act(severity)
 /obj/structure/transit_tube/proc/init_dirs()
 	if(icon_state == "auto")
 		// Additional delay, for map loading.
-		spawn(1)
-			init_dirs_automatic()
+		addtimer(CALLBACK(src, .proc/init_dirs_automatic), 1)
 
 	else
 		tube_dirs = parse_dirs(icon_state)
 
 		if(copytext(icon_state, 1, 3) == "D-" || findtextEx(icon_state, "Pass"))
-			set_density(0)
+			density = 0
 
 
 

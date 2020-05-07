@@ -7,7 +7,8 @@
 	icon_state = "airtunnel0e"
 	anchored = 1
 	density = 1
-	var/obj/machinery/gravity_generator/gravity_generator
+	var/obj/machinery/gravity_generator = null
+
 
 /obj/machinery/gravity_generator/
 	name = "Gravitational Generator"
@@ -16,6 +17,7 @@
 	icon_state = "TheSingGen"
 	anchored = 1
 	density = 1
+	use_power = 1
 	idle_power_usage = 200
 	active_power_usage = 1000
 	var/on = 1
@@ -23,47 +25,57 @@
 	var/effectiverange = 25
 
 	// Borrows code from cloning computer
-/obj/machinery/computer/gravity_control_computer/Initialize()
-	. = ..()
+/obj/machinery/computer/gravity_control_computer/atom_init()
+	..()
+	return INITIALIZE_HINT_LATELOAD
+
+/obj/machinery/computer/gravity_control_computer/atom_init_late()
 	updatemodules()
 
-/obj/machinery/gravity_generator/Initialize()
-	. = ..()
+/obj/machinery/gravity_generator/atom_init()
+	..()
+	return INITIALIZE_HINT_LATELOAD
+
+/obj/machinery/gravity_generator/atom_init_late()
 	locatelocalareas()
 
 /obj/machinery/computer/gravity_control_computer/proc/updatemodules()
-	for(dir in list(NORTH,EAST,SOUTH,WEST))
-		gravity_generator = locate(/obj/machinery/gravity_generator/, get_step(src, dir))
-		if (gravity_generator)
-			return
+	src.gravity_generator = findgenerator()
+
+
 
 /obj/machinery/gravity_generator/proc/locatelocalareas()
 	for(var/area/A in range(src,effectiverange))
-		if(istype(A,/area/space))
+		if(A.name == "Space")
 			continue // No (de)gravitizing space.
-		localareas |= A
+		if(A.master && !( A.master in localareas) )
+			localareas += A.master
 
-/obj/machinery/computer/gravity_control_computer/interface_interact(mob/user)
-	interact(user)
-	return TRUE
+/obj/machinery/computer/gravity_control_computer/proc/findgenerator()
+	var/obj/machinery/gravity_generator/foundgenerator = null
+	for(dir in list(NORTH,EAST,SOUTH,WEST))
+		//world << "SEARCHING IN [dir]"
+		foundgenerator = locate(/obj/machinery/gravity_generator/, get_step(src, dir))
+		if (!isnull(foundgenerator))
+			//world << "FOUND"
+			break
+	return foundgenerator
 
-/obj/machinery/computer/gravity_control_computer/interact(mob/user)
-	user.set_machine(src)
-
+/obj/machinery/computer/gravity_control_computer/ui_interact(mob/user)
 	updatemodules()
 
 	var/dat = "<h3>Generator Control System</h3>"
 	//dat += "<font size=-1><a href='byond://?src=\ref[src];refresh=1'>Refresh</a></font>"
 	if(gravity_generator)
-		if(gravity_generator.on)
+		if(gravity_generator:on)
 			dat += "<font color=green><br><tt>Gravity Status: ON</tt></font><br>"
 		else
 			dat += "<font color=red><br><tt>Gravity Status: OFF</tt></font><br>"
 
 		dat += "<br><tt>Currently Supplying Gravitons To:</tt><br>"
 
-		for(var/area/A in gravity_generator.localareas)
-			if(A.has_gravity && gravity_generator.on)
+		for(var/area/A in gravity_generator:localareas)
+			if(A.has_gravity && gravity_generator:on)
 				dat += "<tt><font color=green>[A]</tt></font><br>"
 
 			else if (A.has_gravity)
@@ -73,7 +85,7 @@
 				dat += "<tt><font color=red>[A]</tt></font><br>"
 
 		dat += "<br><tt>Maintainence Functions:</tt><br>"
-		if(gravity_generator.on)
+		if(gravity_generator:on)
 			dat += "<a href='byond://?src=\ref[src];gentoggle=1'><font color=red> TURN GRAVITY GENERATOR OFF. </font></a>"
 		else
 			dat += "<a href='byond://?src=\ref[src];gentoggle=1'><font color=green> TURN GRAVITY GENERATOR ON. </font></a>"
@@ -81,30 +93,31 @@
 	else
 		dat += "No local gravity generator detected!"
 
-	show_browser(user, dat, "window=gravgen")
+	user << browse(entity_ja(dat), "window=gravgen")
 	onclose(user, "gravgen")
 
 
 /obj/machinery/computer/gravity_control_computer/Topic(href, href_list)
-	set background = 1
-	if((. = ..()))
-		close_browser(usr, "window=air_alarm")
+	. = ..()
+	if(!.)
 		return
 
 	if(href_list["gentoggle"])
-		if(gravity_generator.on)
-			gravity_generator.on = 0
+		if(gravity_generator:on)
+			gravity_generator:on = 0
 
-			for(var/area/A in gravity_generator.localareas)
+			for(var/area/A in gravity_generator:localareas)
 				var/obj/machinery/gravity_generator/G
-				for(G in SSmachines.machinery)
-					if((A in G.localareas) && (G.on))
+				for(G in machines)
+					if((A.master in G.localareas) && (G.on))
 						break
 				if(!G)
-					A.gravitychange(0)
+					A.gravitychange(0,A)
+
+
 		else
-			for(var/area/A in gravity_generator.localareas)
-				gravity_generator.on = 1
-				A.gravitychange(1)
+			for(var/area/A in gravity_generator:localareas)
+				gravity_generator:on = 1
+				A.gravitychange(1,A)
 
 	src.updateUsrDialog()

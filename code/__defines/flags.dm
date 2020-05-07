@@ -1,51 +1,135 @@
-GLOBAL_LIST_INIT(bitflags, list(1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768))
+//PREASSURE_FLAGS BITMASK
+#define STOPS_HIGHPRESSUREDMAGE 1    //These flags is used on the flags_pressure variable for SUIT and HEAD items which stop (high/low/all) pressure damage. Note that the flag 1 was previous used as ONBACK, so it is possible for some code to use (flags & 1) when checking if something can be put on your back. Replace this code with (inv_flags & SLOT_BACK) if you see it anywhere
+#define STOPS_LOWPRESSUREDMAGE  2    //To successfully stop you taking all pressure damage you must have both a suit and head item with STOPS_PRESSUREDMAGE flag.
+#define STOPS_PRESSUREDMAGE     3    //Used against both, high and low pressure.
 
-#define CLOSET_HAS_LOCK  1
-#define CLOSET_CAN_BE_WELDED 2
+#define NOLIMB           -1    // related to THICKMATERIAL check, thats why this is here.
+//FLAGS BITMASK
+#define NOBLUDGEON        2    // When an item has this it produces no "X has been hit by Y with Z" message with the default handler.
+#define MASKINTERNALS     4    // Mask allows internals.
+//#define USEDELAY          8    // 1 second extra delay on use. (Can be used once every 2s) ~ Kursh, Doesn't used for now.
+#define NOSHIELD         16    // Weapon not affected by shield.
+#define CONDUCT          32    // Conducts electricity. (metal etc.)
+#define ABSTRACT         64    // For all things that are technically items but used for various different stuff, made it 128 because it could conflict with other flags other way.
+#define NODECONSTRUCT    64    // For machines and structures that should not break into parts, eg, holodeck stuff.
+#define ON_BORDER       128    // Item has priority to check when entering or leaving.
+#define THICKMATERIAL   256    // Prevents syringes, parapens and hypos if the external suit or helmet (if targeting head) has this flag. Example: space suits, biosuit, bombsuits, thick suits that cover your body. (NOTE: flag shared with NOSLIP for shoes)
+#define NOSLIP          256    // Prevents from slipping on wet floors, in space etc.
 
-#define CLOSET_STORAGE_MISC       1
-#define CLOSET_STORAGE_ITEMS      2
-#define CLOSET_STORAGE_MOBS       4
-#define CLOSET_STORAGE_STRUCTURES 8
-#define CLOSET_STORAGE_ALL   (~0)
+#define GLASSESCOVERSEYES   256
+#define MASKCOVERSEYES      256    // Get rid of some of the other retardation in these flags.
+#define HEADCOVERSEYES      256    // feel free to realloc these numbers for other purposes.
+#define MASKCOVERSMOUTH     512    // on other items, these are just for mask/head.
+#define HEADCOVERSMOUTH     512
 
-// Flags bitmasks.
+#define NOBLOODY  512    // Used to items if they don't want to get a blood overlay.
 
-#define ATOM_FLAG_CHECKS_BORDER          0x0001 // If a dense atom (potentially) only blocks movements from a given direction, i.e. window panes
-#define ATOM_FLAG_CLIMBABLE              0x0002 // This object can be climbed on
-#define ATOM_FLAG_NO_BLOOD               0x0004 // Used for items if they don't want to get a blood overlay.
-#define ATOM_FLAG_NO_REACT               0x0008 // Reagents don't react inside this container.
-#define ATOM_FLAG_OPEN_CONTAINER         0x0010 // Is an open container for chemistry purposes.
-#define ATOM_FLAG_INITIALIZED            0x0020 // Has this atom been initialized
-#define ATOM_FLAG_NO_TEMP_CHANGE         0x0040 // Reagents do not cool or heat to ambient temperature in this container.
+#define OPENCONTAINER  1024    // Is an open container for chemistry purposes.
 
-#define MOVABLE_FLAG_PROXMOVE            0x0001 // Does this object require proximity checking in Enter()?
-#define MOVABLE_FLAG_Z_INTERACT          0x0002 // Should attackby and attack_hand be relayed through ladders and open spaces?
-#define MOVABLE_FLAG_EFFECTMOVE          0x0004 // Is this an effect that should move?
-#define MOVABLE_FLAG_DEL_SHUTTLE         0x0008 // Shuttle transistion will delete this.
+#define BLOCK_GAS_SMOKE_EFFECT  2048    // Blocks the effect that chemical clouds would have on a mob --glasses, mask and helmets ONLY! (NOTE: flag shared with ONESIZEFITSALL)
+#define ONESIZEFITSALL          2048
+#define PHORONGUARD             4096    // Does not get contaminated by phoron.
+#define DROPDEL                 8192    // When dropped, it calls qdel on itself
+#define NODROP                 16384    // User can't drop this item
 
-#define OBJ_FLAG_ANCHORABLE              0x0001 // This object can be stuck in place with a tool
-#define OBJ_FLAG_CONDUCTIBLE             0x0002 // Conducts electricity. (metal etc.)
-#define OBJ_FLAG_ROTATABLE               0x0004 // Can be rotated with alt-click
-#define OBJ_FLAG_NOFALL		             0x0008 // Will prevent mobs from falling
+#define	NOREACT  4096    //Reagents dont' react inside this container.
 
-//Flags for items (equipment)
-#define ITEM_FLAG_NO_BLUDGEON            0x0001 // When an item has this it produces no "X has been hit by Y with Z" message with the default handler.
-#define ITEM_FLAG_PHORONGUARD            0x0002 // Does not get contaminated by phoron.
-#define ITEM_FLAG_NO_PRINT               0x0004 // This object does not leave the user's prints/fibres when using it
-#define ITEM_FLAG_INVALID_FOR_CHAMELEON  0x0008 // Chameleon items cannot mimick this.
-#define ITEM_FLAG_THICKMATERIAL          0x0010 // Prevents syringes, reagent pens, and hyposprays if equiped to slot_suit or slot_head.
-#define ITEM_FLAG_AIRTIGHT               0x0040 // Functions with internals.
-#define ITEM_FLAG_NOSLIP                 0x0080 // Prevents from slipping on wet floors, in space, etc.
-#define ITEM_FLAG_BLOCK_GAS_SMOKE_EFFECT 0x0100 // Blocks the effect that chemical clouds would have on a mob -- glasses, mask and helmets ONLY! (NOTE: flag shared with ONESIZEFITSALL)
-#define ITEM_FLAG_FLEXIBLEMATERIAL       0x0200 // At the moment, masks with this flag will not prevent eating even if they are covering your face.
-#define ITEM_FLAG_PREMODIFIED            0x0400 // Gloves that are clipped by default
-#define ITEM_FLAG_IS_BELT                0x0800 // Items that can be worn on the belt slot, even with no undersuit equipped
-#define ITEM_FLAG_SILENT                 0x1000 // sneaky shoes
-#define ITEM_FLAG_NOCUFFS                0x2000 // Gloves that have this flag prevent cuffs being applied
-#define ITEM_FLAG_CAN_HIDE_IN_SHOES      0x4000 // Items that can be hidden in shoes that permit it
+/* Secondary atom flags, for the flags_2 var, denoted with a _2 */
+#define HOLOGRAM_2   1
 
-// Flags for pass_flags.
-#define PASS_FLAG_TABLE  0x1
-#define PASS_FLAG_GLASS  0x2
-#define PASS_FLAG_GRILLE 0x4
+//Species flags.
+#define NO_BLOOD           "no_blood"
+#define NO_BREATHE         "no_breathe"
+#define NO_SCAN            "no_scan"
+#define NO_PAIN            "no_pain"
+#define NO_EMBED           "no_embed"
+#define HAS_SKIN_TONE      "has_skin_tone"
+#define HAS_SKIN_COLOR     "has_skin_color"
+#define HAS_LIPS           "has_lips"
+#define HAS_UNDERWEAR      "has_underwear"
+#define HAS_TAIL           "has_tail"
+#define IS_PLANT           "is_plant"
+#define IS_WHITELISTED     "is_whitelisted"
+#define RAD_ABSORB         "rad_absorb"
+#define REQUIRE_LIGHT      "require_light"
+#define IS_SYNTHETIC       "is_synthetic"
+#define RAD_IMMUNE         "rad_immune"
+#define VIRUS_IMMUNE       "virus_immune"
+#define BIOHAZZARD_IMMUNE  "biohazzard_immune"
+#define HAS_HAIR           "has_hair"
+#define NO_FINGERPRINT     "no_fingerprint"
+#define NO_MINORCUTS       "no_minorcuts"
+#define IS_FLYING          "is_flying"
+#define IS_IMMATERIAL      "is_immaterial"
+#define STATICALLY_CHARGED "statically_charged"
+#define NO_FAT             "no_fat"
+#define EMP_HEAL           "emp_heal"
+
+//Species Diet Flags
+#define DIET_CARN		1 //meat
+#define DIET_OMNI		2 //everything
+#define DIET_HERB		4 // VEGANS!
+#define DIET_ALL		255
+
+//bitflags for door switches.
+#define OPEN     1
+#define CLOSED   2 //for firedoor currently, legacy and should be checked
+#define IDSCAN   2
+#define BOLTS    4
+#define SHOCK    8
+#define SAFE    16
+
+//flags for pass_flags
+#define PASSTABLE    1
+#define PASSGLASS    2
+#define PASSGRILLE   4
+#define PASSBLOB     8
+#define PASSCRAWL   16
+#define PASSMOB     32
+
+//turf-only flags
+#define NOJAUNT  1
+
+//ITEM INVENTORY SLOT BITMASKS
+#define SLOT_OCLOTHING       1
+#define SLOT_ICLOTHING       2
+#define SLOT_GLOVES          4
+#define SLOT_EYES            8
+#define SLOT_EARS           16
+#define SLOT_MASK           32
+#define SLOT_HEAD           64
+#define SLOT_FEET          128
+#define SLOT_ID            256
+#define SLOT_BELT          512
+#define SLOT_BACK         1024
+#define SLOT_POCKET       2048    // This is to allow items with a w_class of 3 or 4 to fit in pockets.
+#define SLOT_DENYPOCKET   4096    // This is to deny items with a w_class of 2 or 1 to fit in pockets.
+#define SLOT_TWOEARS      8192
+#define SLOT_TIE         16384
+
+
+//flags for customizing id-cards
+#define FORDBIDDEN_VIEW      1
+#define UNIVERSAL_VIEW       2
+#define TRAITOR_VIEW         4
+
+// changeling essences flags
+#define ESSENCE_SPEAK 1
+#define ESSENCE_WHISP 2
+#define ESSENCE_SPEAK_IN_RADIO 4
+#define ESSENCE_HIVEMIND 8
+#define ESSENCE_SPEAK_TO_HOST 16
+#define ESSENCE_SELF_VOICE 32
+#define ESSENCE_PHANTOM 64
+#define ESSENCE_POINT 128
+#define ESSENCE_EMOTE 256
+#define ESSENCE_ALL 511
+
+#define HOLOMAP_DEATHSQUAD_COLOR "#800000"
+#define HOLOMAP_NUCLEAR_COLOR "#E30000"
+#define HOLOMAP_VOX_COLOR "#3BCCCC"
+#define HOLOMAP_ERT_COLOR "#0B74B4"
+#define HOLOMAP_FILTER_DEATHSQUAD 1
+#define HOLOMAP_FILTER_NUCLEAR 2
+#define HOLOMAP_FILTER_VOX 4
+#define HOLOMAP_FILTER_ERT 8 

@@ -41,6 +41,8 @@ var/intercom_range_display_status = 0
 	set category = "Mapping"
 	set name = "-None of these are for ingame use!!"
 
+	..()
+
 /client/proc/camera_view()
 	set category = "Mapping"
 	set name = "Camera Range Display"
@@ -58,7 +60,7 @@ var/intercom_range_display_status = 0
 	if(camera_range_display_status)
 		for(var/obj/machinery/camera/C in cameranet.cameras)
 			new/obj/effect/debugging/camera_range(C.loc)
-	SSstatistics.add_field_details("admin_verb","mCRD") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+	feedback_add_details("admin_verb","mCRD") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 
 
@@ -88,15 +90,15 @@ var/intercom_range_display_status = 0
 			if(!(locate(/obj/structure/grille,T)))
 				var/window_check = 0
 				for(var/obj/structure/window/W in T)
-					if (W.dir == turn(C1.dir,180) || (W.dir in list(NORTHEAST,SOUTHEAST,SOUTHWEST,NORTHWEST)) )
+					if (W.dir == turn(C1.dir,180) || W.dir in list(5,6,9,10) )
 						window_check = 1
 						break
 				if(!window_check)
 					output += "<li><font color='red'>Camera not connected to wall at \[[C1.x], [C1.y], [C1.z]\] ([C1.loc.loc]) Network: [C1.network]</color></li>"
 
 	output += "</ul>"
-	show_browser(usr, output,"window=airreport;size=1000x500")
-	SSstatistics.add_field_details("admin_verb","mCRP") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+	usr << browse(entity_ja(output),"window=airreport;size=1000x500")
+	feedback_add_details("admin_verb","mCRP") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 /client/proc/intercom_view()
 	set category = "Mapping"
@@ -116,39 +118,35 @@ var/intercom_range_display_status = 0
 				var/obj/effect/debugging/marker/F = new/obj/effect/debugging/marker(T)
 				if (!(F in view(7,I.loc)))
 					qdel(F)
-	SSstatistics.add_field_details("admin_verb","mIRD") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+	feedback_add_details("admin_verb","mIRD") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 var/list/debug_verbs = list (
-		/client/proc/do_not_use_these
-		,/client/proc/camera_view
-		,/client/proc/sec_camera_report
-		,/client/proc/intercom_view
-		,/client/proc/Cell
-		,/client/proc/atmosscan
-		,/client/proc/powerdebug
-		,/client/proc/count_objects_on_z_level
-		,/client/proc/count_objects_all
-		,/client/proc/cmd_assume_direct_control
-		,/client/proc/startSinglo
-		,/client/proc/ticklag
-		,/client/proc/cmd_admin_grantfullaccess
-		,/client/proc/cmd_admin_areatest
-		,/client/proc/cmd_admin_rejuvenate
-		,/datum/admins/proc/show_traitor_panel
-		,/client/proc/print_jobban_old
-		,/client/proc/print_jobban_old_filter
-		,/client/proc/forceEvent
-		,/client/proc/Zone_Info
-		,/client/proc/Test_ZAS_Connection
-		,/client/proc/rebootAirMaster
-		,/client/proc/hide_debug_verbs
-		,/client/proc/testZAScolors
-		,/client/proc/testZAScolors_remove
-		,/datum/admins/proc/setup_supermatter
-		,/client/proc/atmos_toggle_debug
-		,/client/proc/spawn_tanktransferbomb
-		,/client/proc/find_leaky_pipes
-		,/client/proc/analyze_openturf
+	/client/proc/do_not_use_these
+        ,/client/proc/camera_view
+        ,/client/proc/sec_camera_report
+        ,/client/proc/intercom_view
+        ,/client/proc/Cell
+        ,/client/proc/atmosscan
+        ,/client/proc/powerdebug
+        ,/client/proc/count_objects_on_z_level
+        ,/client/proc/count_objects_all
+        ,/client/proc/cmd_assume_direct_control
+        ,/client/proc/startSinglo
+        ,/client/proc/set_fps	//allows you to set the ticklag.
+        ,/client/proc/cmd_admin_grantfullaccess
+//        ,/client/proc/splash
+        ,/client/proc/cmd_admin_areatest
+        ,/client/proc/cmd_admin_rejuvenate
+        ,/datum/admins/proc/show_traitor_panel
+        ,/client/proc/forceEvent
+        ,/client/proc/disable_communication
+        ,/client/proc/disable_movement
+        ,/client/proc/Zone_Info
+        ,/client/proc/Test_ZAS_Connection
+        ,/client/proc/hide_debug_verbs
+	,/client/proc/testZAScolors
+	,/client/proc/testZAScolors_remove
+	,/client/proc/setup_supermatter_engine
 	)
 
 
@@ -160,7 +158,7 @@ var/list/debug_verbs = list (
 
 	verbs += debug_verbs
 
-	SSstatistics.add_field_details("admin_verb","mDV") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+	feedback_add_details("admin_verb","mDV") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 /client/proc/hide_debug_verbs()
 	set category = "Debug"
@@ -170,7 +168,7 @@ var/list/debug_verbs = list (
 
 	verbs -= debug_verbs
 
-	SSstatistics.add_field_details("admin_verb","hDV") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+	feedback_add_details("admin_verb","hDV") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 
 /client/var/list/testZAScolors_turfs = list()
@@ -178,13 +176,14 @@ var/list/debug_verbs = list (
 /client/var/usedZAScolors = 0
 /client/var/list/image/ZAScolors = list()
 
-/client/proc/recurse_zone(var/zone/Z, var/recurse_level =1)
+/client/proc/recurse_zone(zone/Z, recurse_level =1)
 	testZAScolors_zones += Z
 	if(recurse_level > 10)
 		return
+	var/icon/yellow = new('icons/misc/debug_group.dmi', "yellow")
 
 	for(var/turf/T in Z.contents)
-		images += get_zas_image(T, "yellow")
+		images += image(yellow, T, "zasdebug", TURF_LAYER)
 		testZAScolors_turfs += T
 	for(var/connection_edge/zone/edge in Z.edges)
 		var/zone/connected = edge.get_connected_zone(Z)
@@ -202,27 +201,31 @@ var/list/debug_verbs = list (
 
 	var/turf/simulated/location = get_turf(usr)
 
-	if(!istype(location, /turf/simulated))
-		to_chat(src, "<Span class='warning'>This debug tool can only be used while on a simulated turf.</span>")
+	if(!istype(location, /turf/simulated)) // We're in space, let's not cause runtimes.
+		to_chat(usr, "\red this debug tool cannot be used from space")
 		return
 
+	var/icon/red = new('icons/misc/debug_group.dmi', "red")		//created here so we don't have to make thousands of these.
+	var/icon/green = new('icons/misc/debug_group.dmi', "green")
+	var/icon/blue = new('icons/misc/debug_group.dmi', "blue")
+
 	if(!usedZAScolors)
-		to_chat(src, "ZAS Test Colors")
-		to_chat(src, "Green = Zone you are standing in")
-		to_chat(src, "Blue = Connected zone to the zone you are standing in")
-		to_chat(src, "Yellow = A zone that is connected but not one adjacent to your connected zone")
-		to_chat(src, "Red = Not connected")
+		to_chat(usr, "ZAS Test Colors")
+		to_chat(usr, "Green = Zone you are standing in")
+		to_chat(usr, "Blue = Connected zone to the zone you are standing in")
+		to_chat(usr, "Yellow = A zone that is connected but not one adjacent to your connected zone")
+		to_chat(usr, "Red = Not connected")
 		usedZAScolors = 1
 
 	testZAScolors_zones += location.zone
 	for(var/turf/T in location.zone.contents)
-		images += get_zas_image(T, "green")
+		images += image(green, T,"zasdebug", TURF_LAYER)
 		testZAScolors_turfs += T
 	for(var/connection_edge/zone/edge in location.zone.edges)
 		var/zone/Z = edge.get_connected_zone(location.zone)
 		testZAScolors_zones += Z
 		for(var/turf/T in Z.contents)
-			images += get_zas_image(T, "blue")
+			images += image(blue, T,"zasdebug",TURF_LAYER)
 			testZAScolors_turfs += T
 		for(var/connection_edge/zone/z_edge in Z.edges)
 			var/zone/connected = z_edge.get_connected_zone(Z)
@@ -235,7 +238,7 @@ var/list/debug_verbs = list (
 			continue
 		if(T in testZAScolors_turfs)
 			continue
-		images += get_zas_image(T, "red")
+		images += image(red, T, "zasdebug", TURF_LAYER)
 		testZAScolors_turfs += T
 
 /client/proc/testZAScolors_remove()
@@ -245,31 +248,21 @@ var/list/debug_verbs = list (
 	testZAScolors_turfs.Cut()
 	testZAScolors_zones.Cut()
 
-	for(var/image/i in images)
-		if(i.icon == 'icons/misc/debug_group.dmi')
-			images.Remove(i)
-
-/client/proc/rebootAirMaster()
-	set category = "ZAS"
-	set name = "Reboot ZAS"
-
-	if(alert("This will destroy and remake all zone geometry on the whole map.","Reboot ZAS","Reboot ZAS","Nevermind") == "Reboot ZAS")
-		SSair.reboot()
-
+	if(images.len)
+		for(var/image/i in images)
+			if(i.icon_state == "zasdebug")
+				images.Remove(i)
 
 /client/proc/count_objects_on_z_level()
 	set category = "Mapping"
 	set name = "Count Objects On Level"
-	var/level = input("Which z-level?","Level?") as text
-	if(!level) return
-	var/num_level = text2num(level)
-	if(!num_level) return
-	if(!isnum(num_level)) return
+	var/num_level = input("Which z-level?","Level?") as null|num
+	if(!num_level)
+		return
 
-	var/type_text = input("Which type path?","Path?") as text
-	if(!type_text) return
-	var/type_path = text2path(type_text)
-	if(!type_path) return
+	var/type_path = text2path(input("Which type path?","Path?") as null|text)
+	if(!type_path)
+		return
 
 	var/count = 1
 
@@ -295,10 +288,10 @@ var/list/debug_verbs = list (
 			if(i*10+j <= atom_list.len)
 				temp_atom = atom_list[i*10+j]
 				line += " no.[i+10+j]@\[[temp_atom.x], [temp_atom.y], [temp_atom.z]\]; "
-		log_debug(line) */
+		to_chat(world, line)*/
 
-	log_debug("There are [count] objects of type [type_path] on z-level [num_level]")
-	SSstatistics.add_field_details("admin_verb","mOBJZ") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+	to_chat(world, "There are [count] objects of type [type_path] on z-level [num_level]")
+	feedback_add_details("admin_verb","mOBJZ") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 /client/proc/count_objects_all()
 	set category = "Mapping"
@@ -322,22 +315,40 @@ var/list/debug_verbs = list (
 			if(i*10+j <= atom_list.len)
 				temp_atom = atom_list[i*10+j]
 				line += " no.[i+10+j]@\[[temp_atom.x], [temp_atom.y], [temp_atom.z]\]; "
-		log_debug(line) */
+		to_chat(world, line)*/
 
-	log_debug("There are [count] objects of type [type_path] in the game world")
-	SSstatistics.add_field_details("admin_verb","mOBJ") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+	to_chat(world, "There are [count] objects of type [type_path] in the game world")
+	feedback_add_details("admin_verb","mOBJ") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/proc/get_zas_image(var/turf/T, var/icon_state)
-	return image_repository.atom_image(T, 'icons/misc/debug_group.dmi', icon_state, plane = DEFAULT_PLANE, layer = ABOVE_TILE_LAYER)
 
-//Special for Cakey
-/client/proc/find_leaky_pipes()
+var/global/prevent_airgroup_regroup = 0
+
+//This proc is intended to detect lag problems relating to communication procs
+var/global/say_disabled = 0
+/client/proc/disable_communication()
 	set category = "Mapping"
-	set name = "Find Leaky Pipes"
+	set name = "Disable all communication verbs"
 
-	var/list/baddies = list("LEAKY PIPES")
-	for(var/obj/machinery/atmospherics/pipe/P in SSmachines.machinery)
-		if(P.leaking)
-			baddies += "[P] ([P.x],[P.y],[P.z] - <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[P.x];Y=[P.y];Z=[P.z]'>JMP</a>)"
+	to_chat(usr, "\red Proc disabled.")
 
-	to_chat(usr,jointext(baddies, "<br>"))
+	/*say_disabled = !say_disabled
+	if(say_disabled)
+		message_admins("[src.ckey] used 'Disable all communication verbs', killing all communication methods.")
+	else
+		message_admins("[src.ckey] used 'Disable all communication verbs', restoring all communication methods.")*/
+
+//This proc is intended to detect lag problems relating to movement
+var/global/movement_disabled = 0
+var/global/movement_disabled_exception //This is the client that calls the proc, so he can continue to run around to gauge any change to lag.
+/client/proc/disable_movement()
+	set category = "Mapping"
+	set name = "Disable all movement"
+
+	to_chat(usr, "\red Proc disabled.")
+
+	/*movement_disabled = !movement_disabled
+	if(movement_disabled)
+		message_admins("[src.ckey] used 'Disable all movement', killing all movement.")
+		movement_disabled_exception = usr.ckey
+	else
+		message_admins("[src.ckey] used 'Disable all movement', restoring all movement.")*/

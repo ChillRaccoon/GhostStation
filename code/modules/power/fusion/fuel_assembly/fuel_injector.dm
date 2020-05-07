@@ -1,51 +1,50 @@
+var/list/fuel_injectors = list()
+
 /obj/machinery/fusion_fuel_injector
 	name = "fuel injector"
 	icon = 'icons/obj/machines/power/fusion.dmi'
 	icon_state = "injector0"
-	density = 1
-	anchored = 0
+	density = TRUE
+	anchored = FALSE
 	req_access = list(access_engine)
+	use_power = 1
 	idle_power_usage = 10
 	active_power_usage = 500
-	construct_state = /decl/machine_construction/default/panel_closed
-	uncreated_component_parts = null
-	stat_immune = 0
-	base_type = /obj/machinery/fusion_fuel_injector
+	interact_offline = TRUE
 
-	var/fuel_usage = 0.001
-	var/initial_id_tag
+	var/fuel_usage = 0.0001
+	var/id_tag
 	var/injecting = 0
 	var/obj/item/weapon/fuel_assembly/cur_assembly
-	var/injection_rate = 1
 
-/obj/machinery/fusion_fuel_injector/Initialize()
-	set_extension(src, /datum/extension/local_network_member)
-	if(initial_id_tag)
-		var/datum/extension/local_network_member/fusion = get_extension(src, /datum/extension/local_network_member)
-		fusion.set_tag(null, initial_id_tag)
+/obj/machinery/fusion_fuel_injector/atom_init()
 	. = ..()
+	fuel_injectors += src
+	tag = null
 
 /obj/machinery/fusion_fuel_injector/Destroy()
 	if(cur_assembly)
-		cur_assembly.dropInto(loc)
+		cur_assembly.forceMove(get_turf(src))
 		cur_assembly = null
-	. = ..()
+	fuel_injectors -= src
+	return ..()
 
 /obj/machinery/fusion_fuel_injector/mapped
-	anchored = 1
+	anchored = TRUE
 
-/obj/machinery/fusion_fuel_injector/Process()
+/obj/machinery/fusion_fuel_injector/process()
 	if(injecting)
-		if(stat & (BROKEN|NOPOWER))
+		if((stat & (BROKEN|NOPOWER)) || !anchored)
 			StopInjecting()
 		else
 			Inject()
 
 /obj/machinery/fusion_fuel_injector/attackby(obj/item/W, mob/user)
 
-	if(isMultitool(W))
-		var/datum/extension/local_network_member/lanm = get_extension(src, /datum/extension/local_network_member)
-		lanm.set_tag(null, initial_id_tag)
+	if(ismultitool(W))
+		var/new_ident = sanitize_safe(input("Enter a new ident tag.", "Fuel Injector", input_default(id_tag)) as null|text, MAX_LNAME_LEN)
+		if(new_ident && user.Adjacent(src))
+			id_tag = new_ident
 		return
 
 	if(istype(W, /obj/item/weapon/fuel_assembly))
@@ -53,19 +52,22 @@
 		if(injecting)
 			to_chat(user, "<span class='warning'>Shut \the [src] off before playing with the fuel rod!</span>")
 			return
-		if(!user.unEquip(W, src))
-			return
+
 		if(cur_assembly)
+			cur_assembly.forceMove(get_turf(src))
 			visible_message("<span class='notice'>\The [user] swaps \the [src]'s [cur_assembly] for \a [W].</span>")
 		else
 			visible_message("<span class='notice'>\The [user] inserts \a [W] into \the [src].</span>")
+
+		user.drop_from_inventory(W)
+		W.forceMove(src)
 		if(cur_assembly)
-			cur_assembly.dropInto(loc)
+			cur_assembly.forceMove(get_turf(src))
 			user.put_in_hands(cur_assembly)
 		cur_assembly = W
 		return
 
-	if(isWrench(W))
+	if(iswrench(W))
 		if(injecting)
 			to_chat(user, "<span class='warning'>Shut \the [src] off first!</span>")
 			return
@@ -79,32 +81,33 @@
 
 	return ..()
 
-/obj/machinery/fusion_fuel_injector/physical_attack_hand(mob/user)
+/obj/machinery/fusion_fuel_injector/attack_hand(mob/user)
+	. = ..()
+	if(.)
+		return
+
 	if(injecting)
 		to_chat(user, "<span class='warning'>Shut \the [src] off before playing with the fuel rod!</span>")
-		return TRUE
-
+		return 1
 	if(cur_assembly)
-		cur_assembly.dropInto(loc)
+		cur_assembly.forceMove(get_turf(src))
 		user.put_in_hands(cur_assembly)
 		visible_message("<span class='notice'>\The [user] removes \the [cur_assembly] from \the [src].</span>")
 		cur_assembly = null
-		return TRUE
 	else
 		to_chat(user, "<span class='warning'>There is no fuel rod in \the [src].</span>")
-		return TRUE
 
 /obj/machinery/fusion_fuel_injector/proc/BeginInjecting()
 	if(!injecting && cur_assembly)
 		icon_state = "injector1"
 		injecting = 1
-		update_use_power(POWER_USE_IDLE)
+		use_power = 1
 
 /obj/machinery/fusion_fuel_injector/proc/StopInjecting()
 	if(injecting)
 		injecting = 0
 		icon_state = "injector0"
-		update_use_power(POWER_USE_OFF)
+		use_power = 0
 
 /obj/machinery/fusion_fuel_injector/proc/Inject()
 	if(!injecting)
@@ -113,12 +116,13 @@
 		var/amount_left = 0
 		for(var/reagent in cur_assembly.rod_quantities)
 			if(cur_assembly.rod_quantities[reagent] > 0)
-				var/amount = cur_assembly.rod_quantities[reagent] * fuel_usage * injection_rate
-				if(amount < 1)
-					amount = 1
+				var/amount = cur_assembly.rod_quantities[reagent] * fuel_usage
+				var/numparticles = round(amount * 1000)
+				if(numparticles < 1)
+					numparticles = 1
 				var/obj/effect/accelerated_particle/A = new/obj/effect/accelerated_particle(get_turf(src), dir)
 				A.particle_type = reagent
-				A.additional_particles = amount
+				A.additional_particles = numparticles - 1
 				A.move(1)
 				if(cur_assembly)
 					cur_assembly.rod_quantities[reagent] -= amount
@@ -128,23 +132,3 @@
 		flick("injector-emitting",src)
 	else
 		StopInjecting()
-
-/obj/machinery/fusion_fuel_injector/verb/rotate_clock()
-	set category = "Object"
-	set name = "Rotate Generator (Clockwise)"
-	set src in view(1)
-
-	if (usr.incapacitated() || usr.restrained()  || anchored)
-		return
-
-	src.dir = turn(src.dir, -90)
-
-/obj/machinery/fusion_fuel_injector/verb/rotate_anticlock()
-	set category = "Object"
-	set name = "Rotate Generator (Counter-clockwise)"
-	set src in view(1)
-
-	if (usr.incapacitated() || usr.restrained()  || anchored)
-		return
-
-	src.dir = turn(src.dir, 90)

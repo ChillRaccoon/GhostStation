@@ -1,17 +1,39 @@
-/client/proc/mod_list_add_ass()
-	var/class = "text"
-	var/list/class_input = list("text","num","type","reference","mob reference", "icon","file","color","list","edit referenced object","restore to default")
-	if(src.holder)
-		var/datum/marked_datum = holder.marked_datum()
-		if(marked_datum)
-			class_input += "marked datum ([marked_datum.type])"
+var/list/forbidden_varedit_object_types = list(
+		/datum/admins,                     //Admins editing their own admin-power object? Yup, sounds like a good idea.
+		/datum/configuration,
+		/obj/machinery/blackbox_recorder,  //Prevents people messing with feedback gathering
+		/datum/feedback_variable,          //Prevents people messing with feedback gathering
+		/datum/timedevent,                 //Nope.avi
+		/datum/craft_or_build,
+		/datum/stack_recipe,
+		/datum/events,
+		/datum/action
+	)
 
-	class = input("What kind of variable?","Variable Type") as null|anything in class_input
+/client/proc/cmd_modify_ticker_variables()
+	set category = "Debug"
+	set name = "Edit Ticker Variables"
+
+	if (ticker == null)
+		to_chat(src, "Game hasn't started yet.")
+	else
+		src.modify_variables(ticker)
+		feedback_add_details("admin_verb","ETV") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+
+/client/proc/mod_list_add_ass() //haha
+
+	var/class = "text"
+	if(src.holder && src.holder.marked_datum)
+		class = input("What kind of variable?","Variable Type") as null|anything in list("text",
+			"num","type","reference","mob reference", "icon","file","list","edit referenced object","restore to default","marked datum ([holder.marked_datum.type])")
+	else
+		class = input("What kind of variable?","Variable Type") as null|anything in list("text",
+			"num","type","reference","mob reference", "icon","file","list","edit referenced object","restore to default")
+
 	if(!class)
 		return
 
-	var/datum/marked_datum = holder.marked_datum()
-	if(marked_datum && class == "marked datum ([marked_datum.type])")
+	if(holder.marked_datum && class == "marked datum ([holder.marked_datum.type])")
 		class = "marked datum"
 
 	var/var_value = null
@@ -19,7 +41,7 @@
 	switch(class)
 
 		if("text")
-			var_value = input("Enter new text:","Text") as null|text
+			var_value = sanitize(input("Enter new text:","Text") as null|text)
 
 		if("num")
 			var_value = input("Enter new number:","Num") as null|num
@@ -40,31 +62,27 @@
 			var_value = input("Pick icon:","Icon") as null|icon
 
 		if("marked datum")
-			var_value = holder.marked_datum()
-
-		if("color")
-			var_value = input("Select new color:","Color") as null|color
+			var_value = holder.marked_datum
 
 	if(!var_value) return
 
 	return var_value
 
 
-/client/proc/mod_list_add(var/list/L, atom/O, original_name, objectvar)
+/client/proc/mod_list_add(list/L)
 
 	var/class = "text"
-	var/list/class_input = list("text","num","type","reference","mob reference", "icon","file","list","color","edit referenced object","restore to default")
-	if(src.holder)
-		var/datum/marked_datum = holder.marked_datum()
-		if(marked_datum)
-			class_input += "marked datum ([marked_datum.type])"
+	if(src.holder && src.holder.marked_datum)
+		class = input("What kind of variable?","Variable Type") as null|anything in list("text",
+			"num","type","reference","mob reference", "icon","file","list","edit referenced object","restore to default","marked datum ([holder.marked_datum.type])")
+	else
+		class = input("What kind of variable?","Variable Type") as null|anything in list("text",
+			"num","type","reference","mob reference", "icon","file","list","edit referenced object","restore to default")
 
-	class = input("What kind of variable?","Variable Type") as null|anything in class_input
 	if(!class)
 		return
 
-	var/datum/marked_datum = holder.marked_datum()
-	if(marked_datum && class == "marked datum ([marked_datum.type])")
+	if(holder.marked_datum && class == "marked datum ([holder.marked_datum.type])")
 		class = "marked datum"
 
 	var/var_value = null
@@ -72,7 +90,7 @@
 	switch(class)
 
 		if("text")
-			var_value = input("Enter new text:","Text") as text
+			var_value = sanitize(input("Enter new text:","Text") as text)
 
 		if("num")
 			var_value = input("Enter new number:","Num") as num
@@ -93,7 +111,7 @@
 			var_value = input("Pick icon:","Icon") as icon
 
 		if("marked datum")
-			var_value = holder.marked_datum()
+			var_value = holder.marked_datum
 
 	if(!var_value) return
 
@@ -103,62 +121,41 @@
 			L[var_value] = mod_list_add_ass() //haha
 		if("No")
 			L += var_value
-	to_world_log("### ListVarEdit by [src]: [O.type] [objectvar]: ADDED=[var_value]")
-	log_admin("[key_name(src)] modified [original_name]'s [objectvar]: ADDED=[var_value]")
-	message_admins("[key_name_admin(src)] modified [original_name]'s [objectvar]: ADDED=[var_value]")
 
-/client/proc/mod_list(var/list/L, atom/O, original_name, objectvar)
-	if(!check_rights(R_VAREDIT))	return
-	if(!istype(L,/list)) to_chat(src, "Not a List.")
-	if(L.len > 1000)
-		var/confirm = alert(src, "The list you're trying to edit is very long, continuing may crash the server.", "Warning", "Continue", "Abort")
-		if(confirm != "Continue")
-			return
-
-	var/assoc = 0
-	if(L.len > 0)
-		var/a = L[1]
-		try
-			if(!isnum(a) && L[a] != null)
-				assoc = 1 //This is pretty weak test but I can't think of anything else
-				to_chat(usr, "List appears to be associative.")
-		catch {} // Builtin non-assoc lists (contents, etc.) will runtime if you try to get an assoc value of them
-
-	var/list/names = null
-	if(!assoc)
-		names = sortList(L)
-
-	var/variable
-	var/assoc_key
-	if(assoc)
-		variable = input("Which var?","Var") as null|anything in L + "(ADD VAR)"
-	else
-		variable = input("Which var?","Var") as null|anything in names + "(ADD VAR)"
-
-	if(variable == "(ADD VAR)")
-		mod_list_add(L, O, original_name, objectvar)
+/client/proc/mod_list(list/L)
+	if(!check_rights(R_VAREDIT))
 		return
 
-	if(assoc)
-		assoc_key = variable
-		variable = L[assoc_key]
+	if(!islist(L))
+		to_chat(usr, "Still not a list")
+		return
 
-	if(!assoc && !variable || assoc && !assoc_key)
+
+	var/list/locked = list("vars", "key", "ckey", "client", "virus", "viruses", "icon", "icon_state")
+	var/list/names = sortList(L)
+
+	var/variable = input("Which var?","Var") as null|anything in names + "(ADD VAR)"
+
+	if(variable == "(ADD VAR)")
+		mod_list_add(L)
+		return
+
+	if(!variable)
 		return
 
 	var/default
 
 	var/dir
 
-	if(!O.may_edit_var(usr, objectvar))
-		return
+	if(variable in locked)
+		if(!check_rights(R_DEBUG))	return
 
 	if(isnull(variable))
 		to_chat(usr, "Unable to determine variable type.")
+
 	else if(isnum(variable))
 		to_chat(usr, "Variable appears to be <b>NUM</b>.")
 		default = "num"
-		dir = 1
 
 	else if(istext(variable))
 		to_chat(usr, "Variable appears to be <b>TEXT</b>.")
@@ -170,7 +167,7 @@
 
 	else if(isicon(variable))
 		to_chat(usr, "Variable appears to be <b>ICON</b>.")
-		variable = "\icon[variable]"
+		variable = "[bicon(variable)]"
 		default = "icon"
 
 	else if(istype(variable,/atom) || istype(variable,/datum))
@@ -213,138 +210,102 @@
 
 		if(dir)
 			to_chat(usr, "If a direction, direction is: [dir]")
+
 	var/class = "text"
-	var/list/class_input = list("text","num","type","reference","mob reference", "icon","file","list","edit referenced object","restore to default")
-
-	if(src.holder)
-		var/datum/marked_datum = holder.marked_datum()
-		if(marked_datum)
-			class_input += "marked datum ([marked_datum.type])"
-
-	class_input += "DELETE FROM LIST"
-	class = input("What kind of variable?","Variable Type",default) as null|anything in class_input
+	if(src.holder && src.holder.marked_datum)
+		class = input("What kind of variable?","Variable Type",default) as null|anything in list("text",
+			"num","type","reference","mob reference", "icon","file","list","edit referenced object","restore to default","marked datum ([holder.marked_datum.type])", "DELETE FROM LIST")
+	else
+		class = input("What kind of variable?","Variable Type",default) as null|anything in list("text",
+			"num","type","reference","mob reference", "icon","file","list","edit referenced object","restore to default", "DELETE FROM LIST")
 
 	if(!class)
 		return
 
-	var/datum/marked_datum = holder.marked_datum()
-	if(marked_datum && class == "marked datum ([marked_datum.type])")
+	if(holder.marked_datum && class == "marked datum ([holder.marked_datum.type])")
 		class = "marked datum"
 
-	var/original_var
-	if(assoc)
-		original_var = L[assoc_key]
-	else
-		original_var = L[L.Find(variable)]
-
-	var/new_var
 	switch(class) //Spits a runtime error if you try to modify an entry in the contents list. Dunno how to fix it, yet.
 
 		if("list")
-			mod_list(variable, O, original_name, objectvar)
+			if(!islist(L[L.Find(variable)]))
+				if(alert("This is not a list. Would you like to create new list?",,"Yes","No") == "No")
+					return
+				L[L.Find(variable)] = list()
+			mod_list(L[L.Find(variable)])
 
 		if("restore to default")
-			new_var = initial(variable)
-			if(assoc)
-				L[assoc_key] = new_var
-			else
-				L[L.Find(variable)] = new_var
+			L[L.Find(variable)]=initial(variable)
 
 		if("edit referenced object")
 			modify_variables(variable)
 
 		if("DELETE FROM LIST")
-			to_world_log("### ListVarEdit by [src]: [O.type] [objectvar]: REMOVED=[html_encode("[variable]")]")
-			log_admin("[key_name(src)] modified [original_name]'s [objectvar]: REMOVED=[variable]")
-			message_admins("[key_name_admin(src)] modified [original_name]'s [objectvar]: REMOVED=[variable]")
 			L -= variable
 			return
 
 		if("text")
-			new_var = input("Enter new text:","Text") as text
-			if(assoc)
-				L[assoc_key] = new_var
-			else
-				L[L.Find(variable)] = new_var
+			L[L.Find(variable)] = sanitize(input("Enter new text:","Text") as text)
 
 		if("num")
-			new_var = input("Enter new number:","Num") as num
-			if(assoc)
-				L[assoc_key] = new_var
-			else
-				L[L.Find(variable)] = new_var
+			L[L.Find(variable)] = input("Enter new number:","Num") as num
 
 		if("type")
-			new_var = input("Enter type:","Type") in typesof(/obj,/mob,/area,/turf)
-			if(assoc)
-				L[assoc_key] = new_var
-			else
-				L[L.Find(variable)] = new_var
+			L[L.Find(variable)] = input("Enter type:","Type") in typesof(/obj,/mob,/area,/turf)
 
 		if("reference")
-			new_var = input("Select reference:","Reference") as mob|obj|turf|area in world
-			if(assoc)
-				L[assoc_key] = new_var
-			else
-				L[L.Find(variable)] = new_var
+			L[L.Find(variable)] = input("Select reference:","Reference") as mob|obj|turf|area in world
 
 		if("mob reference")
-			new_var = input("Select reference:","Reference") as mob in world
-			if(assoc)
-				L[assoc_key] = new_var
-			else
-				L[L.Find(variable)] = new_var
+			L[L.Find(variable)] = input("Select reference:","Reference") as mob in world
 
 		if("file")
-			new_var = input("Pick file:","File") as file
-			if(assoc)
-				L[assoc_key] = new_var
-			else
-				L[L.Find(variable)] = new_var
+			L[L.Find(variable)] = input("Pick file:","File") as file
 
 		if("icon")
-			new_var = input("Pick icon:","Icon") as icon
-			if(assoc)
-				L[assoc_key] = new_var
-			else
-				L[L.Find(variable)] = new_var
+			L[L.Find(variable)] = input("Pick icon:","Icon") as icon
 
 		if("marked datum")
-			new_var = holder.marked_datum()
-			if(!new_var)
-				return
-			if(assoc)
-				L[assoc_key] = new_var
-			else
-				L[L.Find(variable)] = new_var
+			L[L.Find(variable)] = holder.marked_datum
 
-	to_world_log("### ListVarEdit by [src]: [O.type] [objectvar]: [original_var]=[new_var]")
-	log_admin("[key_name(src)] modified [original_name]'s [objectvar]: [original_var]=[new_var]")
-	message_admins("[key_name_admin(src)] modified [original_name]'s varlist [objectvar]: [original_var]=[new_var]")
 
-/client/proc/modify_variables(var/atom/O, var/param_var_name = null, var/autodetect_class = 0)
+/client/proc/modify_variables(atom/O, param_var_name = null, autodetect_class = 0)
 	if(!check_rights(R_VAREDIT))	return
 
-	for(var/p in forbidden_varedit_object_types())
-		if( istype(O,p) )
-			to_chat(usr, "<span class='danger'>It is forbidden to edit this object's variables.</span>")
-			return
+	var/list/icons_modifying = list("resize")
+	var/list/locked = list("vars", "key", "ckey", "client", "virus", "viruses", "mutantrace", "player_ingame_age", "summon_type", "AI_Interact")
+	var/list/typechange_locked = list("player_next_age_tick","player_ingame_age")
+	var/list/fully_locked = list("holder", "player_next_age_tick", "resize_rev", "action_procname")
+
+	if(is_type_in_list(O, forbidden_varedit_object_types))
+		to_chat(usr, "\red It is forbidden to edit this object's variables.")
+		return
 
 	var/class
 	var/variable
 	var/var_value
 
 	if(param_var_name)
-		if(!(param_var_name in O.get_variables()))
+		if(!(param_var_name in O.vars))
 			to_chat(src, "A variable with this name ([param_var_name]) doesn't exist in this atom ([O])")
 			return
 
-		if(!O.may_edit_var(usr, param_var_name))
+		if(param_var_name in fully_locked)
+			to_chat(usr, "\red It is forbidden to edit this variable.")
+			return
+
+		if(!autodetect_class && (param_var_name in typechange_locked))
+			return
+
+		if((param_var_name in locked) && !check_rights(R_DEBUG))
+			return
+
+		if((param_var_name in icons_modifying) && !check_rights(R_DEBUG|R_EVENT))
 			return
 
 		variable = param_var_name
 
-		var_value = O.get_variable_value(variable)
+		var_value = O.vars[variable]
 
 		if(autodetect_class)
 			if(isnull(var_value))
@@ -354,7 +315,6 @@
 			else if(isnum(var_value))
 				to_chat(usr, "Variable appears to be <b>NUM</b>.")
 				class = "num"
-				dir = 1
 
 			else if(istext(var_value))
 				to_chat(usr, "Variable appears to be <b>TEXT</b>.")
@@ -366,7 +326,7 @@
 
 			else if(isicon(var_value))
 				to_chat(usr, "Variable appears to be <b>ICON</b>.")
-				var_value = "\icon[var_value]"
+				var_value = "[bicon(var_value)]"
 				class = "icon"
 
 			else if(istype(var_value,/atom) || istype(var_value,/datum))
@@ -395,10 +355,10 @@
 
 		variable = input("Which var?","Var") as null|anything in names
 		if(!variable)	return
-		var_value = O.get_variable_value(variable)
+		var_value = O.vars[variable]
 
-		if(!O.may_edit_var(usr, variable))
-			return
+		if(variable == "holder" || (variable in locked))
+			if(!check_rights(R_DEBUG))	return
 
 	if(!autodetect_class)
 
@@ -406,10 +366,10 @@
 		var/default
 		if(isnull(var_value))
 			to_chat(usr, "Unable to determine variable type.")
+
 		else if(isnum(var_value))
 			to_chat(usr, "Variable appears to be <b>NUM</b>.")
 			default = "num"
-			dir = 1
 
 		else if(istext(var_value))
 			to_chat(usr, "Variable appears to be <b>TEXT</b>.")
@@ -421,7 +381,7 @@
 
 		else if(isicon(var_value))
 			to_chat(usr, "Variable appears to be <b>ICON</b>.")
-			var_value = "\icon[var_value]"
+			var_value = "[bicon(var_value)]"
 			default = "icon"
 
 		else if(istype(var_value,/atom) || istype(var_value,/datum))
@@ -463,12 +423,13 @@
 					dir = null
 			if(dir)
 				to_chat(usr, "If a direction, direction is: [dir]")
-		var/list/class_input = list("text","num","type","reference","mob reference", "icon","file","list","json","color","edit referenced object","restore to default")
-		if(src.holder)
-			var/datum/marked_datum = holder.marked_datum()
-			if(marked_datum)
-				class_input += "marked datum ([marked_datum.type])"
-		class = input("What kind of variable?","Variable Type",default) as null|anything in class_input
+
+		if(src.holder && src.holder.marked_datum)
+			class = input("What kind of variable?","Variable Type",default) as null|anything in list("text",
+				"num","type","reference","mob reference", "icon","file","list","edit referenced object","restore to default","marked datum ([holder.marked_datum.type])")
+		else
+			class = input("What kind of variable?","Variable Type",default) as null|anything in list("text",
+				"num","type","reference","mob reference", "icon","file","list","edit referenced object","restore to default")
 
 		if(!class)
 			return
@@ -480,101 +441,116 @@
 	else
 		original_name = O:name
 
-	var/datum/marked_datum = holder.marked_datum()
-	if(marked_datum && class == "marked datum ([marked_datum.type])")
+	if(holder.marked_datum && class == "marked datum ([holder.marked_datum.type])")
 		class = "marked datum"
+
+	var/log_handled = FALSE
 
 	switch(class)
 
 		if("list")
-			mod_list(O.get_variable_value(variable), O, original_name, variable)
+			if(!islist(O.vars[variable]))
+				if(alert("This is not a list. Would you like to create new list?",,"Yes","No") == "No")
+					return
+				O.vars[variable] = list()
+			mod_list(O.vars[variable])
 			return
 
 		if("restore to default")
-			var_value = O.get_initial_variable_value(variable)
+			if(variable=="resize")
+				world.log << "### VarEdit by [src]: [O.type] [variable]=[html_encode("[O.resize_rev]")]"
+				log_admin("[key_name(src)] modified [original_name]'s [variable] to [O.resize_rev]")
+				message_admins("[key_name_admin(src)] modified [original_name]'s [variable] to [O.resize_rev]")
+				log_handled = TRUE
+				O.vars[variable] = O.resize_rev
+				O.update_transform()
+				O.resize_rev = initial(O.resize_rev)
+			else
+				O.vars[variable] = initial(O.vars[variable])
 
 		if("edit referenced object")
-			return .(O.get_variable_value(variable))
+			return .(O.vars[variable])
 
 		if("text")
-			var/var_new = input("Enter new text:","Text",O.get_variable_value(variable)) as null|text
-			if(var_new==null) return
-			var_value = var_new
+			var/var_new = sanitize(input("Enter new text:", "Text", O.vars[variable])) as null|text
+			if(isnull(var_new))
+				return
+			O.vars[variable] = var_new
 
 		if("num")
-			if(variable=="stat")
-				var/var_new = input("Enter new number:","Num",O.get_variable_value(variable)) as null|num
-				if(var_new == null) return
-				if((O.get_variable_value(variable) == 2) && (var_new < 2))//Bringing the dead back to life
-					var/mob/M = O
-					M.switch_from_dead_to_living_mob_list()
-				if((O.get_variable_value(variable) < 2) && (var_new == 2))//Kill he
-					var/mob/M = O
-					M.switch_from_living_to_dead_mob_list()
-				var_value = var_new
-			else
-				var/var_new =  input("Enter new number:","Num",O.get_variable_value(variable)) as null|num
-				if(var_new==null) return
-				var_value = var_new
+			switch(variable)
+				if("light_range")
+					var/var_new = input("Enter new number:", "Num", O.vars[variable]) as null|num
+					if(isnull(var_new))
+						return
+					O.set_light(var_new)
+				if("player_ingame_age")
+					var/var_new = input("Enter new number:", "Num", O.vars[variable]) as null|num
+					if(isnull(var_new) || var_new < 0)
+						return
+					O.vars[variable] = var_new
+					if(istype(O,/client))
+						var/client/C = O
+						if(C) C.log_client_ingame_age_to_db()
+				if("stat")
+					var/var_new = input("Enter new number:", "Num", O.vars[variable]) as null|num
+					if(isnull(var_new))
+						return
+					if((O.vars[variable] == 2) && (var_new < 2))//Bringing the dead back to life
+						dead_mob_list -= O
+						living_mob_list += O
+					if((O.vars[variable] < 2) && (var_new == 2))//Kill him
+						living_mob_list -= O
+						dead_mob_list += O
+					O.vars[variable] = var_new
+				if("resize")
+					var/var_new = input("Enter new coefficient: \n(object will be resized by multiplying this number)", "Num", O.vars[variable]) as null|num
+					if(isnull(var_new))
+						return
+					if(var_new == 0)
+						to_chat(usr, "<b>Resize coefficient can't be equal 0</b>")
+						return
+					O.vars[variable] = var_new
+					world.log << "### VarEdit by [src]: [O.type] [variable]=[html_encode("[O.resize]")]"
+					log_admin("[key_name(src)] modified [original_name]'s [variable] to [O.resize]")
+					message_admins("[key_name_admin(src)] modified [original_name]'s [variable] to [O.resize]")
+					log_handled = TRUE
+					O.update_transform()
+				else
+					var/var_new = input("Enter new number:", "Num", O.vars[variable]) as null|num
+					if(isnull(var_new))
+						return
+					O.vars[variable] = var_new
 
 		if("type")
-			var/var_new = input("Enter type:","Type",O.get_variable_value(variable)) as null|anything in typesof(/obj,/mob,/area,/turf)
+			var/var_new = input("Enter type:","Type",O.vars[variable]) as null|anything in typesof(/obj,/mob,/area,/turf)
 			if(var_new==null) return
-			var_value = var_new
+			O.vars[variable] = var_new
 
 		if("reference")
-			var/var_new = input("Select reference:","Reference",O.get_variable_value(variable)) as null|mob|obj|turf|area in world
+			var/var_new = input("Select reference:","Reference",O.vars[variable]) as null|mob|obj|turf|area in world
 			if(var_new==null) return
-			var_value = var_new
+			O.vars[variable] = var_new
 
 		if("mob reference")
-			var/var_new = input("Select reference:","Reference",O.get_variable_value(variable)) as null|mob in world
+			var/var_new = input("Select reference:","Reference",O.vars[variable]) as null|mob in world
 			if(var_new==null) return
-			var_value = var_new
+			O.vars[variable] = var_new
 
 		if("file")
-			var/var_new = input("Pick file:","File",O.get_variable_value(variable)) as null|file
+			var/var_new = input("Pick file:","File",O.vars[variable]) as null|file
 			if(var_new==null) return
-			var_value = var_new
+			O.vars[variable] = var_new
 
 		if("icon")
-			var/var_new = input("Pick icon:","Icon",O.get_variable_value(variable)) as null|icon
+			var/var_new = input("Pick icon:","Icon",O.vars[variable]) as null|icon
 			if(var_new==null) return
-			var_value = var_new
-
-		if("color")
-			var_value = input("Select new color:","Color") as null|color
-
-		if("json")
-			var/json_str = input("JSON string", "JSON", json_encode(O.get_variable_value(variable))) as null | message
-			try
-				var_value = json_decode(json_str)
-			catch
-				return
+			O.vars[variable] = var_new
 
 		if("marked datum")
-			var_value = holder.marked_datum()
+			O.vars[variable] = holder.marked_datum
 
-	var/old_value = O.get_variable_value(variable)
-	if(!special_set_vv_var(O, variable, var_value, src))
-		O.set_variable_value(variable, var_value)
-
-	var/new_value = O.get_variable_value(variable)
-	if(old_value == new_value)
-		return
-
-	to_world_log("### VarEdit by [src]: [O.type] [variable]=[html_encode("[new_value]")]")
-	log_and_message_admins("modified [original_name]'s [variable] from '[old_value]' to '[new_value]'")
-
-/client
-	var/static/vv_set_handlers
-
-/client/proc/special_set_vv_var(var/datum/O, variable, var_value, client)
-	if(!vv_set_handlers)
-		vv_set_handlers = init_subtypes(/decl/vv_set_handler)
-	for(var/vv_handler in vv_set_handlers)
-		var/decl/vv_set_handler/sh = vv_handler
-		if(sh.can_handle_set_var(O, variable, var_value, client))
-			sh.handle_set_var(O, variable, var_value, client)
-			return TRUE
-	return FALSE
+	if(!log_handled)
+		world.log << "### VarEdit by [src]: [O.type] [variable]=[html_encode("[O.vars[variable]]")]"
+		log_admin("[key_name(src)] modified [original_name]'s [variable] to [O.vars[variable]]")
+		message_admins("[key_name_admin(src)] modified [original_name]'s [variable] to [O.vars[variable]]")

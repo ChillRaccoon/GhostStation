@@ -4,11 +4,11 @@
 /*
 #define NOTESFILE "data/player_notes.sav"	//where the player notes are saved
 
-datum/admins/proc/notes_show(var/ckey)
-	show_browser(usr, "<head><title>Player Notes</title></head><body>[notes_gethtml(ckey)]</body>","window=player_notes;size=700x400")
+datum/admins/proc/notes_show(ckey)
+	usr << browse("<head><title>Player Notes</title></head><body>[notes_gethtml(ckey)]</body>","window=player_notes;size=700x400")
 
 
-datum/admins/proc/notes_gethtml(var/ckey)
+datum/admins/proc/notes_gethtml(ckey)
 	var/savefile/notesfile = new(NOTESFILE)
 	if(!notesfile)	return "<font color='red'>Error: Cannot access [NOTESFILE]</font>"
 	if(ckey)
@@ -27,8 +27,28 @@ datum/admins/proc/notes_gethtml(var/ckey)
 			. += "<a href='?src=\ref[src];notes=show;ckey=[dir]'>[dir]</a><br>"
 	return
 
+
+//handles adding notes to the end of a ckey's buffer
+//originally had seperate entries such as var/by to record who left the note and when
+//but the current bansystem is a heap of dung.
+/proc/notes_add(ckey, note)
+	if(!ckey)
+		ckey = ckey(input(usr,"Who would you like to add notes for?","Enter a ckey",null) as text|null)
+		if(!ckey)	return
+
+	if(!note)
+		note = html_encode(input(usr,"Enter your note:","Enter some text",null) as message|null)
+		if(!note)	return
+
+	var/savefile/notesfile = new(NOTESFILE)
+	if(!notesfile)	return
+	notesfile.cd = "/[ckey]"
+	notesfile.eof = 1		//move to the end of the buffer
+	to_chat(notesfile, "[time2text(world.realtime,"DD-MMM-YYYY")] | [note][(usr && usr.ckey)?" ~[usr.ckey]":""]")
+	return
+
 //handles removing entries from the buffer, or removing the entire directory if no start_index is given
-/proc/notes_remove(var/ckey, var/start_index, var/end_index)
+/proc/notes_remove(ckey, start_index, end_index)
 	var/savefile/notesfile = new(NOTESFILE)
 	if(!notesfile)	return
 
@@ -53,7 +73,7 @@ datum/admins/proc/notes_gethtml(var/ckey)
 		notesfile.eof = -2		//Move to the start of the buffer and then erase.
 
 		for( var/note in noteslist )
-			notesfile << note
+			to_chat(notesfile, note)
 	else
 		notesfile.cd = "/"
 		if(alert(usr,"Are you sure you want to remove all their notes?","Confirmation","No","Yes - Remove all notes") == "Yes - Remove all notes")
@@ -65,9 +85,11 @@ datum/admins/proc/notes_gethtml(var/ckey)
 
 //Hijacking this file for BS12 playernotes functions. I like this ^ one systemm alright, but converting sounds too bothersome~ Chinsky.
 
-/proc/notes_add(var/key, var/note, var/mob/user)
+/proc/notes_add(key, note, client/admin)
 	if (!key || !note)
 		return
+
+	note = sanitize(note)
 
 	//Loading list of notes for this key
 	var/savefile/info = new("data/player_saves/[copytext(key, 1, 2)]/[key]/info.sav")
@@ -91,12 +113,9 @@ datum/admins/proc/notes_gethtml(var/ckey)
 	var/day_loc = findtext(full_date, time2text(world.timeofday, "DD"))
 
 	var/datum/player_info/P = new
-	if (ismob(user))
-		P.author = user.key
-		P.rank = user.client.holder.rank
-	else if (istext(user))
-		P.author = user
-		P.rank = "Bot"
+	if (admin)
+		P.author = admin.key
+		P.rank = admin.holder.rank
 	else
 		P.author = "Adminbot"
 		P.rank = "Friendly Robot"
@@ -106,8 +125,8 @@ datum/admins/proc/notes_gethtml(var/ckey)
 	infos += P
 	info << infos
 
-	message_staff("<span class='notice'>[P.author] has edited [key]'s notes.</span>")
-	log_admin("[P.author] has edited [key]'s notes.")
+	message_admins("[admin ? key_name_admin(admin) : "Adminbot"] has edited [key]'s notes.")
+	log_admin("[admin ? key_name(admin) : "Adminbot"]] has edited [key]'s notes.")
 
 	del(info) // savefile, so NOT qdel
 
@@ -118,10 +137,10 @@ datum/admins/proc/notes_gethtml(var/ckey)
 	if(!note_keys) note_keys = list()
 	if(!note_keys.Find(key)) note_keys += key
 	note_list << note_keys
-	del(note_list) // savefile, so NOT qdel
+	del(note_list)	// savefile, so NOT qdel
 
 
-/proc/notes_del(var/key, var/index)
+/proc/notes_del(key, index, admin)
 	var/savefile/info = new("data/player_saves/[copytext(key, 1, 2)]/[key]/info.sav")
 	var/list/infos
 	info >> infos
@@ -131,13 +150,13 @@ datum/admins/proc/notes_gethtml(var/ckey)
 	infos.Remove(item)
 	info << infos
 
-	message_staff("<span class='notice'>[key_name_admin(usr)] deleted one of [key]'s notes.</span>")
-	log_admin("[key_name(usr)] deleted one of [key]'s notes.")
+	message_admins("[key_name_admin(admin)] deleted one of [key]'s notes.")
+	log_admin("[key_name(admin)] deleted one of [key]'s notes.")
 
-	del(info) // savefile, so NOT qdel
+	del(info)	// savefile, so NOT qdel
 
-/proc/show_player_info_irc(var/key as text)
-	var/dat = "          Info on [key]\n"
+/proc/show_player_info_irc(key)
+	var/dat = "          Info on [key]%0D%0A"
 	var/savefile/info = new("data/player_saves/[copytext(key, 1, 2)]/[key]/info.sav")
 	var/list/infos
 	info >> infos
@@ -145,6 +164,6 @@ datum/admins/proc/notes_gethtml(var/ckey)
 		dat = "No information found on the given key."
 	else
 		for(var/datum/player_info/I in infos)
-			dat += "[I.content]\nby [I.author] ([I.rank]) on [I.timestamp]\n\n"
+			dat += "[I.content]%0D%0Aby [I.author] ([I.rank]) on [I.timestamp]%0D%0A%0D%0A"
 
-	return list2params(list(dat))
+	return dat

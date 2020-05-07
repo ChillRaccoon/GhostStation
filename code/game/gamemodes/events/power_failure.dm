@@ -1,39 +1,73 @@
+var/power_fail_event = 0
+/proc/power_failure(announce = 1)
+	if(power_fail_event)
+		return
+	power_fail_event = 1
 
-/proc/power_failure(var/announce = 1, var/severity = 2, var/list/affected_z_levels)
 	if(announce)
-		GLOB.using_map.grid_check_announcement()
+		command_alert("Abnormal activity detected in [station_name()]'s powernet. As a precautionary measure, the station's power will be shut off for an indeterminate duration.", "Critical Power Failure")
+		player_list << sound('sound/AI/poweroff.ogg')
+		if(prob(25))
+			addtimer(CALLBACK(GLOBAL_PROC, .proc/play_ambience), 600)
 
-	for(var/obj/machinery/power/smes/buildable/S in SSmachines.machinery)
-		S.energy_fail(rand(15 * severity,30 * severity))
+	var/list/skipped_areas = list(/area/turret_protected/ai, /area/tcommsat/computer, /area/tcommsat/chamber)
 
-
-	for(var/obj/machinery/power/apc/C in SSmachines.machinery)
-		if(!C.is_critical && (!affected_z_levels || (C.z in affected_z_levels)))
-			C.energy_fail(rand(30 * severity,60 * severity))
-
-/proc/power_restore(var/announce = 1)
-	if(announce)
-		GLOB.using_map.grid_restored_announcement()
-	for(var/obj/machinery/power/apc/C in SSmachines.machinery)
-		C.failure_timer = 0
-		var/obj/item/weapon/cell/cell = C.get_cell()
-		if(cell)
-			cell.charge = cell.maxcharge
-	for(var/obj/machinery/power/smes/S in SSmachines.machinery)
-		S.failure_timer = 0
-		S.charge = S.capacity
+	for(var/obj/machinery/power/smes/S in machines)
+		var/area/current_area = get_area(S)
+		if(current_area.type in skipped_areas ||S.z != ZLEVEL_STATION)
+			continue
+		S.last_charge = S.charge
+		S.last_output = S.output
+		S.last_online = S.online
+		S.charge = 0
+		S.output = 0
+		S.online = 0
+		S.max_input = 0
+		S.max_output = 0
 		S.update_icon()
 		S.power_change()
 
-/proc/power_restore_quick(var/announce = 1)
+	for(var/obj/machinery/power/apc/C in machines)
+		if(C.cell && C.z == ZLEVEL_STATION)
+			C.cell.charge = 0
+
+/proc/play_ambience()
+	player_list << sound('sound/ambience/hullcreak.ogg')
+
+/proc/power_restore(announce = 1, badminery = 0)
+	power_fail_event = 0
+	var/list/skipped_areas = list(/area/turret_protected/ai, /area/tcommsat/computer, /area/tcommsat/chamber)
 
 	if(announce)
-		command_announcement.Announce("All SMESs on the [station_name()] have been recharged. We apologize for the inconvenience.", "Power Systems Nominal", new_sound = GLOB.using_map.grid_restored_sound)
-	for(var/obj/machinery/power/smes/S in SSmachines.machinery)
-		S.failure_timer = 0
+		command_alert("Power has been restored to [station_name()]. We apologize for the inconvenience.", "Power Systems Nominal")
+		player_list << sound('sound/AI/poweron.ogg')
+	if(badminery)
+		for(var/obj/machinery/power/apc/C in machines)
+			if(C.cell && C.z == ZLEVEL_STATION)
+				C.cell.charge = C.cell.maxcharge
+	for(var/obj/machinery/power/smes/S in machines)
+		var/area/current_area = get_area(S)
+		if(current_area.type in skipped_areas || S.z != ZLEVEL_STATION)
+			continue
+		S.RefreshParts()
+		if(badminery)
+			S.charge = S.last_charge
+		S.output = S.last_output
+		S.online = S.last_online
+		S.update_icon()
+		S.power_change()
+
+//This one can be called only by admin.
+/proc/power_restore_quick(announce = 1)
+	if(announce)
+		command_alert("All SMESs on [station_name()] have been recharged. We apologize for the inconvenience.", "Power Systems Nominal")
+		player_list << sound('sound/AI/poweron.ogg')
+	for(var/obj/machinery/power/smes/S in machines)
+		if(S.z != ZLEVEL_STATION)
+			continue
+		S.RefreshParts()
 		S.charge = S.capacity
-		S.output_level = S.output_level_max
-		S.output_attempt = 1
-		S.input_attempt = 1
+		S.output = S.max_output
+		S.online = 1
 		S.update_icon()
 		S.power_change()

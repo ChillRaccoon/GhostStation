@@ -1,97 +1,130 @@
-/obj/item/clothing/accessory/storage/holster
+/obj/item/clothing/accessory/holster
 	name = "shoulder holster"
 	desc = "A handgun holster."
 	icon_state = "holster"
-	slot = ACCESSORY_SLOT_HOLSTER
-	slots = 1
-	max_w_class = ITEM_SIZE_NORMAL
-	var/list/can_holster = null
-	var/sound_in = 'sound/effects/holster/holsterin.ogg'
-	var/sound_out = 'sound/effects/holster/holsterout.ogg'
+	item_color = "holster"
+	slot = "utility"
+	var/obj/item/weapon/gun/holstered = null
 
-/obj/item/clothing/accessory/storage/holster/Initialize()
-	. = ..()
-	set_extension(src, /datum/extension/holster, hold, sound_in, sound_out, can_holster)
+//subtypes can override this to specify what can be holstered
+/obj/item/clothing/accessory/holster/proc/can_holster(obj/item/weapon/gun/W)
+	return W.isHandgun()
 
-/obj/item/clothing/accessory/storage/holster/attackby(obj/item/W as obj, mob/user as mob)
-	var/datum/extension/holster/H = get_extension(src, /datum/extension/holster)
-	if(H.holster(W, user))
+/obj/item/clothing/accessory/holster/proc/holster(obj/item/I, mob/user)
+	if(holstered)
+		to_chat(user, "<span class='warning'>There is already a [holstered] holstered here!</span>")
 		return
-	else
-		. = ..(W, user)
 
-/obj/item/clothing/accessory/storage/holster/attack_hand(mob/user as mob)
-	var/datum/extension/holster/H = get_extension(src, /datum/extension/holster)
-	if(H.unholster(user))
+	if (!istype(I, /obj/item/weapon/gun))
+		to_chat(user, "<span class='warning'>Only guns can be holstered!</span>")
 		return
+
+	var/obj/item/weapon/gun/W = I
+	if (!can_holster(W))
+		to_chat(user, "<span class='warning'>This [W] won't fit in the [src]!</span>")
+		return
+
+	holstered = W
+	user.drop_from_inventory(holstered)
+	holstered.loc = src
+	holstered.add_fingerprint(user)
+	user.visible_message("<span class='notice'>[user] holsters the [holstered].</span>", "<span class='notice'>You holster the [holstered].</span>")
+
+/obj/item/clothing/accessory/holster/proc/unholster(mob/user)
+	if(!holstered)
+		return
+
+	if(istype(user.get_active_hand(), /obj) && istype(user.get_inactive_hand(), /obj))
+		to_chat(user, "<span class='warning'>You need an empty hand to draw the [holstered]!</span>")
 	else
-		. = ..(user)
+		if(user.a_intent == I_HURT)
+			user.visible_message(
+				"<span class='warning'>[user] draws the [holstered], ready to shoot!</span>",
+				"<span class='warning'>You draw the [holstered], ready to shoot!</span>")
+		else
+			user.visible_message(
+				"<span class='notice'>[user] draws the [holstered], pointing it at the ground.</span>",
+				"<span class='notice'>You draw the [holstered], pointing it at the ground.</span>")
+		user.put_in_hands(holstered)
+		holstered.add_fingerprint(user)
+		holstered = null
 
-/obj/item/clothing/accessory/storage/holster/examine(mob/user)
-	. = ..(user)
-	var/datum/extension/holster/H = get_extension(src, /datum/extension/holster)
-	H.examine_holster(user)
+/obj/item/clothing/accessory/holster/attack_hand(mob/user)
+	if (has_suit)	//if we are part of a suit
+		if (holstered)
+			unholster(user)
+		return
 
-/obj/item/clothing/accessory/storage/holster/on_attached(obj/item/clothing/under/S, mob/user as mob)
+	..(user)
+
+/obj/item/clothing/accessory/holster/attackby(obj/item/W, mob/user)
+	holster(W, user)
+
+/obj/item/clothing/accessory/holster/emp_act(severity)
+	if (holstered)
+		holstered.emp_act(severity)
 	..()
-	has_suit.verbs += /atom/proc/holster_verb
 
-/obj/item/clothing/accessory/storage/holster/on_removed(mob/user as mob)
-	if(has_suit)
-		var/remove_verb = TRUE
-		if(has_extension(has_suit, /datum/extension/holster))
-			remove_verb = FALSE
+/obj/item/clothing/accessory/holster/examine(mob/user)
+	..()
+	if (holstered)
+		to_chat(user, "A [holstered] is holstered here.")
+	else
+		to_chat(user, "It is empty.")
 
-		for(var/obj/accessory in has_suit.accessories)
-			if(accessory == src)
-				continue
-			if(has_extension(accessory, /datum/extension/holster))
-				remove_verb = FALSE
+/obj/item/clothing/accessory/holster/on_attached(obj/item/clothing/under/S, mob/user)
+	..()
+	has_suit.verbs += /obj/item/clothing/accessory/holster/verb/holster_verb
 
-		if(remove_verb)
-			has_suit.verbs -= /atom/proc/holster_verb
+/obj/item/clothing/accessory/holster/on_removed(mob/user)
+	has_suit.verbs -= /obj/item/clothing/accessory/holster/verb/holster_verb
 	..()
 
-/obj/item/clothing/accessory/storage/holster/armpit
-	name = "armpit holster"
+//For the holster hotkey
+/obj/item/clothing/accessory/holster/verb/holster_verb()
+	set name = "Holster"
+	set category = "Object"
+	set src in usr
+
+	if(!istype(usr, /mob/living))
+		return
+	if(usr.incapacitated())
+		return
+
+	var/obj/item/clothing/accessory/holster/H = null
+	if (istype(src, /obj/item/clothing/accessory/holster))
+		H = src
+	else if (istype(src, /obj/item/clothing/under))
+		var/obj/item/clothing/under/S = src
+		if (S.accessories.len)
+			H = locate() in S.accessories
+
+	if (!H)
+		to_chat(usr, "<span class='warning'>Something is very wrong.</span>")
+
+	if(!H.holstered)
+		if(!istype(usr.get_active_hand(), /obj/item/weapon/gun))
+			to_chat(usr, "<span class='notice'>You need your gun equiped to holster it.</span>")
+			return
+		var/obj/item/weapon/gun/W = usr.get_active_hand()
+		H.holster(W, usr)
+	else
+		H.unholster(usr)
+
+/obj/item/clothing/accessory/holster/armpit
+	name = "shoulder holster"
 	desc = "A worn-out handgun holster. Perfect for concealed carry."
 	icon_state = "holster"
+	item_color = "holster"
 
-/obj/item/clothing/accessory/storage/holster/waist
-	name = "waist holster"
+/obj/item/clothing/accessory/holster/waist
+	name = "shoulder holster"
 	desc = "A handgun holster. Made of expensive leather."
 	icon_state = "holster"
-	overlay_state = "holster_low"
+	item_color = "holster_low"
 
-/obj/item/clothing/accessory/storage/holster/hip
-	name = "hip holster"
-	desc = "A handgun holster slung low on the hip, draw pardner!"
-	icon_state = "holster_hip"
-
-/obj/item/clothing/accessory/storage/holster/thigh
-	name = "thigh holster"
-	desc = "A drop leg holster made of a durable synthetic fiber."
-	icon_state = "holster_thigh"
-	sound_in = 'sound/effects/holster/tactiholsterin.ogg'
-	sound_out = 'sound/effects/holster/tactiholsterout.ogg'
-
-/obj/item/clothing/accessory/storage/holster/machete
-	name = "machete sheath"
-	desc = "A handsome synthetic leather sheath with matching belt."
-	icon_state = "holster_machete"
-	can_holster = list(/obj/item/weapon/material/hatchet/machete)
-	sound_in = 'sound/effects/holster/sheathin.ogg'
-	sound_out = 'sound/effects/holster/sheathout.ogg'
-
-/obj/item/clothing/accessory/storage/holster/knife
-	name = "leather knife sheath"
-	desc = "A synthetic leather knife sheath which you can strap on your leg."
-	icon_state = "sheath_leather"
-	can_holster = list(/obj/item/weapon/material/knife)
-	sound_in = 'sound/effects/holster/sheathin.ogg'
-	sound_out = 'sound/effects/holster/sheathout.ogg'
-
-/obj/item/clothing/accessory/storage/holster/knife/polymer
-	name = "polymer knife sheath"
-	desc = "A rigid polymer sheath which you can strap on your leg."
-	icon_state = "sheath_polymer"
+/obj/item/clothing/accessory/holster/mafia
+	name = "gun holster"
+	desc = "When you just HAVE to show off your guns."
+	icon_state = "mafia_holster"
+	item_color = "mafia_holster"

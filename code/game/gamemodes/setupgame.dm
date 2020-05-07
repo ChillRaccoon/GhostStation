@@ -5,7 +5,7 @@
 // Randomize block, assign a reference name, and optionally define difficulty (by making activation zone smaller or bigger)
 // The name is used on /vg/ for species with predefined genetic traits,
 //  and for the DNA panel in the player panel.
-/proc/getAssignedBlock(var/name,var/list/blocksLeft, var/activity_bounds=DNA_DEFAULT_BOUNDS)
+/proc/getAssignedBlock(name,list/blocksLeft, activity_bounds=DNA_DEFAULT_BOUNDS)
 	if(blocksLeft.len==0)
 		warning("[name]: No more blocks left to assign!")
 		return 0
@@ -13,60 +13,60 @@
 	blocksLeft.Remove(assigned)
 	assigned_blocks[assigned]=name
 	dna_activity_bounds[assigned]=activity_bounds
-	//testing("[name] assigned to block #[assigned].")
+//	testing("[name] assigned to block #[assigned].")
 	return assigned
 
-/proc/setupgenetics()
+/datum/subsystem/atoms/proc/setupGenetics()
 
 	if (prob(50))
 		// Currently unused.  Will revisit. - N3X
-		GLOB.BLOCKADD = rand(-300,300)
+		BLOCKADD = rand(-300,300)
 	if (prob(75))
-		GLOB.DIFFMUT = rand(0,20)
+		DIFFMUT = rand(0,20)
 
 	var/list/numsToAssign=new()
 	for(var/i=1;i<DNA_SE_LENGTH;i++)
 		numsToAssign += i
 
-	//testing("Assigning DNA blocks:")
+//	testing("Assigning DNA blocks:")
 
+	//#Z2 A bit of sorting.
 	// Standard muts, imported from older code above.
-	GLOB.BLINDBLOCK         = getAssignedBlock("BLINDED",         numsToAssign)
-	GLOB.DEAFBLOCK          = getAssignedBlock("DEAFENED",          numsToAssign)
-	GLOB.HULKBLOCK          = getAssignedBlock("HULK",          numsToAssign, DNA_HARD_BOUNDS)
-	GLOB.TELEBLOCK          = getAssignedBlock("TELE",          numsToAssign, DNA_HARD_BOUNDS)
-	GLOB.FIREBLOCK          = getAssignedBlock("FIRE",          numsToAssign, DNA_HARDER_BOUNDS)
-	GLOB.XRAYBLOCK          = getAssignedBlock("XRAY",          numsToAssign, DNA_HARDER_BOUNDS)
-	GLOB.CLUMSYBLOCK        = getAssignedBlock("CLUMSY",        numsToAssign)
-	GLOB.FAKEBLOCK          = getAssignedBlock("FAKE",          numsToAssign)
-
-	// UNUSED!
-	//GLOB.COUGHBLOCK         = getAssignedBlock("COUGH",         numsToAssign)
-	//GLOB.GLASSESBLOCK       = getAssignedBlock("GLASSES",       numsToAssign)
-	//GLOB.EPILEPSYBLOCK      = getAssignedBlock("EPILEPSY",      numsToAssign)
-	//GLOB.TWITCHBLOCK        = getAssignedBlock("TWITCH",        numsToAssign)
-	//GLOB.NERVOUSBLOCK       = getAssignedBlock("NERVOUS",       numsToAssign)
-
-	// Bay muts (UNUSED)
-	//GLOB.HEADACHEBLOCK      = getAssignedBlock("HEADACHE",      numsToAssign)
-	//GLOB.NOBREATHBLOCK      = getAssignedBlock("NOBREATH",      numsToAssign, DNA_HARD_BOUNDS)
-	//GLOB.REMOTEVIEWBLOCK    = getAssignedBlock("REMOTEVIEW",    numsToAssign, DNA_HARDER_BOUNDS)
-	//GLOB.REGENERATEBLOCK    = getAssignedBlock("REGENERATE",    numsToAssign, DNA_HARDER_BOUNDS)
-	//GLOB.INCREASERUNBLOCK   = getAssignedBlock("INCREASERUN",   numsToAssign, DNA_HARDER_BOUNDS)
-	GLOB.REMOTETALKBLOCK    = getAssignedBlock("REMOTETALK",    numsToAssign, DNA_HARDER_BOUNDS)
-	//GLOB.MORPHBLOCK         = getAssignedBlock("MORPH",         numsToAssign, DNA_HARDER_BOUNDS)
-	//GLOB.COLDBLOCK          = getAssignedBlock("COLD",          numsToAssign)
-	//GLOB.HALLUCINATIONBLOCK = getAssignedBlock("HALLUCINATION", numsToAssign)
-	//GLOB.NOPRINTSBLOCK      = getAssignedBlock("NOPRINTS",      numsToAssign, DNA_HARD_BOUNDS)
-	//GLOB.SHOCKIMMUNITYBLOCK = getAssignedBlock("SHOCKIMMUNITY", numsToAssign)
-	//GLOB.SMALLSIZEBLOCK     = getAssignedBlock("SMALLSIZE",     numsToAssign, DNA_HARD_BOUNDS)
+	//Major Powers (DAC)
+	HULKBLOCK          = getAssignedBlock("HULK",          numsToAssign, DNA_HARD_BOUNDS)
+	TELEBLOCK          = getAssignedBlock("TELE",          numsToAssign, DNA_HARD_BOUNDS)
+	FIREBLOCK          = getAssignedBlock("FIRE",          numsToAssign, DNA_HARD_BOUNDS)
+	XRAYBLOCK          = getAssignedBlock("XRAY",          numsToAssign, DNA_HARD_BOUNDS)
+	COLDBLOCK          = getAssignedBlock("COLD",          numsToAssign, DNA_HARD_BOUNDS)
+	SHOCKIMMUNITYBLOCK = getAssignedBlock("SHOCKIMMUNITY", numsToAssign, DNA_HARD_BOUNDS)
+	//Minor Powers (BEA)
+	NOBREATHBLOCK      = getAssignedBlock("NOBREATH",      numsToAssign, DNA_HARDER_BOUNDS)
+	REMOTEVIEWBLOCK    = getAssignedBlock("REMOTEVIEW",    numsToAssign, DNA_HARDER_BOUNDS)
+	REGENERATEBLOCK    = getAssignedBlock("REGENERATE",    numsToAssign, DNA_HARDER_BOUNDS)
+	INCREASERUNBLOCK   = getAssignedBlock("INCREASERUN",   numsToAssign, DNA_HARDER_BOUNDS)
+	REMOTETALKBLOCK    = getAssignedBlock("REMOTETALK",    numsToAssign, DNA_HARDER_BOUNDS)
+	MORPHBLOCK         = getAssignedBlock("MORPH",         numsToAssign, DNA_HARDER_BOUNDS)
+	NOPRINTSBLOCK      = getAssignedBlock("NOPRINTS",      numsToAssign, DNA_HARDER_BOUNDS)
+	SMALLSIZEBLOCK     = getAssignedBlock("SMALLSIZE",     numsToAssign, DNA_HARDER_BOUNDS)
+	//Disabilities (802)
+	BLINDBLOCK         = getAssignedBlock("BLIND",         numsToAssign)
+	DEAFBLOCK          = getAssignedBlock("DEAF",          numsToAssign)
+	CLUMSYBLOCK        = getAssignedBlock("CLUMSY",        numsToAssign)
+	COUGHBLOCK         = getAssignedBlock("COUGH",         numsToAssign)
+	GLASSESBLOCK       = getAssignedBlock("GLASSES",       numsToAssign)
+	EPILEPSYBLOCK      = getAssignedBlock("EPILEPSY",      numsToAssign)
+	TWITCHBLOCK        = getAssignedBlock("TWITCH",        numsToAssign)
+	NERVOUSBLOCK       = getAssignedBlock("NERVOUS",       numsToAssign)
+	HEADACHEBLOCK      = getAssignedBlock("HEADACHE",      numsToAssign)
+	HALLUCINATIONBLOCK = getAssignedBlock("HALLUCINATION", numsToAssign)
+	FAKEBLOCK          = getAssignedBlock("FAKE",          numsToAssign) //##Z2
 
 	//
 	// Static Blocks
 	/////////////////////////////////////////////.
 
 	// Monkeyblock is always last.
-	GLOB.MONKEYBLOCK = DNA_SE_LENGTH
+	MONKEYBLOCK = DNA_SE_LENGTH
 
 	// And the genes that actually do the work. (domutcheck improvements)
 	var/list/blocks_assigned[DNA_SE_LENGTH]
@@ -81,3 +81,28 @@
 				assignedToBlock=blocks_assigned[G.block]
 			assignedToBlock.Add(G.name)
 			blocks_assigned[G.block]=assignedToBlock
+			//testing("DNA2: Gene [G.name] assigned to block [G.block].")
+	for(var/block=1;block<=DNA_SE_LENGTH;block++) //#Z2
+		var/name = assigned_blocks[block]
+		for(var/datum/dna/gene/gene in dna_genes)
+			if(gene.name == name || gene.block == block)
+				if(gene.block in assigned_gene_blocks)
+					warning("DNA2: Gene [gene.name] trying to add to already assigned gene block list (used by [english_list(assigned_gene_blocks[block])])")
+				assigned_gene_blocks[block] = gene
+	//testing("DNA2: [numsToAssign.len] blocks are unused: [english_list(numsToAssign)]") //##Z2
+
+/proc/setupFactions()
+
+	// Populate the factions list:
+	for(var/x in typesof(/datum/faction))
+		var/datum/faction/F = new x
+		if(!F.name)
+			qdel(F)
+			continue
+		else
+			ticker.factions.Add(F)
+			ticker.availablefactions.Add(F)
+
+	// Populate the syndicate coalition:
+	for(var/datum/faction/syndicate/S in ticker.factions)
+		ticker.syndicate_coalition.Add(S)

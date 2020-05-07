@@ -5,7 +5,7 @@
 
 INITIALIZE_IMMEDIATE(/obj/effect/statclick)
 
-/obj/effect/statclick/Initialize(mapload, text, target) //Don't port this to Initialize it's too critical
+/obj/effect/statclick/atom_init(mapload, text, target)
 	. = ..()
 	name = text
 	src.target = target
@@ -20,8 +20,10 @@ INITIALIZE_IMMEDIATE(/obj/effect/statclick)
 /obj/effect/statclick/debug/Click()
 	if(!usr.client.holder || !target)
 		return
+	if(!(usr.client.holder.rights & R_DEBUG))
+		return
 	if(!class)
-		if(istype(target, /datum/controller/subsystem))
+		if(istype(target, /datum/subsystem))
 			class = "subsystem"
 		else if(istype(target, /datum/controller))
 			class = "controller"
@@ -42,10 +44,15 @@ INITIALIZE_IMMEDIATE(/obj/effect/statclick)
 
 	if(!holder)
 		return
+	if(!check_rights(R_DEBUG))
+		return
 	switch(controller)
 		if("Master")
-			Recreate_MC()
+			new/datum/controller/master()
+			Master.process()
+			feedback_add_details("admin_verb","RMC")
 		if("Failsafe")
 			new /datum/controller/failsafe()
+			feedback_add_details("admin_verb","RFailsafe")
 
 	message_admins("Admin [key_name_admin(usr)] has restarted the [controller] controller.")

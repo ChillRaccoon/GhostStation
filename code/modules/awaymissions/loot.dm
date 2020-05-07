@@ -5,7 +5,8 @@
 	var/lootdoubles = 0		//if the same item can be spawned twice
 	var/loot = ""			//a list of possible items to spawn- a string of paths
 
-/obj/effect/spawner/lootdrop/Initialize()
+/obj/effect/spawner/lootdrop/atom_init()
+	. = ..()
 	var/list/things = params2list(loot)
 
 	if(things && things.len)
@@ -21,4 +22,4 @@
 				continue
 
 			new loot_path(get_turf(src))
-	return INITIALIZE_HINT_QDEL
+	qdel(src)

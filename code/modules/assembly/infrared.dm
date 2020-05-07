@@ -1,149 +1,244 @@
-//This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:32
-
 /obj/item/device/assembly/infra
 	name = "infrared emitter"
 	desc = "Emits a visible or invisible beam and is triggered when the beam is interrupted."
 	icon_state = "infrared"
-	origin_tech = list(TECH_MAGNET = 2)
-	matter = list(MATERIAL_STEEL = 1000, MATERIAL_GLASS = 500, MATERIAL_WASTE = 100)
+	m_amt = 1000
+	g_amt = 500
+	w_amt = 100
+	origin_tech = "magnets=2"
+
 	wires = WIRE_PULSE
+
 	secured = 0
-	obj_flags = OBJ_FLAG_CONDUCTIBLE | OBJ_FLAG_ROTATABLE
 
 	var/on = 0
 	var/visible = 0
-	var/list/beams
-	var/list/seen_turfs
-	var/datum/proximity_trigger/line/proximity_trigger
+	var/obj/effect/beam/i_beam/first = null
+	var/obj/effect/beam/i_beam/last = null
 
-/obj/item/device/assembly/infra/New()
-	..()
-	beams = list()
-	seen_turfs = list()
-	proximity_trigger = new(src, /obj/item/device/assembly/infra/proc/on_beam_entered, /obj/item/device/assembly/infra/proc/on_visibility_change, world.view, PROXIMITY_EXCLUDE_HOLDER_TURF)
 
 /obj/item/device/assembly/infra/Destroy()
-	qdel(proximity_trigger)
-	proximity_trigger = null
-
-	. = ..()
+	if(first)
+		qdel(first)
+	return ..()
 
 /obj/item/device/assembly/infra/activate()
 	if(!..())
 		return 0//Cooldown check
-	set_active(!on)
-	return 1
-
-/obj/item/device/assembly/infra/proc/set_active(new_on)
-	if(new_on == on)
-		return
-	on = new_on
-	if(on)
-		proximity_trigger.register_turfs()
-	else
-		proximity_trigger.unregister_turfs()
+	on = !on
 	update_icon()
+	return 1
 
 /obj/item/device/assembly/infra/toggle_secure()
 	secured = !secured
-	set_active(secured ? FALSE : on)
+	if(secured)
+		START_PROCESSING(SSobj, src)
+	else
+		on = 0
+		if(first)
+			qdel(first)
+		STOP_PROCESSING(SSobj, src)
+	update_icon()
 	return secured
 
-/obj/item/device/assembly/infra/on_update_icon()
+/obj/item/device/assembly/infra/update_icon()
 	overlays.Cut()
+	attached_overlays = list()
 	if(on)
 		overlays += "infrared_on"
+		attached_overlays += "infrared_on"
+
 	if(holder)
 		holder.update_icon()
-	update_beams()
+	return
 
-/obj/item/device/assembly/infra/interact(mob/user as mob)//TODO: change this this to the wire control panel
+/obj/item/device/assembly/infra/process()//Old code
+	if(!on)
+		if(first)
+			qdel(first)
+		return
 	if(!secured)
 		return
-	if(!CanInteract(user, GLOB.physical_state))
+	if(first && last)
+		last.process()
 		return
+	var/turf/T = get_turf(src)
+	if(T && holder && isturf(holder.loc))
+		var/obj/effect/beam/i_beam/I = new /obj/effect/beam/i_beam(T)
+		I.master = src
+		I.density = 1
+		I.dir = dir
+		first = I
+		step(I, I.dir)
+		if(first)
+			I.density = 0
+			I.vis_spread(visible)
+			I.limit = 8
+			I.process()
 
-	user.set_machine(src)
-	var/dat = list()
-	dat += text("<TT><B>Infrared Laser</B>\n<B>Status</B>: []<BR>\n<B>Visibility</B>: []<BR>\n</TT>", (on ? text("<A href='?src=\ref[];state=0'>On</A>", src) : text("<A href='?src=\ref[];state=1'>Off</A>", src)), (src.visible ? text("<A href='?src=\ref[];visible=0'>Visible</A>", src) : text("<A href='?src=\ref[];visible=1'>Invisible</A>", src)))
-	dat += "<BR><BR><A href='?src=\ref[src];refresh=1'>Refresh</A>"
-	dat += "<BR><BR><A href='?src=\ref[src];close=1'>Close</A>"
-	show_browser(user, jointext(dat,null), "window=infra")
-	onclose(user, "infra")
+/obj/item/device/assembly/infra/attack_hand()
+	qdel(first)
+	..()
+	return
 
-/obj/item/device/assembly/infra/Topic(href, href_list, state = GLOB.physical_state)
-	if(..())
-		close_browser(usr, "window=infra")
-		onclose(usr, "infra")
-		return 1
+/obj/item/device/assembly/infra/Move()
+	var/t = dir
+	..()
+	dir = t
+	qdel(first)
+	return
 
-	if(href_list["state"])
-		set_active(!on)
-
-	if(href_list["visible"])
-		visible = !(visible)
-		update_icon()
-
-	if(href_list["close"])
-		close_browser(usr, "window=infra")
-		return
-
-	if(usr)
-		attack_self(usr)
-
-/obj/item/device/assembly/infra/proc/on_beam_entered(var/atom/enterer)
-	if(enterer == src)
-		return
-	if(enterer.invisibility > INVISIBILITY_LEVEL_TWO)
-		return
-	if(!secured || !on || cooldown > 0)
+/obj/item/device/assembly/infra/holder_movement()
+	if(!holder)
 		return 0
-	if((ismob(enterer) && !isliving(enterer))) // Observers and their ilk don't count even if visible
-		return
+//	dir = holder.dir
+	qdel(first)
+	return 1
 
+/obj/item/device/assembly/infra/proc/trigger_beam()
+	if((!secured)||(!on)||(cooldown > 0))
+		return 0
 	pulse(0)
 	if(!holder)
-		visible_message("\icon[src] *beep* *beep*")
+		visible_message("[bicon(src)] *beep* *beep*")
 	cooldown = 2
 	spawn(10)
 		process_cooldown()
+	var/time_pulse = time2text(world.realtime,"hh:mm:ss")
+	var/turf/T = get_turf(src)
+	lastsignalers.Add("[time_pulse] <B>:</B> [src] activated  @ location ([T.x],[T.y],[T.z])")
+	message_admins("[src] activated  @ location ([T.x],[T.y],[T.z]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[T.x];Y=[T.y];Z=[T.z]'>JMP</a>)")
+	log_game("[src] activated  @ location ([T.x],[T.y],[T.z])")
+	return
 
-/obj/item/device/assembly/infra/proc/on_visibility_change(var/list/old_turfs, var/list/new_turfs)
-	seen_turfs = new_turfs
-	update_beams()
-
-/obj/item/device/assembly/infra/proc/update_beams()
-	create_update_and_delete_beams(on, visible, dir, seen_turfs, beams)
-
-/proc/create_update_and_delete_beams(var/active, var/visible, var/dir, var/list/seen_turfs, var/list/existing_beams)
-	if(!active)
-		for(var/b in existing_beams)
-			qdel(b)
-		existing_beams.Cut()
+/obj/item/device/assembly/infra/interact(mob/user)//TODO: change this this to the wire control panel
+	if(is_secured(user))
+		user.set_machine(src)
+		var/dat = "<TT><B>Infrared Laser</B>\n<B>Status</B>: [on ? "<A href='?src=\ref[src];state=0'>On</A>" : "<A href='?src=\ref[src];state=1'>Off</A>"]<BR>\n<B>Visibility</B>: [visible ? "<A href='?src=\ref[src];visible=0'>Visible</A>" : "<A href='?src=\ref[src];visible=1'>Invisible</A>"]<BR>\n</TT>"
+		dat += "<BR><BR><A href='?src=\ref[src];refresh=1'>Refresh</A>"
+		dat += "<BR><BR><A href='?src=\ref[src];close=1'>Close</A>"
+		user << browse(entity_ja(dat), "window=infra")
+		onclose(user, "infra")
 		return
 
-	var/list/turfs_that_need_beams = seen_turfs.Copy()
+/obj/item/device/assembly/infra/Topic(href, href_list)
+	..()
+	if(usr.incapacitated() || !in_range(loc, usr))
+		usr << browse(null, "window=infra")
+		onclose(usr, "infra")
+		return
 
-	for(var/b in existing_beams)
-		var/obj/effect/beam/ir_beam/beam = b
-		if(beam.loc in turfs_that_need_beams)
-			turfs_that_need_beams -= beam.loc
-			beam.set_invisibility(visible ? 0 : INVISIBILITY_MAXIMUM)
+	if(href_list["state"])
+		on = !(on)
+		update_icon()
+		var/time_start = time2text(world.realtime,"hh:mm:ss")
+		var/turf/T = get_turf(src)
+		if(usr)
+			lastsignalers.Add("[time_start] <B>:</B> [usr.key] set [src] [on?"On":"Off"] @ location ([T.x],[T.y],[T.z])")
+			message_admins("[key_name_admin(usr)] set [src] [on?"On":"Off"], location ([T.x],[T.y],[T.z]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[usr.x];Y=[usr.y];Z=[usr.z]'>JMP</a>)")
+			log_game("[usr.ckey]([usr]) set [src] [on?"On":"Off"], location ([T.x],[T.y],[T.z])")
 		else
-			existing_beams -= beam
-			qdel(beam)
+			lastsignalers.Add("[time_start] <B>:</B> (NO USER FOUND) set [src] [on?"On":"Off"] @ location ([T.x],[T.y],[T.z])")
+			message_admins("( NO USER FOUND) set [src] [on?"On":"Off"], location ([T.x],[T.y],[T.z])")
+			log_game("(NO USER FOUND) set [src] [on?"On":"Off"], location ([T.x],[T.y],[T.z])")
 
-	if(!visible)
+	if(href_list["visible"])
+		visible = !(visible)
+		if(first)
+			first.vis_spread(visible)
+
+	if(href_list["close"])
+		usr << browse(null, "window=infra")
+		return
+	if(usr)
+		attack_self(usr)
+
+/obj/item/device/assembly/infra/verb/rotate()//This could likely be better
+	set name = "Rotate Infrared Laser"
+	set category = "Object"
+	set src in usr
+
+	if(usr.incapacitated())
 		return
 
-	for(var/t in turfs_that_need_beams)
-		var/obj/effect/beam/ir_beam/beam = new(t)
-		existing_beams += beam
-		beam.set_dir(dir)
+	dir = turn(dir, 90)
+	return
 
-/obj/effect/beam/ir_beam
-	name = "ir beam"
+
+
+/***************************IBeam*********************************/
+
+/obj/effect/beam/i_beam
+	name = "infrared beam"
 	icon = 'icons/obj/projectiles.dmi'
 	icon_state = "ibeam"
+	var/obj/effect/beam/i_beam/next = null
+	var/obj/effect/beam/i_beam/previous = null
+	var/obj/item/device/assembly/infra/master = null
+	var/limit = null
+	var/visible = 0
+	var/left = null
 	anchored = 1
-	simulated = 0
+
+/obj/effect/beam/i_beam/proc/hit()
+	if(master)
+		master.trigger_beam()
+	qdel(src)
+	return
+
+/obj/effect/beam/i_beam/proc/vis_spread(v)
+	visible = v
+	if(next)
+		next.vis_spread(v)
+
+/obj/effect/beam/i_beam/process()
+	if((loc.density || !(master)))
+		qdel(src)
+		return
+	if(left > 0)
+		left--
+	if(left < 1)
+		if(!(visible))
+			invisibility = 101
+		else
+			invisibility = 0
+	else
+		invisibility = 0
+
+	if(!next && (limit > 0))
+		var/obj/effect/beam/i_beam/I = new /obj/effect/beam/i_beam(loc)
+		I.master = master
+		I.density = 1
+		I.dir = dir
+		I.previous = src
+		next = I
+		step(I, I.dir)
+		if(next)
+			I.density = 0
+			I.vis_spread(visible)
+			I.limit = limit - 1
+			master.last = I
+			I.process()
+
+/obj/effect/beam/i_beam/Bump()
+	qdel(src)
+	return
+
+/obj/effect/beam/i_beam/Bumped()
+	hit()
+
+/obj/effect/beam/i_beam/Crossed(atom/movable/AM as mob|obj)
+	if(istype(AM, /obj/effect/beam))
+		return
+	hit()
+
+/obj/effect/beam/i_beam/Destroy()
+	if(master.first == src)
+		master.first = null
+	if(next)
+		qdel(next)
+		next = null
+	if(previous)
+		previous.next = null
+		master.last = previous
+	return ..()

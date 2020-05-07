@@ -2,9 +2,11 @@
 	name = "proximity sensor"
 	desc = "Used for scanning and alerting when someone enters a certain proximity."
 	icon_state = "prox"
-	origin_tech = list(TECH_MAGNET = 1)
-	matter = list(MATERIAL_STEEL = 800, MATERIAL_GLASS = 200, MATERIAL_WASTE = 50)
-	movable_flags = MOVABLE_FLAG_PROXMOVE
+	m_amt = 800
+	g_amt = 200
+	w_amt = 50
+	origin_tech = "magnets=1"
+
 	wires = WIRE_PULSE
 
 	secured = 0
@@ -15,16 +17,11 @@
 
 	var/range = 2
 
-/obj/item/device/assembly/prox_sensor/proc/toggle_scan()
-/obj/item/device/assembly/prox_sensor/proc/sense()
-
-
 /obj/item/device/assembly/prox_sensor/activate()
 	if(!..())	return 0//Cooldown check
 	timing = !timing
 	update_icon()
 	return 0
-
 
 /obj/item/device/assembly/prox_sensor/toggle_secure()
 	secured = !secured
@@ -37,31 +34,31 @@
 	update_icon()
 	return secured
 
-
-/obj/item/device/assembly/prox_sensor/HasProximity(atom/movable/AM as mob|obj)
-	if(!istype(AM))
-		log_debug("DEBUG: HasProximity called with [AM] on [src] ([usr]).")
-		return
+/obj/item/device/assembly/prox_sensor/HasProximity(atom/movable/AM)
 	if (istype(AM, /obj/effect/beam))	return
 	if (AM.move_speed < 12)	sense()
 	return
 
-
-/obj/item/device/assembly/prox_sensor/sense()
+/obj/item/device/assembly/prox_sensor/proc/sense()
 	var/turf/mainloc = get_turf(src)
-//		if(scanning && cooldown <= 0)
-//			mainloc.visible_message("\icon[src] *boop* *boop*", "*boop* *boop*")
+//	if(scanning && cooldown <= 0)
+//		mainloc.visible_message("[bicon(src)] *boop* *boop*", "*boop* *boop*")
 	if((!holder && !secured)||(!scanning)||(cooldown > 0))	return 0
 	pulse(0)
 	if(!holder)
-		mainloc.visible_message("\icon[src] *beep* *beep*", "*beep* *beep*")
+		mainloc.visible_message("[bicon(src)] *beep* *beep*", "*beep* *beep*")
 	cooldown = 2
 	spawn(10)
 		process_cooldown()
+
+//	var/time_pulse = time2text(world.realtime,"hh:mm:ss")
+//	var/turf/T = get_turf(src)
+//	lastsignalers.Add("[time_pulse] <B>:</B> [src] activated  @ location ([T.x],[T.y],[T.z])")
+//	message_admins("[src] activated  @ location ([T.x],[T.y],[T.z])",0,1)
+//	log_game("[src] activated  @ location ([T.x],[T.y],[T.z])")
 	return
 
-
-/obj/item/device/assembly/prox_sensor/Process()
+/obj/item/device/assembly/prox_sensor/process()
 	if(scanning)
 		var/turf/mainloc = get_turf(src)
 		for(var/mob/living/A in range(range,mainloc))
@@ -76,22 +73,19 @@
 		time = 10
 	return
 
-
 /obj/item/device/assembly/prox_sensor/dropped()
 	spawn(0)
 		sense()
 		return
 	return
 
-
-/obj/item/device/assembly/prox_sensor/toggle_scan()
+/obj/item/device/assembly/prox_sensor/proc/toggle_scan()
 	if(!secured)	return 0
 	scanning = !scanning
 	update_icon()
 	return
 
-
-/obj/item/device/assembly/prox_sensor/on_update_icon()
+/obj/item/device/assembly/prox_sensor/update_icon()
 	overlays.Cut()
 	attached_overlays = list()
 	if(timing)
@@ -107,16 +101,14 @@
 		grenade.primed(scanning)
 	return
 
-
 /obj/item/device/assembly/prox_sensor/Move()
 	..()
 	sense()
 	return
 
-
-/obj/item/device/assembly/prox_sensor/interact(mob/user as mob)//TODO: Change this to the wires thingy
+/obj/item/device/assembly/prox_sensor/interact(mob/user)//TODO: Change this to the wires thingy
 	if(!secured)
-		user.show_message("<span class='warning'>The [name] is unsecured!</span>")
+		user.show_message("\red The [name] is unsecured!")
 		return 0
 	var/second = time % 60
 	var/minute = (time - second) / 60
@@ -125,23 +117,43 @@
 	dat += "<BR><A href='?src=\ref[src];scanning=1'>[scanning?"Armed":"Unarmed"]</A> (Movement sensor active when armed!)"
 	dat += "<BR><BR><A href='?src=\ref[src];refresh=1'>Refresh</A>"
 	dat += "<BR><BR><A href='?src=\ref[src];close=1'>Close</A>"
-	show_browser(user, dat, "window=prox")
+	user << browse(entity_ja(dat), "window=prox")
 	onclose(user, "prox")
 	return
 
-
-/obj/item/device/assembly/prox_sensor/Topic(href, href_list, state = GLOB.physical_state)
-	if((. = ..()))
-		close_browser(usr, "window=prox")
+/obj/item/device/assembly/prox_sensor/Topic(href, href_list)
+	..()
+	if(!usr.canmove || usr.stat || usr.restrained() || !in_range(loc, usr))
+		usr << browse(null, "window=prox")
 		onclose(usr, "prox")
 		return
 
 	if(href_list["scanning"])
 		toggle_scan()
+		var/time_scan = time2text(world.realtime,"hh:mm:ss")
+		var/turf/T = get_turf(src)
+		if(usr)
+			lastsignalers.Add("[time_scan] <B>:</B> [usr.key] used [src] @ location ([T.x],[T.y],[T.z]) <B>:</B> time set: [time]")
+			message_admins("[key_name_admin(usr)] used [src] , location ([T.x],[T.y],[T.z]) <B>:</B> time set: [time] (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[usr.x];Y=[usr.y];Z=[usr.z]'>JMP</a>)")
+			log_game("[usr.ckey]([usr]) used [src], location ([T.x],[T.y],[T.z]),time set: [time]")
+		else
+			lastsignalers.Add("[time_scan] <B>:</B> (NO USER FOUND) set [src] @ location ([T.x],[T.y],[T.z]) <B>:</B> time set: [time]")
+			message_admins("( NO USER FOUND) used [src], location ([T.x],[T.y],[T.z]) <B>:</B> time set: [time]")
+			log_game("(NO USER FOUND) used [src] , location ([T.x],[T.y],[T.z]),time set: [time]")
 
 	if(href_list["time"])
 		timing = text2num(href_list["time"])
 		update_icon()
+		var/time_start = time2text(world.realtime,"hh:mm:ss")
+		var/turf/T = get_turf(src)
+		if(usr)
+			lastsignalers.Add("[time_start] <B>:</B> [usr.key] set [src] [timing?"On":"Off"] @ location ([T.x],[T.y],[T.z]) <B>:</B> time set: [time]")
+			message_admins("[key_name_admin(usr)] set [src] [timing?"On":"Off"], location ([T.x],[T.y],[T.z]) <B>:</B> time set: [time] (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[usr.x];Y=[usr.y];Z=[usr.z]'>JMP</a>)")
+			log_game("[usr.ckey]([usr]) set [src] [timing?"On":"Off"], location ([T.x],[T.y],[T.z]),time set: [time]")
+		else
+			lastsignalers.Add("[time_start] <B>:</B> (NO USER FOUND) set [src] [timing?"On":"Off"] @ location ([T.x],[T.y],[T.z]) <B>:</B> time set: [time]")
+			message_admins("( NO USER FOUND) set [src] [timing?"On":"Off"], location ([T.x],[T.y],[T.z]) <B>:</B> time set: [time]")
+			log_game("(NO USER FOUND) set [src] [timing?"On":"Off"], location ([T.x],[T.y],[T.z]),time set: [time]")
 
 	if(href_list["tp"])
 		var/tp = text2num(href_list["tp"])
@@ -154,7 +166,7 @@
 		range = min(max(range, 1), 5)
 
 	if(href_list["close"])
-		close_browser(usr, "window=prox")
+		usr << browse(null, "window=prox")
 		return
 
 	if(usr)

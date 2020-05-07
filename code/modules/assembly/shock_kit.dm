@@ -5,39 +5,41 @@
 	var/obj/item/clothing/head/helmet/part1 = null
 	var/obj/item/device/radio/electropack/part2 = null
 	var/status = 0
-	w_class = ITEM_SIZE_HUGE
-	obj_flags = OBJ_FLAG_CONDUCTIBLE
+	w_class = 5.0
+	flags = CONDUCT
 
 /obj/item/assembly/shock_kit/Destroy()
 	qdel(part1)
 	qdel(part2)
-	..()
-	return
+	return ..()
 
-/obj/item/assembly/shock_kit/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if(isWrench(W) && !status)
-		part1.dropInto(loc)
-		part2.dropInto(loc)
+/obj/item/assembly/shock_kit/attackby(obj/item/weapon/W, mob/user)
+	if(istype(W, /obj/item/weapon/wrench) && !status)
+		var/turf/T = loc
+		if(ismob(T))
+			T = T.loc
+		part1.loc = T
+		part2.loc = T
 		part1.master = null
 		part2.master = null
 		part1 = null
 		part2 = null
 		qdel(src)
 		return
-	if(isScrewdriver(W))
+	if(istype(W, /obj/item/weapon/screwdriver))
 		status = !status
 		to_chat(user, "<span class='notice'>[src] is now [status ? "secured" : "unsecured"]!</span>")
 	add_fingerprint(user)
 	return
 
-/obj/item/assembly/shock_kit/attack_self(mob/user as mob)
+/obj/item/assembly/shock_kit/attack_self(mob/user)
 	part1.attack_self(user, status)
 	part2.attack_self(user, status)
 	add_fingerprint(user)
 	return
 
 /obj/item/assembly/shock_kit/receive_signal()
-	if(istype(loc, /obj/structure/bed/chair/e_chair))
-		var/obj/structure/bed/chair/e_chair/C = loc
+	if(istype(loc, /obj/structure/stool/bed/chair/e_chair))
+		var/obj/structure/stool/bed/chair/e_chair/C = loc
 		C.shock()
 	return

@@ -1,13 +1,8 @@
-
-
 /obj/item/clothing/head/centhat
 	name = "\improper CentComm. hat"
 	icon_state = "centcom"
-	item_state_slots = list(
-		slot_l_hand_str = "centhat",
-		slot_r_hand_str = "centhat",
-		)
 	desc = "It's good to be emperor."
+	item_state = "centhat"
 	siemens_coefficient = 0.9
 	body_parts_covered = 0
 
@@ -15,22 +10,8 @@
 	name = "hair flower pin"
 	icon_state = "hairflower"
 	desc = "Smells nice."
-	slot_flags = SLOT_HEAD | SLOT_EARS
+	item_state = "hairflower"
 	body_parts_covered = 0
-
-/obj/item/clothing/head/hairflower/blue
-	icon_state = "hairflower_blue"
-
-/obj/item/clothing/head/hairflower/pink
-	icon_state = "hairflower_pink"
-
-/obj/item/clothing/head/hairflower/yellow
-	icon_state = "hairflower_yellow"
-
-/obj/item/clothing/head/hairflower/bow
-	icon_state = "bow"
-	name = "hair bow"
-	desc = "A ribbon tied into a bow with a clip on the back to attach to hair."
 
 /obj/item/clothing/head/powdered_wig
 	name = "powdered wig"
@@ -42,7 +23,7 @@
 	name = "top-hat"
 	desc = "It's an amish looking hat."
 	icon_state = "tophat"
-	item_state = "tophat"
+	item_state = "that"
 	siemens_coefficient = 0.9
 	body_parts_covered = 0
 
@@ -53,9 +34,9 @@
 	body_parts_covered = 0
 
 /obj/item/clothing/head/mailman
-	name = "mail cap"
+	name = "mailman's hat"
 	icon_state = "mailman"
-	desc = "<i>Choo-choo</i>!"
+	desc = "<i>'Right-on-time'</i> mail service head wear."
 	body_parts_covered = 0
 
 /obj/item/clothing/head/plaguedoctorhat
@@ -70,7 +51,7 @@
 	name = "hastur's hood"
 	desc = "It's unspeakably stylish."
 	icon_state = "hasturhood"
-	flags_inv = BLOCKHAIR
+	flags = HEADCOVERSEYES|BLOCKHAIR
 	body_parts_covered = HEAD|FACE|EYES
 
 /obj/item/clothing/head/nursehat
@@ -82,13 +63,11 @@
 
 /obj/item/clothing/head/syndicatefake
 	name = "red space-helmet replica"
-	item_state_slots = list(
-		slot_l_hand_str = "syndicate-helm-black-red",
-		slot_r_hand_str = "syndicate-helm-black-red",
-		)
-	icon_state = "syndicate"
-	desc = "A plastic replica of a bloodthirsty mercenary's space helmet, you'll look just like a real murderous criminal operative in this! This is a toy, it is not made for use in space!"
-	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE|BLOCKHAIR
+	icon_state = "syndicate-helm"
+	item_state = "syndicate-helm"
+	desc = "A plastic replica of a syndicate agent's space helmet, you'll look just like a real murderous syndicate agent in this! This is a toy, it is not made for use in space!"
+	flags = BLOCKHAIR
+	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE
 	siemens_coefficient = 2.0
 	body_parts_covered = HEAD|FACE|EYES
 
@@ -96,8 +75,9 @@
 	name = "cueball helmet"
 	desc = "A large, featureless white orb mean to be worn on your head. How do you even see out of this thing?"
 	icon_state = "cueball"
-	item_state = "cueball"
-	flags_inv = BLOCKHAIR
+	flags = HEADCOVERSEYES|HEADCOVERSMOUTH|BLOCKHAIR
+	item_state="cueball"
+	flags_inv = 0
 	body_parts_covered = HEAD|FACE|EYES
 
 /obj/item/clothing/head/cardborg
@@ -105,31 +85,34 @@
 	desc = "A helmet made out of a box."
 	icon_state = "cardborg_h"
 	item_state = "cardborg_h"
+	flags = HEADCOVERSEYES | HEADCOVERSMOUTH
 	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE
 	body_parts_covered = HEAD|FACE|EYES
 
-/obj/item/clothing/head/cardborg/Initialize()
-	. = ..()
-	set_extension(src, /datum/extension/appearance/cardborg)
-
 /obj/item/clothing/head/justice
 	name = "justice hat"
-	desc = "fight for what's righteous!"
+	desc = "Fight for what's righteous!"
 	icon_state = "justicered"
-	flags_inv = BLOCKHAIR
-	body_parts_covered = HEAD|EYES
+	item_state = "justicered"
+	flags = HEADCOVERSEYES|HEADCOVERSMOUTH|BLOCKHAIR
+	flags_inv = HIDEEARS|HIDEEYES|HIDEFACE
+	body_parts_covered = HEAD|FACE|EYES
 
 /obj/item/clothing/head/justice/blue
 	icon_state = "justiceblue"
+	item_state = "justiceblue"
 
 /obj/item/clothing/head/justice/yellow
 	icon_state = "justiceyellow"
+	item_state = "justiceyellow"
 
 /obj/item/clothing/head/justice/green
 	icon_state = "justicegreen"
+	item_state = "justicegreen"
 
 /obj/item/clothing/head/justice/pink
 	icon_state = "justicepink"
+	item_state = "justicepink"
 
 /obj/item/clothing/head/rabbitears
 	name = "rabbit ears"
@@ -140,46 +123,35 @@
 /obj/item/clothing/head/flatcap
 	name = "flat cap"
 	desc = "A working man's cap."
-	icon_state = "gentcap"
-	item_state_slots = list(
-		slot_l_hand_str = "det_hat",
-		slot_r_hand_str = "det_hat",
-		)
+	icon_state = "flat_cap"
+	item_state = "detective"
 	siemens_coefficient = 0.9
 
 /obj/item/clothing/head/pirate
 	name = "pirate hat"
 	desc = "Yarr."
 	icon_state = "pirate"
+	item_state = "pirate"
 	body_parts_covered = 0
 
 /obj/item/clothing/head/hgpiratecap
 	name = "pirate hat"
 	desc = "Yarr."
 	icon_state = "hgpiratecap"
+	item_state = "hgpiratecap"
 	body_parts_covered = 0
 
 /obj/item/clothing/head/bandana
 	name = "pirate bandana"
 	desc = "Yarr."
 	icon_state = "bandana"
-	body_parts_covered = 0
-
-/obj/item/clothing/head/bandana/green
-	name = "green bandana"
-	desc = "It's a green bandana with some fine nanotech lining."
-	icon_state = "greenbandana"
-	item_state = "greenbandana"
-
-/obj/item/clothing/head/bandana/orange //themij: Taryn Kifer
-	name = "orange bandana"
-	desc = "An orange piece of cloth, worn on the head."
-	icon_state = "orange_bandana"
+	item_state = "bandana"
 
 /obj/item/clothing/head/bowler
 	name = "bowler-hat"
 	desc = "Gentleman, elite aboard!"
 	icon_state = "bowler"
+	item_state = "bowler"
 	body_parts_covered = 0
 
 //stylish bs12 hats
@@ -187,32 +159,32 @@
 /obj/item/clothing/head/bowlerhat
 	name = "bowler hat"
 	icon_state = "bowler_hat"
+	item_state = "bowler_hat"
 	desc = "For the gentleman of distinction."
 	body_parts_covered = 0
 
 /obj/item/clothing/head/beaverhat
 	name = "beaver hat"
 	icon_state = "beaver_hat"
+	item_state = "beaver_hat"
 	desc = "Soft felt makes this hat both comfortable and elegant."
 
 /obj/item/clothing/head/boaterhat
 	name = "boater hat"
 	icon_state = "boater_hat"
+	item_state = "boater_hat"
 	desc = "The ultimate in summer fashion."
 
-/obj/item/clothing/head/fedora
-	name = "fedora"
-	icon_state = "fedora"
-	desc = "A sharp, stylish hat."
-
 /obj/item/clothing/head/feathertrilby
-	name = "feather trilby"
+	name = "\improper feather trilby"
 	icon_state = "feather_trilby"
+	item_state = "feather_trilby"
 	desc = "A sharp, stylish hat with a feather."
 
 /obj/item/clothing/head/fez
-	name = "fez"
+	name = "\improper fez"
 	icon_state = "fez"
+	item_state = "fez"
 	desc = "You should wear a fez. Fezzes are cool."
 
 //end bs12 hats
@@ -221,123 +193,203 @@
 	name = "witch costume wig"
 	desc = "Eeeee~heheheheheheh!"
 	icon_state = "witch"
-	flags_inv = BLOCKHAIR
+	item_state = "witch"
+	flags = BLOCKHAIR
 	siemens_coefficient = 2.0
 
 /obj/item/clothing/head/chicken
 	name = "chicken suit head"
 	desc = "Bkaw!"
 	icon_state = "chickenhead"
-	item_state_slots = list(
-		slot_l_hand_str = "chickensuit",
-		slot_r_hand_str = "chickensuit",
-		)
-	flags_inv = BLOCKHAIR
-	siemens_coefficient = 0.7
+	item_state = "chickensuit"
+	flags = BLOCKHAIR
+	siemens_coefficient = 2.0
 	body_parts_covered = HEAD|FACE|EYES
 
 /obj/item/clothing/head/bearpelt
 	name = "bear pelt hat"
 	desc = "Fuzzy."
 	icon_state = "bearpelt"
-	flags_inv = BLOCKHAIR
-	siemens_coefficient = 0.7
+	item_state = "bearpelt"
+	flags = BLOCKHAIR
+	siemens_coefficient = 2.0
+
+/obj/item/clothing/head/headscarf
+	name = "zhan headscarf"
+	icon_state = "zhan_scarf"
+	item_state = "zhan_scarf"
+	desc = "White headscarf"
+	body_parts_covered = 0
+	species_restricted = list(UNATHI , TAJARAN , HUMAN , DIONA , IPC)
+
+/obj/item/clothing/head/skrell_headwear
+	name = "skrell yellow headwear"
+	icon_state = "skrell_yellow"
+	item_state = "skrell_yellow"
+	desc = "Just two pieces of yellow cloth"
+	body_parts_covered = 0
+	species_restricted = list(SKRELL)
+
+/obj/item/clothing/head/skrell_headwear/red
+	name = "skrell red headwear"
+	icon_state = "skrell_red"
+	item_state = "skrell_red"
+	desc = "Just two pieces of red cloth"
+	body_parts_covered = 0
+	species_restricted = list(SKRELL)
+
+/obj/item/clothing/head/skrell_headwear/blue
+	name = "skrell blue headwear"
+	icon_state = "skrell_blue"
+	item_state = "skrell_blue"
+	desc = "Just two pieces of blue cloth"
+	body_parts_covered = 0
+	species_restricted = list(SKRELL)
 
 /obj/item/clothing/head/xenos
 	name = "xenos helmet"
 	icon_state = "xenos"
-	item_state_slots = list(
-		slot_l_hand_str = "xenos_helm",
-		slot_r_hand_str = "xenos_helm",
-		)
+	item_state = "xenos_helm"
 	desc = "A helmet made out of chitinous alien hide."
-	w_class = ITEM_SIZE_NORMAL
-	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE|BLOCKHAIR
+	flags = BLOCKHAIR
+	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE
 	siemens_coefficient = 2.0
 	body_parts_covered = HEAD|FACE|EYES
 
-/obj/item/clothing/head/philosopher_wig
-	name = "natural philosopher's wig"
-	desc = "A stylish monstrosity unearthed from Earth's Renaissance period. With this most distinguish'd wig, you'll be ready for your next soiree!"
-	icon_state = "philosopher_wig"
-	item_state_slots = list(
-		slot_l_hand_str = "pwig",
-		slot_r_hand_str = "pwig",
-		)
-	flags_inv = BLOCKHAIR
-	body_parts_covered = 0
+/obj/item/clothing/head/fedora
+	name = "fedora"
+	icon_state = "fedora"
+	item_state = "fedora"
+	desc = "A really cool hat if you're a mobster. A really lame hat if you're not."
+	actions_types = "Tip Fedora"
 
-/obj/item/clothing/head/hijab
-	name = "hijab"
-	desc = "A veil which is wrapped to cover the head and chest."
-	icon_state = "hijab"
-	body_parts_covered = 0
-	flags_inv = BLOCKHAIR
+/obj/item/clothing/head/fedora/attack_self(mob/user)
+	fedoraproc(user)
 
-/obj/item/clothing/head/kippa
-	name = "kippa"
-	desc = "A small, brimless cap."
-	icon_state = "kippa"
-	body_parts_covered = 0
+/obj/item/clothing/head/fedora/proc/fedoraproc(mob/user)
+	if(user.canmove && !user.stat && !user.restrained())
+		for(var/mob/living/carbon/M in range(7,src))
+			M.show_message("[user] tips their fedora.")
 
-/obj/item/clothing/head/turban
-	name = "turban"
-	desc = "A sturdy cloth, worn around the head."
-	icon_state = "turban"
-	body_parts_covered = 0
-	flags_inv = BLOCKHEADHAIR //Shows beards!
+/obj/item/clothing/head/fedora/verb/fedoratip()
+	set category = "Object"
+	set name = "Tip Fedora"
+	set src in usr
 
-/obj/item/clothing/head/cowboy_hat
-	name = "cowboy hat"
-	desc = "A wide-brimmed hat, in the prevalent style of America's frontier period. By SolGov law, you are required to wear this hat while watching True Grit."
-	icon_state = "cowboyhat"
-	item_state = "cowboy_hat"
-	body_parts_covered = 0
+	fedoraproc(usr)
 
-/obj/item/clothing/head/taqiyah
-	name = "taqiyah"
-	desc = "A short, rounded skullcap usually worn for religious purposes."
-	icon_state = "taqiyah"
-	item_state = "taqiyah"
-	body_parts_covered = 0
+/obj/item/clothing/head/fedora/black
+	name = "fedora"
+	desc = "Someone wearing this definitely makes them cool."
+	icon_state = "hat_black"
 
-/obj/item/clothing/head/rastacap
-	name = "rastacap"
-	desc = "A round, crocheted cap, often worn to tuck hair away or for religious purposes."
-	icon_state = "rastacap"
-	item_state = "rastacap"
-	body_parts_covered = 0
-	flags_inv = BLOCKHEADHAIR
+/obj/item/clothing/head/fedora/white
+	name = "white fedora"
+	desc = "Someone wearing this definitely makes them cool."
+	icon_state = "hat_white"
 
-/obj/item/clothing/head/tank
-	name = "padded cap"
-	desc = "A padded skullcup for those prone to bumping their heads against hard surfaces."
-	icon_state = "tank"
-	flags_inv = BLOCKHEADHAIR
-	color = "#5f5f5f"
-	armor = list(
-		melee = ARMOR_MELEE_KNIVES,
-		bomb = ARMOR_BOMB_PADDED
-		)
+/obj/item/clothing/head/fedora/brown
+ 	name = "brown fedora"
+ 	desc = "Someone wearing this definitely makes them cool."
+ 	icon_state = "hat_brown"
 
-/obj/item/clothing/head/tank/olive
-	color = "#727c58"
 
-/obj/item/clothing/head/tank/tan
-	color = "#ae9f79"
-
-/obj/item/clothing/head/beanie
-	name = "beanie"
-	desc = "A head-hugging brimless winter cap. This one is tight."
-	icon_state = "beanie"
-	item_state = "beanie"
-	body_parts_covered = 0
-
-/obj/item/clothing/head/helmet/facecover
-	name = "face cover"
-	desc = "A helmet made of plastic. It's completely opaque. This will stop the stare."
-	icon_state = "facecover"
-	tint = TINT_BLIND
-	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE|BLOCKHAIR
+/obj/item/clothing/head/batman_helmet
+	name = "Batman helmet"
+	desc = "It's not who you are underneath, it's what you do that defines you."
+	icon_state = "batman_helmet"
+	item_state = "batman_helmet"
+	flags = HEADCOVERSEYES | HEADCOVERSMOUTH | BLOCKHAIR
+	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES|HIDEFACE
 	body_parts_covered = HEAD|FACE|EYES
-	flash_protection = FLASH_PROTECTION_MAJOR
+
+/obj/item/clothing/head/beret/rosa
+	name = "white beret"
+	icon_state = "rosas_hat"
+	item_state = "helmet"
+
+/obj/item/clothing/head/sombrero
+	name = "sombrero"
+	icon_state = "sombrero"
+	item_state = "helmet"
+	desc = "You feel mexican just wearing this."
+
+/obj/item/clothing/head/sombrero/green
+	name = "green sombrero"
+	icon_state = "greensombrero"
+	item_state = "greensombrero"
+	desc = "As elegant as a dancing cactus."
+
+/obj/item/clothing/head/sombrero/shamebrero
+	name = "shamebrero"
+	icon_state = "shamebrero"
+	item_state = "shamebrero"
+	desc = "You never asked for this."
+
+/obj/item/clothing/head/western
+	name = "western hat"
+	icon_state = "western_hat"
+	item_state = "western_hat"
+
+/obj/item/clothing/head/western/cowboy
+	name = "cowboy hat"
+	icon_state = "cowboy_hat"
+	item_state = "cowboy_hat"
+	desc = "Howdy, partner!"
+
+/obj/item/clothing/head/indiana
+	name = "leather hat"
+	icon_state = "indiana_hat"
+	item_state = "indiana_hat"
+	desc = "Be aware of rolling boulders."
+
+/obj/item/clothing/head/necromancer_hood
+	name = "necromancer's hood"
+	desc = "It's hood that covers the head."
+	icon_state = "necromancer"
+	item_state = "necromancer"
+	flags = HEADCOVERSEYES|BLOCKHAIR
+	siemens_coefficient = 0.9
+
+/obj/item/clothing/head/chaplain_hood/brown
+	name = "brown hood"
+	icon_state = "brown_hood"
+
+/obj/item/clothing/head/chaplain_hood/green
+	name = "green hood"
+	icon_state = "green_hood"
+
+/obj/item/clothing/head/beret/red
+	name = "red beret"
+	desc = "Bonjour, but in red. Smells like baguette, pardon my French."
+	icon_state = "beret_red"
+
+/obj/item/clothing/head/beret/blue
+	name = "blue beret"
+	desc = "Bonjour, but in blue. Smells like baguette, pardon my French."
+	icon_state = "beret_blue"
+
+/obj/item/clothing/head/beret/black
+	name = "black beret"
+	desc = "Bonjour, but in black. Smells like baguette, pardon my French."
+	icon_state = "beret_black"
+
+/obj/item/clothing/head/beret/purple
+	name = "purple beret"
+	desc = "Bonjour, but in purple. Smells like baguette, pardon my French."
+	icon_state = "beret_purple"
+
+/obj/item/clothing/head/beret/centcom/officer
+	name = "officers beret"
+	desc = "A black beret adorned with the shield silver kite shield with an engraved sword of the NanoTrasen security forces, announcing to the world that the wearer is a defender of NanoTrasen."
+	icon_state = "centcomofficerberet"
+
+/obj/item/clothing/head/beret/centcom/captain
+	name = "captains beret"
+	desc = "A white beret adorned with the shield cobalt kite shield with an engraved sword of the NanoTrasen security forces, worn only by those captaining a vessel of the NanoTrasen Navy."
+	icon_state = "centcomcaptain"
+
+/obj/item/clothing/head/angel_nimb
+	name = "nimb"
+	desc = "Just a Nimb"
+	icon_state = "nimb"

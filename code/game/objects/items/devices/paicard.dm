@@ -3,29 +3,21 @@
 	icon = 'icons/obj/pda.dmi'
 	icon_state = "pai"
 	item_state = "electronic"
-	w_class = ITEM_SIZE_SMALL
+	w_class = 2.0
 	slot_flags = SLOT_BELT
-	origin_tech = list(TECH_DATA = 2)
+	origin_tech = "programming=2"
 	var/obj/item/device/radio/radio
 	var/looking_for_personality = 0
 	var/mob/living/silicon/pai/pai
 
-/obj/item/device/paicard/relaymove(var/mob/user, var/direction)
-	if(user.stat || user.stunned)
-		return
-	var/obj/item/weapon/rig/rig = src.get_rig()
-	if(istype(rig))
-		rig.forced_move(direction, user)
-
-/obj/item/device/paicard/New()
-	..()
+/obj/item/device/paicard/atom_init()
+	. = ..()
 	overlays += "pai-off"
 
 /obj/item/device/paicard/Destroy()
 	//Will stop people throwing friend pAIs into the singularity so they can respawn
 	if(!isnull(pai))
 		pai.death(0)
-	QDEL_NULL(radio)
 	return ..()
 
 /obj/item/device/paicard/attack_self(mob/user)
@@ -75,7 +67,7 @@
 					    color: white;
 					}
 					tr.d2 td {
-					    background-color: #00ff00;
+					    background-color: #00FF00;
 					    color: white;
 					    text-align:center;
 					}
@@ -90,7 +82,7 @@
 					}
 					td.button_red {
 					    border: 1px solid #161616;
-					    background-color: #b04040;
+					    background-color: #B04040;
 					    text-align: center;
 					}
 					td.download {
@@ -114,7 +106,7 @@
 					    vertical-align:top;
 					}
 					a {
-					    color:#4477e0;
+					    color:#4477E0;
 					}
 					a.button {
 					    color:white;
@@ -169,20 +161,26 @@
 				<table class="request">
 					<tr>
 						<td class="radio">Transmit:</td>
-						<td><a href='byond://?src=\ref[src];wires=4'>[radio.broadcasting ? "<font color=#55ff55>En" : "<font color=#ff5555>Dis" ]abled</font></a>
+						<td><a href='byond://?src=\ref[src];wires=4'>[(radio.wires & 4) ? "<font color=#55FF55>En" : "<font color=#FF5555>Dis" ]abled</font></a>
 
 						</td>
 					</tr>
 					<tr>
 						<td class="radio">Receive:</td>
-						<td><a href='byond://?src=\ref[src];wires=2'>[radio.listening ? "<font color=#55ff55>En" : "<font color=#ff5555>Dis" ]abled</font></a>
+						<td><a href='byond://?src=\ref[src];wires=2'>[(radio.wires & 2) ? "<font color=#55FF55>En" : "<font color=#FF5555>Dis" ]abled</font></a>
+
+						</td>
+					</tr>
+					<tr>
+						<td class="radio">Signal Pulser:</td>
+						<td><a href='byond://?src=\ref[src];wires=1'>[(radio.wires & 1) ? "<font color=#55FF55>En" : "<font color=#FF5555>Dis" ]abled</font></a>
 
 						</td>
 					</tr>
 				</table>
 				<br>
 			"}
-		else //</font></font>
+		else
 			dat += "<b>Radio Uplink</b><br>"
 			dat += "<font color=red><i>Radio firmware not loaded. Please install a pAI personality to load firmware.</i></font><br>"
 		dat += {"
@@ -197,7 +195,7 @@
 			dat += {"
 				<b><font size='3px'>pAI Request Module</font></b><br><br>
 				<p>Requesting AI personalities from central database... If there are no entries, or if a suitable entry is not listed, check again later as more personalities may be added.</p>
-				<img src='loading.gif' /> Searching for personalities<br><br>
+				Searching for personalities, please wait...<br><br>
 
 				<table>
 					<tr>
@@ -220,18 +218,13 @@
 				<br>
 				<p>Each time this button is pressed, a request will be sent out to any available personalities. Check back often give plenty of time for personalities to respond. This process could take anywhere from 15 seconds to several minutes, depending on the available personalities' timeliness.</p>
 			"}
-	show_browser(user, dat, "window=paicard")
+	user << browse(entity_ja(dat), "window=paicard")
 	onclose(user, "paicard")
 	return
 
-/obj/item/device/paicard/CanUseTopic(mob/user, datum/topic_state/state, href_list)
-	. = ..()
-	// possible NRE in Topic
-	if(href_list && (href_list["setdna"] || href_list["setlaws"] || href_list["wires"]) && !istype(pai))
-		return FALSE
-
 /obj/item/device/paicard/Topic(href, href_list)
-	if ((. = ..()))
+
+	if(!usr || usr.stat)
 		return
 
 	if(href_list["setdna"])
@@ -239,12 +232,12 @@
 			return
 		var/mob/M = usr
 		if(!istype(M, /mob/living/carbon))
-			to_chat(usr, "<span class='notice'>You don't have any DNA, or your DNA is incompatible with this device.</span>")
+			to_chat(usr, "<font color=blue>You don't have any DNA, or your DNA is incompatible with this device.</font>")
 		else
 			var/datum/dna/dna = usr.dna
 			pai.master = M.real_name
 			pai.master_dna = dna.unique_enzymes
-			to_chat(pai, "<span class='warning'>You have been bound to a new master.</span>")
+			to_chat(pai, "<font color = red><h3>You have been bound to a new master.</h3></font>")
 	if(href_list["request"])
 		src.looking_for_personality = 1
 		paiController.findPAI(src, usr)
@@ -260,13 +253,12 @@
 			removePersonality()
 	if(href_list["wires"])
 		var/t1 = text2num(href_list["wires"])
-		switch(t1)
-			if(4)
-				radio.ToggleBroadcast()
-			if(2)
-				radio.ToggleReception()
+		if (radio.wires & t1)
+			radio.wires &= ~t1
+		else
+			radio.wires |= t1
 	if(href_list["setlaws"])
-		var/newlaws = sanitize(input("Enter any additional directives you would like your pAI personality to follow. Note that these directives will not override the personality's allegiance to its imprinted master. Conflicting directives will be ignored.", "pAI Directive Configuration", pai.pai_laws) as message)
+		var/newlaws = sanitize(input("Enter any additional directives you would like your pAI personality to follow. Note that these directives will not override the personality's allegiance to its imprinted master. Conflicting directives will be ignored.", "pAI Directive Configuration", input_default(pai.pai_laws)) as message)
 		if(newlaws)
 			pai.pai_laws = newlaws
 			to_chat(pai, "Your supplemental directives have been updated. Your new directives are:")
@@ -287,9 +279,7 @@
 	src.overlays.Cut()
 	src.overlays += "pai-off"
 
-/obj/item/device/paicard
-	var/current_emotion = 1
-/obj/item/device/paicard/proc/setEmotion(var/emotion)
+/obj/item/device/paicard/proc/setEmotion(emotion)
 	if(pai)
 		src.overlays.Cut()
 		switch(emotion)
@@ -302,37 +292,13 @@
 			if(7) src.overlays += "pai-sad"
 			if(8) src.overlays += "pai-angry"
 			if(9) src.overlays += "pai-what"
-			if(10) src.overlays += "pai-neutral"
-			if(11) src.overlays += "pai-silly"
-			if(12) src.overlays += "pai-nose"
-			if(13) src.overlays += "pai-smirk"
-			if(14) src.overlays += "pai-exclamation"
-			if(15) src.overlays += "pai-question"
-		current_emotion = emotion
 
 /obj/item/device/paicard/proc/alertUpdate()
 	var/turf/T = get_turf_or_move(src.loc)
 	for (var/mob/M in viewers(T))
-		M.show_message("<span class='notice'>\The [src] flashes a message across its screen, \"Additional personalities available for download.\"</span>", 3, "<span class='notice'>\The [src] bleeps electronically.</span>", 2)
+		M.show_message("\blue [src] flashes a message across its screen, \"Additional personalities available for download.\"", 3, "\blue [src] bleeps electronically.", 2)
 
 /obj/item/device/paicard/emp_act(severity)
 	for(var/mob/M in src)
 		M.emp_act(severity)
-
-/obj/item/device/paicard/ex_act(severity)
-	if(pai)
-		pai.ex_act(severity)
-	else
-		qdel(src)
-
-/obj/item/device/paicard/see_emote(mob/living/M, text)
-	if(pai && pai.client && pai.stat == CONSCIOUS)
-		var/rendered = "<span class='message'>[text]</span>"
-		pai.show_message(rendered, 2)
-	..()
-
-/obj/item/device/paicard/show_message(msg, type, alt, alt_type)
-	if(pai && pai.client)
-		var/rendered = "<span class='message'>[msg]</span>"
-		pai.show_message(rendered, type)
 	..()

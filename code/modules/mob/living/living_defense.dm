@@ -1,281 +1,230 @@
-/mob/living/proc/modify_damage_by_armor(def_zone, damage, damage_type, damage_flags, mob/living/victim, armor_pen, silent = FALSE)
-	var/list/armors = get_armors_by_zone(def_zone, damage_type, damage_flags)
-	. = args.Copy(2)
-	for(var/armor in armors)
-		var/datum/extension/armor/armor_datum = armor
-		. = armor_datum.apply_damage_modifications(arglist(.))
+/mob/living/proc/run_armor_check(def_zone = null, attack_flag = "melee", absorb_text = null, soften_text = null)
+	var/armor = getarmor(def_zone, attack_flag)
+	if(armor >= 100)
+		if(absorb_text)
+			to_chat(src, "<span class='userdanger'>[absorb_text]</span>")
+		else
+			to_chat(src, "<span class='userdanger'>Your armor absorbs the blow!</span>")
+	else if(armor > 0)
+		if(soften_text)
+			to_chat(src, "<span class='userdanger'>[soften_text]</span>")
+		else
+			to_chat(src, "<span class='userdanger'>Your armor softens the blow!</span>")
+	return armor
 
-/mob/living/proc/get_blocked_ratio(def_zone, damage_type, damage_flags, armor_pen, damage)
-	var/list/armors = get_armors_by_zone(def_zone, damage_type, damage_flags)
-	. = 0
-	for(var/armor in armors)
-		var/datum/extension/armor/armor_datum = armor
-		. = 1 - (1 - .) * (1 - armor_datum.get_blocked(damage_type, damage_flags, armor_pen, damage)) // multiply the amount we let through
-	. = min(1, .)
+//if null is passed for def_zone, then this should return something appropriate for all zones (e.g. area effect damage)
+/mob/living/getarmor(def_zone, type)
+	return 0
 
-/mob/living/proc/get_armors_by_zone(def_zone, damage_type, damage_flags)
-	. = list()
-	var/natural_armor = get_extension(src, /datum/extension/armor)
-	if(natural_armor)
-		. += natural_armor
-	if(psi)
-		. += get_extension(psi, /datum/extension/armor)
 
-/mob/living/bullet_act(var/obj/item/projectile/P, var/def_zone)
+/mob/living/bullet_act(obj/item/projectile/P, def_zone)
+	flash_weak_pain()
 
 	//Being hit while using a deadman switch
-	var/obj/item/device/assembly/signaler/signaler = get_active_hand()
-	if(istype(signaler) && signaler.deadman)
-		log_and_message_admins("has triggered a signaler deadman's switch")
-		src.visible_message("<span class='warning'>[src] triggers their deadman's switch!</span>")
-		signaler.signal()
+	if(istype(get_active_hand(),/obj/item/device/assembly/signaler))
+		var/obj/item/device/assembly/signaler/signaler = get_active_hand()
+		if(signaler.deadman && prob(80))
+			attack_log += "\[[time_stamp()]\]<font color='orange'>triggers their deadman's switch!</font>"
+			message_admins("\blue [key_name_admin(src)] triggers their deadman's switch! ([ADMIN_JMP(src)])")
+			log_game("\blue [key_name(src)] triggers their deadman's switch!")
+			src.visible_message("\red [src] triggers their deadman's switch!")
+			signaler.signal()
 
 	//Armor
 	var/damage = P.damage
 	var/flags = P.damage_flags()
-	var/damaged
+	var/absorb = run_armor_check(def_zone, P.flag)
+	if (prob(absorb))
+		if(flags & DAM_LASER)
+			//the armour causes the heat energy to spread out, which reduces the damage (and the blood loss)
+			//this is mostly so that armour doesn't cause people to lose MORE fluid from lasers than they would otherwise
+			damage *= FLUIDLOSS_CONC_BURN / FLUIDLOSS_WIDE_BURN
+		flags &= ~(DAM_SHARP | DAM_EDGE | DAM_LASER)
+
 	if(!P.nodamage)
-		damaged = apply_damage(damage, P.damage_type, def_zone, flags, P, P.armor_penetration)
-		bullet_impact_visuals(P, def_zone, damaged)
-	if(damaged || P.nodamage) // Run the block computation if we did damage or if we only use armor for effects (nodamage)
-		. = get_blocked_ratio(def_zone, P.damage_type, flags, P.armor_penetration, P.damage)
-	P.on_hit(src, ., def_zone)
+		apply_damage(damage, P.damage_type, def_zone, absorb, flags, P)
+	P.on_hit(src, absorb, def_zone)
 
-// For visuals and blood splatters etc
-/mob/living/proc/bullet_impact_visuals(var/obj/item/projectile/P, var/def_zone, var/damage)
-	var/list/impact_sounds = LAZYACCESS(P.impact_sounds, get_bullet_impact_effect_type(def_zone))
-	if(length(impact_sounds))
-		playsound(src, pick(impact_sounds), 75)
-
-/mob/living/get_bullet_impact_effect_type(var/def_zone)
-	return BULLET_IMPACT_MEAT
-
-/mob/living/proc/aura_check(var/type)
-	if(!auras)
-		return TRUE
-	. = TRUE
-	var/list/newargs = args - args[1]
-	for(var/a in auras)
-		var/obj/aura/aura = a
-		var/result = 0
-		switch(type)
-			if(AURA_TYPE_WEAPON)
-				result = aura.attackby(arglist(newargs))
-			if(AURA_TYPE_BULLET)
-				result = aura.bullet_act(arglist(newargs))
-			if(AURA_TYPE_THROWN)
-				result = aura.hitby(arglist(newargs))
-			if(AURA_TYPE_LIFE)
-				result = aura.life_tick()
-		if(result & AURA_FALSE)
-			. = FALSE
-		if(result & AURA_CANCEL)
-			break
-
-
-//Handles the effects of "stun" weapons
-/mob/living/proc/stun_effect_act(var/stun_amount, var/agony_amount, var/def_zone, var/used_weapon=null)
-	flash_pain()
-
-	if (stun_amount)
-		Stun(stun_amount)
-		Weaken(stun_amount)
-		apply_effect(stun_amount, STUTTER)
-		apply_effect(stun_amount, EYE_BLUR)
-
-	if (agony_amount)
-		apply_damage(agony_amount, PAIN, def_zone, used_weapon)
-		apply_effect(agony_amount/10, STUTTER)
-		apply_effect(agony_amount/10, EYE_BLUR)
-
-/mob/living/proc/electrocute_act(var/shock_damage, var/obj/source, var/siemens_coeff = 1.0, def_zone = null)
-	  return 0 //only carbon liveforms have this proc
-
-/mob/living/emp_act(severity)
-	var/list/L = src.get_contents()
-	for(var/obj/O in L)
-		O.emp_act(severity)
-	..()
-
-/mob/living/proc/resolve_item_attack(obj/item/I, mob/living/user, var/target_zone)
-	return target_zone
-
-//Called when the mob is hit with an item in combat. Returns the blocked result
-/mob/living/proc/hit_with_weapon(obj/item/I, mob/living/user, var/effective_force, var/hit_zone)
-	visible_message("<span class='danger'>[src] has been [I.attack_verb.len? pick(I.attack_verb) : "attacked"] with [I.name] by [user]!</span>")
-
-	. = standard_weapon_hit_effects(I, user, effective_force, hit_zone)
-
-	if(I.damtype == BRUTE && prob(33)) // Added blood for whacking non-humans too
-		var/turf/simulated/location = get_turf(src)
-		if(istype(location)) location.add_blood_floor(src)
-
-//returns 0 if the effects failed to apply for some reason, 1 otherwise.
-/mob/living/proc/standard_weapon_hit_effects(obj/item/I, mob/living/user, var/effective_force, var/hit_zone)
-	if(!effective_force)
-		return 0
-
-	//Hulk modifier
-	if(MUTATION_HULK in user.mutations)
-		effective_force *= 2
-
-	//Apply weapon damage
-	var/damage_flags = I.damage_flags()
-
-	return apply_damage(effective_force, I.damtype, hit_zone, damage_flags, used_weapon=I)
+	return absorb
 
 //this proc handles being hit by a thrown atom
-/mob/living/hitby(var/atom/movable/AM, var/datum/thrownthing/TT)
-
-	if(isliving(AM))
-		var/mob/living/M = AM
-		playsound(loc, 'sound/weapons/pierce.ogg', 25, 1, -1)
-		if(skill_fail_prob(SKILL_COMBAT, 75))
-			Weaken(rand(3,5))
-		if(M.skill_fail_prob(SKILL_HAULING, 100))
-			M.Weaken(rand(4,8))
-		M.visible_message(SPAN_DANGER("\The [M] collides with \the [src]!"))
-
-	if(!aura_check(AURA_TYPE_THROWN, AM, TT.speed))
-		return
-
+/mob/living/hitby(atom/movable/AM)//Standardization and logging -Sieve
 	if(istype(AM,/obj/))
 		var/obj/O = AM
-		var/dtype = O.damtype
-		var/throw_damage = O.throwforce*(TT.speed/THROWFORCE_SPEED_DIVISOR)
+		var/dtype = BRUTE
+		if(istype(O,/obj/item/weapon))
+			var/obj/item/weapon/W = O
+			dtype = W.damtype
+		var/throw_damage = O.throwforce * (AM.fly_speed / 5)
 
-		var/miss_chance = max(15*(TT.dist_travelled-2),0)
+		var/zone
+		var/mob/living/L = isliving(O.thrower) ? O.thrower : null
+		if(L)
+			zone = check_zone(L.zone_sel.selecting)
+		else
+			zone = ran_zone(BP_CHEST, 75) // Hits a random part of the body, geared towards the chest
 
-		if (prob(miss_chance))
+		//check if we hit
+		if(O.throw_source)
+			var/distance = get_dist(O.throw_source, loc)
+			zone = get_zone_with_miss_chance(zone, src, min(15 * (distance - 2), 0))
+		else
+			zone = get_zone_with_miss_chance(zone, src, 15)
+
+		if(!zone)
 			visible_message("<span class='notice'>\The [O] misses [src] narrowly!</span>")
 			return
 
-		src.visible_message("<span class='warning'>\The [src] has been hit by \the [O]</span>.")
-		apply_damage(throw_damage, dtype, null, O.damage_flags(), O)
+		if(O.thrower != src && check_shields(throw_damage, "[O]", get_dir(O,src)))
+			return
 
-		if(TT.thrower)
-			var/client/assailant = TT.thrower.client
+		resolve_thrown_attack(O, throw_damage, dtype, zone)
+
+		if(L)
+			var/client/assailant = L.client
 			if(assailant)
-				admin_attack_log(TT.thrower, src, "Threw \an [O] at the victim.", "Had \an [O] thrown at them.", "threw \an [O] at")
+				src.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has been hit with a [O], thrown by [L.name] ([assailant.ckey])</font>")
+				L.attack_log += text("\[[time_stamp()]\] <font color='red'>Hit [src.name] ([src.ckey]) with a thrown [O]</font>")
+				if(!ismouse(src) && !isvrhuman(src))
+					msg_admin_attack("[src.name] ([src.ckey]) was hit by a [O], thrown by [L.name] ([assailant.ckey]) [ADMIN_JMP(src)]")
 
 		// Begin BS12 momentum-transfer code.
-		var/mass = 1.5
-		if(istype(O, /obj/item))
-			var/obj/item/I = O
-			mass = I.w_class/THROWNOBJ_KNOCKBACK_DIVISOR
-		var/momentum = TT.speed*mass
+		if(O.throw_source && AM.fly_speed >= 15)
+			var/obj/item/weapon/W = O
 
-		if(momentum >= THROWNOBJ_KNOCKBACK_SPEED)
-			var/dir = TT.init_dir
+			visible_message("<span class='warning'>[src] staggers under the impact!</span>",
+				"<span class='danger'>You stagger under the impact!</span>")
 
-			visible_message("<span class='warning'>\The [src] staggers under the impact!</span>","<span class='warning'>You stagger under the impact!</span>")
-			src.throw_at(get_edge_target_turf(src,dir),1,momentum)
+			var/atom/throw_target = get_edge_target_turf(src, get_dir(O.throw_source, src))
+			throw_at(throw_target, 5, 1, O.thrower, FALSE, null, null, CALLBACK(src, .proc/pin_to_turf, W))
 
-			if(!O || !src) return
 
-			if(O.can_embed()) //Projectile is suitable for pinning.
-				//Handles embedding for non-humans and simple_animals.
-				embed(O)
+/mob/living/proc/resolve_thrown_attack(obj/O, throw_damage, dtype, zone, armor)
 
-				var/turf/T = near_wall(dir,2)
+	if(isnull(armor)) // Armor arg passed by human
+		armor = run_armor_check(null, "melee")
+		visible_message("<span class='warning'>[src] has been hit by [O].</span>")
 
-				if(T)
-					forceMove(T)
-					visible_message("<span class='warning'>[src] is pinned to the wall by [O]!</span>","<span class='warning'>You are pinned to the wall by [O]!</span>")
-					src.anchored = 1
-					src.pinned += O
+	var/damage_flags = O.damage_flags()
 
-/mob/living/proc/embed(var/obj/O, var/def_zone=null, var/datum/wound/supplied_wound)
-	O.forceMove(src)
-	src.embedded += O
-	src.verbs += /mob/proc/yank_out_object
+	if(prob(armor))
+		damage_flags &= ~(DAM_SHARP | DAM_EDGE)
+
+	var/created_wound = apply_damage(throw_damage, dtype, null, armor, damage_flags, O)
+
+	//thrown weapon embedded object code.
+	if(dtype == BRUTE && istype(O, /obj/item))
+		var/obj/item/I = O
+		if(!I.can_embed || I.is_robot_module())
+			return
+
+		var/sharp = is_sharp(I)
+
+		var/damage = throw_damage //the effective damage used for embedding purposes, no actual damage is dealt here
+		if (armor)
+			damage *= blocked_mult(armor)
+
+		//blunt objects should really not be embedding in things unless a huge amount of force is involved
+		var/embed_chance = sharp ? (damage / (I.w_class / 2)) : (damage / (I.w_class * 3))
+		var/embed_threshold = sharp ? 5 * I.w_class : 15 * I.w_class
+
+		//Sharp objects will always embed if they do enough damage.
+		//Thrown sharp objects have some momentum already and have a small chance to embed even if the damage is below the threshold
+		if(sharp && prob(damage / (10 * I.w_class) * 100) || (damage > embed_threshold && prob(embed_chance)))
+			embed(I, zone, created_wound)
+
+/mob/living/proc/embed(obj/item/I)
+	I.loc = src
+	embedded += I
+	verbs += /mob/proc/yank_out_object
+
+/mob/living/proc/pin_to_turf(obj/item/I)
+	if(!I)
+		return
+
+	if(I.sharp && I.loc == src) // Projectile is suitable for pinning.
+
+		var/turf/T = near_wall(I.dir, 2, TRUE)
+		if(!T)
+			return
+
+		if(loc != T)
+			return
+
+		visible_message("<span class='warning'>[src] is pinned to the [T] by [I]!</span>",
+			"<span class='danger'>You are pinned to the wall by [I]!</span>")
+		anchored = TRUE
+		pinned += I
+		update_canmove() // instant update, no need to wait Life() tick
 
 //This is called when the mob is thrown into a dense turf
-/mob/living/proc/turf_collision(var/turf/T, var/speed)
-	visible_message("<span class='danger'>[src] slams into \the [T]!</span>")
-	playsound(T, 'sound/effects/bangtaper.ogg', 50, 1, 1)//so it plays sounds on the turf instead, makes for awesome carps to hull collision and such
-	apply_damage(speed*2, BRUTE)
+/mob/living/proc/turf_collision(turf/T)
+	visible_message("<span class='warning'>[src] crashed into \the [T]!</span>","<span class='danger'>You are crashed into \the [T]!</span>")
+	take_bodypart_damage(fly_speed * 5)
 
-/mob/living/proc/near_wall(var/direction,var/distance=1)
-	var/turf/T = get_step(get_turf(src),direction)
-	var/turf/last_turf = src.loc
+/mob/living/proc/near_wall(direction, distance = 1, check_dense_objs = FALSE)
+	var/turf/T = get_step(get_turf(src), direction)
+	var/turf/last_turf = loc
 	var/i = 1
 
-	while(i>0 && i<=distance)
-		if(!T || T.density) //Turf is a wall or map edge.
+	while(i > 0 && i <= distance)
+		if(T.density) //Turf is a wall!
 			return last_turf
+		if(check_dense_objs)
+			for(var/obj/O in T.contents)
+				if(O.density)
+					return last_turf
 		i++
 		last_turf = T
-		T = get_step(T,direction)
+		T = get_step(T, direction)
 
-	return 0
+	return FALSE
 
 // End BS12 momentum-transfer code.
 
-/mob/living/attack_generic(var/mob/user, var/damage, var/attack_message)
+/mob/living/proc/check_shields(damage = 0, attack_text = "the attack", hit_dir = 0)
+	return FALSE
 
-	if(!damage || !istype(user))
-		return
-
-	adjustBruteLoss(damage)
-	admin_attack_log(user, src, "Attacked", "Was attacked", "attacked")
-
-	src.visible_message("<span class='danger'>\The [user] has [attack_message] \the [src]!</span>")
-	user.do_attack_animation(src)
-	spawn(1) updatehealth()
-	return 1
-
+//Mobs on Fire
 /mob/living/proc/IgniteMob()
 	if(fire_stacks > 0 && !on_fire)
 		on_fire = 1
-		set_light(0.6, 0.1, 4, l_color = COLOR_ORANGE)
+		set_light(light_range + 3)
 		update_fire()
 
 /mob/living/proc/ExtinguishMob()
 	if(on_fire)
 		on_fire = 0
 		fire_stacks = 0
-		set_light(0)
+		set_light(max(0, light_range - 3))
 		update_fire()
 
-/mob/living/proc/update_fire()
-	return
-
 /mob/living/proc/adjust_fire_stacks(add_fire_stacks) //Adjusting the amount of fire_stacks we have on person
-	fire_stacks = Clamp(fire_stacks + add_fire_stacks, FIRE_MIN_STACKS, FIRE_MAX_STACKS)
+    fire_stacks = Clamp(fire_stacks + add_fire_stacks, -20, 20)
 
 /mob/living/proc/handle_fire()
 	if(fire_stacks < 0)
-		fire_stacks = min(0, ++fire_stacks) //If we've doused ourselves in water to avoid fire, dry off slowly
-
+		fire_stacks++ //If we've doused ourselves in water to avoid fire, dry off slowly
+		fire_stacks = min(0, fire_stacks)//So we dry ourselves back to default, nonflammable.
 	if(!on_fire)
 		return 1
-	else if(fire_stacks <= 0)
-		ExtinguishMob() //Fire's been put out.
-		return 1
-
-	fire_stacks = max(0, fire_stacks - 0.2) //I guess the fire runs out of fuel eventually
-
 	var/datum/gas_mixture/G = loc.return_air() // Check if we're standing in an oxygenless environment
 	if(G.get_by_flag(XGM_GAS_OXIDIZER) < 1)
 		ExtinguishMob() //If there's no oxygen in the tile we're on, put out the fire
-		return 1
-
+		return
+	for(var/obj/item/I in contents)
+		if(I.wet)
+			ExtinguishMob()
+			break
+	if(fire_stacks == 0)
+		ExtinguishMob() //If there's no oxygen in the tile we're on, put out the fire
+		return
 	var/turf/location = get_turf(src)
-	location.hotspot_expose(fire_burn_temperature(), 50, 1)
+	location.hotspot_expose(fire_burn_temperature(), 50)
 
-/mob/living/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume)
-	//once our fire_burn_temperature has reached the temperature of the fire that's giving fire_stacks, stop adding them.
-	//allow fire_stacks to go up to 4 for fires cooler than 700 K, since are being immersed in flame after all.
-	if(fire_stacks <= 4 || fire_burn_temperature() < exposed_temperature)
-		adjust_fire_stacks(2)
+/mob/living/fire_act()
+	adjust_fire_stacks(0.5)
 	IgniteMob()
-
-/mob/living/proc/get_cold_protection()
-	return 0
-
-/mob/living/proc/get_heat_protection()
-	return 0
 
 //Finds the effective temperature that the mob is burning at.
 /mob/living/proc/fire_burn_temperature()
@@ -284,79 +233,14 @@
 
 	//Scale quadratically so that single digit numbers of fire stacks don't burn ridiculously hot.
 	//lower limit of 700 K, same as matches and roughly the temperature of a cool flame.
-	return max(2.25*round(FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE*(fire_stacks/FIRE_MAX_FIRESUIT_STACKS)**2), 700)
+	return max(2.25 * round(FIRESUIT_MAX_HEAT_PROTECTION_TEMPERATURE * (fire_stacks / FIRE_MAX_FIRESUIT_STACKS) ** 2), 700)
 
-/mob/living/proc/reagent_permeability()
-	return 1
+//Mobs on Fire end
 
-/mob/living/proc/handle_actions()
-	//Pretty bad, i'd use picked/dropped instead but the parent calls in these are nonexistent
-	for(var/datum/action/A in actions)
-		if(A.CheckRemoval(src))
-			A.Remove(src)
-	for(var/obj/item/I in src)
-		if(I.action_button_name)
-			if(!I.action)
-				I.action = new I.default_action_type
-			I.action.name = I.action_button_name
-			I.action.SetTarget(I)
-			I.action.Grant(src)
-	return
+/mob/living/regular_hud_updates()
+	..()
+	update_action_buttons()
 
-/mob/living/update_action_buttons()
-	if(!hud_used) return
-	if(!client) return
-
-	if(hud_used.hud_shown != 1)	//Hud toggled to minimal
-		return
-
-	client.screen -= hud_used.hide_actions_toggle
-	for(var/datum/action/A in actions)
-		if(A.button)
-			client.screen -= A.button
-
-	if(hud_used.action_buttons_hidden)
-		if(!hud_used.hide_actions_toggle)
-			hud_used.hide_actions_toggle = new(hud_used)
-			hud_used.hide_actions_toggle.UpdateIcon()
-
-		if(!hud_used.hide_actions_toggle.moved)
-			hud_used.hide_actions_toggle.screen_loc = hud_used.ButtonNumberToScreenCoords(1)
-			//hud_used.SetButtonCoords(hud_used.hide_actions_toggle,1)
-
-		client.screen += hud_used.hide_actions_toggle
-		return
-
-	var/button_number = 0
-	for(var/datum/action/A in actions)
-		button_number++
-		if(A.button == null)
-			var/obj/screen/movable/action_button/N = new(hud_used)
-			N.owner = A
-			A.button = N
-
-		var/obj/screen/movable/action_button/B = A.button
-
-		B.UpdateIcon()
-
-		B.SetName(A.UpdateName())
-
-		client.screen += B
-
-		if(!B.moved)
-			B.screen_loc = hud_used.ButtonNumberToScreenCoords(button_number)
-			//hud_used.SetButtonCoords(B,button_number)
-
-	if(button_number > 0)
-		if(!hud_used.hide_actions_toggle)
-			hud_used.hide_actions_toggle = new(hud_used)
-			hud_used.hide_actions_toggle.InitialiseIcon(src)
-		if(!hud_used.hide_actions_toggle.moved)
-			hud_used.hide_actions_toggle.screen_loc = hud_used.ButtonNumberToScreenCoords(button_number+1)
-			//hud_used.SetButtonCoords(hud_used.hide_actions_toggle,button_number+1)
-		client.screen += hud_used.hide_actions_toggle
-
-/mob/living/lava_act(datum/gas_mixture/air, temperature, pressure)
-	fire_act(air, temperature)
-	FireBurn(0.4*vsc.fire_firelevel_multiplier, temperature, pressure)
-	. =  (health <= 0) ? ..() : FALSE
+/mob/living/incapacitated(restrained_type = ARMS)
+	if(stat || paralysis || stunned || weakened || restrained(restrained_type))
+		return 1

@@ -2,393 +2,175 @@
 /obj/item/taperoll
 	name = "tape roll"
 	icon = 'icons/policetape.dmi'
-	icon_state = "tape"
-	w_class = ITEM_SIZE_SMALL
+	icon_state = "rollstart"
+	w_class = 2.0
 	var/turf/start
 	var/turf/end
 	var/tape_type = /obj/item/tape
-	var/icon_base = "tape"
-
-	var/apply_tape = FALSE
-
-/obj/item/taperoll/Initialize()
-	. = ..()
-	if(apply_tape)
-		var/turf/T = get_turf(src)
-		if(!T)
-			return
-		var/obj/machinery/door/airlock/airlock = locate(/obj/machinery/door/airlock) in T
-		if(airlock)
-			afterattack(airlock, null, TRUE)
-		return INITIALIZE_HINT_QDEL
-
-
-var/list/image/hazard_overlays
-var/list/tape_roll_applications = list()
+	var/icon_base
 
 /obj/item/tape
 	name = "tape"
 	icon = 'icons/policetape.dmi'
-	icon_state = "tape"
-	layer = ABOVE_DOOR_LAYER
-	randpixel = 0
 	anchored = 1
-	var/lifted = 0
-	var/crumpled = 0
-	var/tape_dir = 0
-	var/icon_base = "tape"
-	var/detail_overlay
-	var/detail_color
-
-/obj/item/tape/on_update_icon()
-	//Possible directional bitflags: 0 (AIRLOCK), 1 (NORTH), 2 (SOUTH), 4 (EAST), 8 (WEST), 3 (VERTICAL), 12 (HORIZONTAL)
-	overlays.Cut()
-	var/new_state
-	switch (tape_dir)
-		if(0)  // AIRLOCK
-			new_state = "[icon_base]_door"
-		if(3)  // VERTICAL
-			new_state = "[icon_base]_v"
-		if(12) // HORIZONTAL
-			new_state = "[icon_base]_h"
-		else   // END POINT (1|2|4|8)
-			new_state = "[icon_base]_dir"
-			dir = tape_dir
-	icon_state = "[new_state]_[crumpled]"
-	if(detail_overlay)
-		var/image/I = overlay_image(icon, "[new_state]_[detail_overlay]", flags=RESET_COLOR)
-		I.color = detail_color
-		overlays |= I
-
-/obj/item/tape/New()
-	..()
-	if(!hazard_overlays)
-		hazard_overlays = list()
-		hazard_overlays["[NORTH]"]	= new/image('icons/effects/warning_stripes.dmi', icon_state = "N")
-		hazard_overlays["[EAST]"]	= new/image('icons/effects/warning_stripes.dmi', icon_state = "E")
-		hazard_overlays["[SOUTH]"]	= new/image('icons/effects/warning_stripes.dmi', icon_state = "S")
-		hazard_overlays["[WEST]"]	= new/image('icons/effects/warning_stripes.dmi', icon_state = "W")
+	density = 1
+	var/icon_base
 
 /obj/item/taperoll/police
 	name = "police tape"
 	desc = "A roll of police tape used to block off crime scenes from the public."
+	icon_state = "police_start"
 	tape_type = /obj/item/tape/police
-	color = COLOR_RED
+	icon_base = "police"
 
 /obj/item/tape/police
 	name = "police tape"
 	desc = "A length of police tape.  Do not cross."
-	req_access = list(access_security)
-	color = COLOR_RED
+	req_one_access = list(access_security, access_forensics_lockers)
+	icon_base = "police"
 
 /obj/item/taperoll/engineering
 	name = "engineering tape"
 	desc = "A roll of engineering tape used to block off working areas from the public."
+	icon_state = "engineering_start"
 	tape_type = /obj/item/tape/engineering
-	color = COLOR_ORANGE
-
-/obj/item/taperoll/engineering/applied
-	apply_tape = TRUE
+	icon_base = "engineering"
 
 /obj/item/tape/engineering
 	name = "engineering tape"
 	desc = "A length of engineering tape. Better not cross it."
-	req_access = list(list(access_engine,access_atmospherics))
-	color = COLOR_ORANGE
+	req_one_access = list(access_engine,access_atmospherics)
+	icon_base = "engineering"
 
-/obj/item/taperoll/atmos
-	name = "atmospherics tape"
-	desc = "A roll of atmospherics tape used to block off working areas from the public."
-	tape_type = /obj/item/tape/atmos
-	color = COLOR_BLUE_LIGHT
-
-/obj/item/tape/atmos
-	name = "atmospherics tape"
-	desc = "A length of atmospherics tape. Better not cross it."
-	req_access = list(list(access_engine,access_atmospherics))
-	color = COLOR_BLUE_LIGHT
-	icon_base = "stripetape"
-	detail_overlay = "stripes"
-	detail_color = COLOR_YELLOW
-
-/obj/item/taperoll/research
-	name = "research tape"
-	desc = "A roll of research tape used to block off working areas from the public."
-	tape_type = /obj/item/tape/research
-	color = COLOR_WHITE
-
-/obj/item/tape/research
-	name = "research tape"
-	desc = "A length of research tape. Better not cross it."
-	req_access = list(access_research)
-	color = COLOR_WHITE
-
-/obj/item/taperoll/medical
-	name = "medical tape"
-	desc = "A roll of medical tape used to block off working areas from the public."
-	tape_type = /obj/item/tape/medical
-	color = COLOR_PALE_BLUE_GRAY
-
-/obj/item/tape/medical
-	name = "medical tape"
-	desc = "A length of medical tape. Better not cross it."
-	req_access = list(access_medical)
-	icon_base = "stripetape"
-	detail_overlay = "stripes"
-	detail_color = COLOR_PALE_BLUE_GRAY
-
-/obj/item/taperoll/bureaucracy
-	name = "red tape"
-	desc = "A roll of bureaucratic red tape used to block any meaningful work from being done."
-	tape_type = /obj/item/tape/bureaucracy
-	color = COLOR_RED
-
-/obj/item/tape/bureaucracy
-	name = "red tape"
-	desc = "A length of bureaucratic red tape. Safely ignored, but darn obstructive sometimes."
-	icon_base = "stripetape"
-	color = COLOR_RED
-	detail_overlay = "stripes"
-	detail_color = COLOR_RED
-
-/obj/item/taperoll/on_update_icon()
-	overlays.Cut()
-	var/image/overlay = image(icon = src.icon)
-	overlay.appearance_flags = RESET_COLOR
-	if(ismob(loc))
-		if(!start)
-			overlay.icon_state = "start"
-		else
-			overlay.icon_state = "stop"
-		overlays += overlay
-
-/obj/item/taperoll/dropped(mob/user)
-	update_icon()
-	return ..()
-
-/obj/item/taperoll/pickup(mob/user)
-	update_icon()
-	return ..()
-
-/obj/item/taperoll/attack_hand()
-	update_icon()
-	return ..()
-
-/obj/item/taperoll/attack_self(mob/user as mob)
-	if(!start)
+/obj/item/taperoll/attack_self(mob/user)
+	if(icon_state == "[icon_base]_start")
 		start = get_turf(src)
-		to_chat(usr, "<span class='notice'>You place the first end of \the [src].</span>")
-		update_icon()
+		to_chat(usr, "\blue You place the first end of the [src].")
+		icon_state = "[icon_base]_stop"
 	else
+		icon_state = "[icon_base]_start"
 		end = get_turf(src)
 		if(start.y != end.y && start.x != end.x || start.z != end.z)
-			start = null
-			update_icon()
-			to_chat(usr, "<span class='notice'>\The [src] can only be laid horizontally or vertically.</span>")
-			return
-
-		if(start == end)
-			// spread tape in all directions, provided there is a wall/window
-			var/turf/T
-			var/possible_dirs = 0
-			for(var/dir in GLOB.cardinal)
-				T = get_step(start, dir)
-				if(T && T.density)
-					possible_dirs += dir
-				else
-					for(var/obj/structure/window/W in T)
-						if(W.is_fulltile() || W.dir == GLOB.reverse_dir[dir])
-							possible_dirs += dir
-			if(!possible_dirs)
-				start = null
-				update_icon()
-				to_chat(usr, "<span class='notice'>You can't place \the [src] here.</span>")
-				return
-			if(possible_dirs & (NORTH|SOUTH))
-				var/obj/item/tape/TP = new tape_type(start)
-				for(var/dir in list(NORTH, SOUTH))
-					if (possible_dirs & dir)
-						TP.tape_dir += dir
-				TP.update_icon()
-			if(possible_dirs & (EAST|WEST))
-				var/obj/item/tape/TP = new tape_type(start)
-				for(var/dir in list(EAST, WEST))
-					if (possible_dirs & dir)
-						TP.tape_dir += dir
-				TP.update_icon()
-			start = null
-			update_icon()
-			to_chat(usr, "<span class='notice'>You finish placing \the [src].</span>")
+			to_chat(usr, "\blue [src] can only be laid horizontally or vertically.")
 			return
 
 		var/turf/cur = start
-		var/orientation = get_dir(start, end)
-		var/dir = 0
-		switch(orientation)
-			if(NORTH, SOUTH)	dir = NORTH|SOUTH	// North-South taping
-			if(EAST,   WEST)	dir =  EAST|WEST	// East-West taping
+		var/dir
+		if (start.x == end.x)
+			var/d = end.y-start.y
+			if(d) d = d/abs(d)
+			end = get_turf(locate(end.x,end.y+d,end.z))
+			dir = "v"
+		else
+			var/d = end.x-start.x
+			if(d) d = d/abs(d)
+			end = get_turf(locate(end.x+d,end.y,end.z))
+			dir = "h"
 
 		var/can_place = 1
-		while (can_place)
+		while (cur!=end && can_place)
 			if(cur.density == 1)
 				can_place = 0
 			else if (istype(cur, /turf/space))
 				can_place = 0
 			else
 				for(var/obj/O in cur)
-					if(O.density)
+					if(!istype(O, /obj/item/tape) && O.density)
 						can_place = 0
 						break
-			if(cur == end)
-				break
 			cur = get_step_towards(cur,end)
 		if (!can_place)
-			start = null
-			update_icon()
-			to_chat(usr, "<span class='warning'>You can't run \the [src] through that!</span>")
+			to_chat(usr, "\blue You can't run \the [src] through that!")
 			return
 
 		cur = start
-		var/tapetest
-		var/tape_dir
-		while (1)
-			tapetest = 0
-			tape_dir = dir
-			if(cur == start)
-				var/turf/T = get_step(start, GLOB.reverse_dir[orientation])
-				if(T && !T.density)
-					tape_dir = orientation
-					for(var/obj/structure/window/W in T)
-						if(W.is_fulltile() || W.dir == orientation)
-							tape_dir = dir
-			else if(cur == end)
-				var/turf/T = get_step(end, orientation)
-				if(T && !T.density)
-					tape_dir = GLOB.reverse_dir[orientation]
-					for(var/obj/structure/window/W in T)
-						if(W.is_fulltile() || W.dir == GLOB.reverse_dir[orientation])
-							tape_dir = dir
-			for(var/obj/item/tape/T in cur)
-				if((T.tape_dir == tape_dir) && (T.icon_base == icon_base))
+		var/tapetest = 0
+		while (cur!=end)
+			for(var/obj/item/tape/Ptest in cur)
+				if(Ptest.icon_state == "[Ptest.icon_base]_[dir]")
 					tapetest = 1
-					break
-			if(!tapetest)
-				var/obj/item/tape/T = new tape_type(cur)
-				T.tape_dir = tape_dir
-				T.update_icon()
-				if(tape_dir & SOUTH)
-					T.layer += 0.1 // Must always show above other tapes
-			if(cur == end)
-				break
+			if(tapetest != 1)
+				var/obj/item/tape/P = new tape_type(cur)
+				P.icon_state = "[P.icon_base]_[dir]"
 			cur = get_step_towards(cur,end)
-		start = null
-		update_icon()
-		to_chat(usr, "<span class='notice'>You finish placing \the [src].</span>")
-		return
+	//is_blocked_turf(turf/T)
+		to_chat(usr, "\blue You finish placing the [src].")//Git Test
 
-/obj/item/taperoll/afterattack(var/atom/A, mob/user as mob, proximity)
-	if(!proximity)
-		return
-
+/obj/item/taperoll/afterattack(atom/A, mob/user)
 	if (istype(A, /obj/machinery/door/airlock))
+		if(!user.Adjacent(A))
+			to_chat(user, "<span class='notice'>You're too far away from \the [A]!</span>")
+			return
 		var/turf/T = get_turf(A)
-		var/obj/item/tape/P = new tape_type(T)
-		P.update_icon()
-		P.layer = ABOVE_DOOR_LAYER
-		to_chat(user, "<span class='notice'>You finish placing \the [src].</span>")
+		var/obj/item/tape/P = new tape_type(T.x,T.y,T.z)
+		P.loc = locate(T.x,T.y,T.z)
+		P.icon_state = "[src.icon_base]_door"
+		P.layer = 3.2
+		to_chat(user, "\blue You finish placing the [src].")
 
-	if (istype(A, /turf/simulated/floor) ||istype(A, /turf/unsimulated/floor))
-		var/turf/F = A
-		var/direction = user.loc == F ? user.dir : turn(user.dir, 180)
-		var/icon/hazard_overlay = hazard_overlays["[direction]"]
-		if(tape_roll_applications[F] == null)
-			tape_roll_applications[F] = 0
-
-		if(tape_roll_applications[F] & direction) // hazard_overlay in F.overlays wouldn't work.
-			user.visible_message("\The [user] uses the adhesive of \the [src] to remove area markings from \the [F].", "You use the adhesive of \the [src] to remove area markings from \the [F].")
-			F.overlays -= hazard_overlay
-			tape_roll_applications[F] &= ~direction
-		else
-			user.visible_message("\The [user] applied \the [src] on \the [F] to create area markings.", "You apply \the [src] on \the [F] to create area markings.")
-			F.overlays |= hazard_overlay
-			tape_roll_applications[F] |= direction
-		return
-
-/obj/item/tape/proc/crumple()
-	if(!crumpled)
-		crumpled = 1
-		update_icon()
-		SetName("crumpled [name]")
+/obj/item/tape/Bumped(M)
+	if(src.allowed(M))
+		var/turf/T = get_turf(src)
+		M:loc = T
 
 /obj/item/tape/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
-	if(!lifted && ismob(mover))
-		var/mob/M = mover
-		add_fingerprint(M)
-		if (!allowed(M))	//only select few learn art of not crumpling the tape
-			to_chat(M, "<span class='warning'>You are not supposed to go past [src]...</span>")
-			if(M.a_intent == I_HELP)
-				return 0
-			crumple()
-	return ..(mover)
+	if(!density) return 1
+	if(air_group || (height==0)) return 1
 
-/obj/item/tape/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	breaktape(user)
-
-/obj/item/tape/attack_hand(mob/user as mob)
-	if (user.a_intent == I_HELP && src.allowed(user))
-		user.show_viewers("<span class='notice'>\The [user] lifts \the [src], allowing passage.</span>")
-		for(var/obj/item/tape/T in gettapeline())
-			T.lift(100) //~10 seconds
+	if ((mover.pass_flags & PASSTABLE || istype(mover, /obj/effect/meteor) || mover.throwing == 1) )
+		return 1
 	else
-		breaktape(user)
+		return 0
 
-/obj/item/tape/proc/lift(time)
-	lifted = 1
-	layer = ABOVE_HUMAN_LAYER
-	spawn(time)
-		lifted = 0
-		reset_plane_and_layer()
+/obj/item/tape/attackby(obj/item/weapon/W, mob/user)
+	breaktape(W, user, FALSE)
+	user.SetNextMove(CLICK_CD_INTERACT)
 
-// Returns a list of all tape objects connected to src, including itself.
-/obj/item/tape/proc/gettapeline()
-	var/list/dirs = list()
-	if(tape_dir & NORTH)
-		dirs += NORTH
-	if(tape_dir & SOUTH)
-		dirs += SOUTH
-	if(tape_dir & WEST)
-		dirs += WEST
-	if(tape_dir & EAST)
-		dirs += EAST
+/obj/item/tape/attack_hand(mob/user)
+	user.SetNextMove(CLICK_CD_MELEE)
+	if (user.a_intent == "help" && src.allowed(user))
+		user.show_viewers("\blue [user] lifts [src], allowing passage.")
+		src.density = 0
+		spawn(200)
+			src.density = 1
+	else
+		breaktape(null, user, FALSE)
 
-	var/list/obj/item/tape/tapeline = list()
-	for (var/obj/item/tape/T in get_turf(src))
-		tapeline += T
-	for(var/dir in dirs)
-		var/turf/cur = get_step(src, dir)
-		var/not_found = 0
-		while (!not_found)
-			not_found = 1
-			for (var/obj/item/tape/T in cur)
-				tapeline += T
-				not_found = 0
-			cur = get_step(cur, dir)
-	return tapeline
+/obj/item/tape/attack_paw(mob/user)
+	breaktape(null, user, FALSE)
 
+/obj/item/tape/blob_act()
+	breaktape(W = null, user = null, forced = TRUE)
 
+/obj/item/tape/ex_act()
+	breaktape(W = null, user = null, forced = TRUE)
 
-
-/obj/item/tape/proc/breaktape(mob/user)
-	if(user.a_intent == I_HELP)
-		to_chat(user, "<span class='warning'>You refrain from breaking \the [src].</span>")
+/obj/item/tape/proc/breaktape(obj/item/weapon/W, mob/user, forced = FALSE)
+	if((user && user.a_intent == "help") && (W && !W.can_puncture() && src.allowed(user)) && !forced)
+		to_chat(user, "You can't break the [src] with that!")
 		return
-	user.visible_message("<span class='notice'>\The [user] breaks \the [src]!</span>","<span class='notice'>You break \the [src].</span>")
+	if(user)
+		user.show_viewers("\blue [user] breaks the [src]!")
 
-	for (var/obj/item/tape/T in gettapeline())
-		if(T == src)
-			continue
-		if(T.tape_dir & get_dir(T, src))
-			qdel(T)
+	var/dir[2]
+	var/icon_dir = src.icon_state
+	if(icon_dir == "[src.icon_base]_h")
+		dir[1] = EAST
+		dir[2] = WEST
+	if(icon_dir == "[src.icon_base]_v")
+		dir[1] = NORTH
+		dir[2] = SOUTH
 
-	qdel(src) //TODO: Dropping a trash item holding fibers/fingerprints of all broken tape parts
+	for(var/i = 1 to 2)
+		var/N = 0
+		var/turf/cur = get_step(src,dir[i])
+		while(N != 1)
+			N = 1
+			for (var/obj/item/tape/P in cur)
+				if(P.icon_state == icon_dir)
+					N = 0
+					qdel(P)
+			cur = get_step(cur,dir[i])
+
+	qdel(src)
 	return

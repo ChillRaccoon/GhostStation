@@ -5,83 +5,120 @@
 	item_state = "syringe_0"
 	throw_speed = 1
 	throw_range = 5
-	w_class = ITEM_SIZE_SMALL
-	matter = list(MATERIAL_ALUMINIUM = 1000, MATERIAL_GLASS = 1000)
+	w_class = 2.0
 	var/obj/item/weapon/implant/imp = null
 
-/obj/item/weapon/implanter/New()
-	if(ispath(imp))
-		imp = new imp(src)
-	..()
-	update_icon()
+/obj/item/weapon/implanter/proc/update()
 
-/obj/item/weapon/implanter/on_update_icon()
+
+/obj/item/weapon/implanter/update()
 	if (imp)
 		icon_state = "implanter1"
 	else
 		icon_state = "implanter0"
 
-/obj/item/weapon/implanter/verb/remove_implant()
-	set category = "Object"
-	set name = "Remove implant"
-	set src in usr
 
-	if(issilicon(usr))
+/obj/item/weapon/implanter/attack(mob/M, mob/user, def_zone)
+	if (!iscarbon(M))
+		return
+	if (!user || !imp)
 		return
 
-	if(can_use(usr))
-		if(!imp)
-			to_chat(usr, "<span class='notice'>There is no implant to remove.</span>")
-			return
-		imp.forceMove(get_turf(src))
-		usr.put_in_hands(imp)
-		to_chat(usr, "<span class='notice'>You remove \the [imp] from \the [src].</span>")
-		name = "implanter"
-		imp = null
-		update_icon()
-		return
+	user.visible_message("<span class ='userdanger'>[user] is attemping to implant [M].</span>")
+
+	if(M == user || (!user.is_busy() && do_after(user, 50, target = M)))
+		if(src && imp)
+			M.attack_log += text("\[[time_stamp()]\] <font color='orange'> Implanted with [src.name] ([src.imp.name])  by [user.name] ([user.ckey])</font>")
+			user.attack_log += text("\[[time_stamp()]\] <font color='red'>Used the [src.name] ([src.imp.name]) to implant [M.name] ([M.ckey])</font>")
+			msg_admin_attack("[user.name] ([user.ckey]) implanted [M.name] ([M.ckey]) with [src.name] (INTENT: [uppertext(user.a_intent)]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
+			if(imp.implanted(M))
+				user.visible_message("<span class ='userdanger'>[M] has been implanted by [user].</span>", "You implanted the implant into [M].")
+				imp.inject(M, def_zone)
+				imp = null
+				update()
+
+
+
+/obj/item/weapon/implanter/mindshield
+	name = "implanter-mind shield"
+
+/obj/item/weapon/implanter/mindshield/atom_init()
+	imp = new /obj/item/weapon/implant/mindshield(src)
+	. = ..()
+	update()
+
+/obj/item/weapon/implanter/loyalty
+	name = "implanter-loyalty"
+
+/obj/item/weapon/implanter/loyalty/atom_init()
+	imp = new /obj/item/weapon/implant/mindshield/loyalty(src)
+	. = ..()
+	update()
+
+/obj/item/weapon/implanter/explosive
+	name = "implanter (E)"
+
+/obj/item/weapon/implanter/explosive/atom_init()
+	imp = new /obj/item/weapon/implant/explosive(src)
+	. = ..()
+	update()
+
+/obj/item/weapon/implanter/adrenalin
+	name = "implanter-adrenalin"
+
+/obj/item/weapon/implanter/adrenalin/atom_init()
+	imp = new /obj/item/weapon/implant/adrenalin(src)
+	. = ..()
+	update()
+
+/obj/item/weapon/implanter/compressed
+	name = "implanter (C)"
+	icon_state = "cimplanter1"
+
+/obj/item/weapon/implanter/compressed/atom_init()
+	imp = new /obj/item/weapon/implant/compressed(src)
+	. = ..()
+	update()
+
+/obj/item/weapon/implanter/compressed/update()
+	if (imp)
+		var/obj/item/weapon/implant/compressed/c = imp
+		if(!c.scanned)
+			icon_state = "cimplanter1"
+		else
+			icon_state = "cimplanter2"
 	else
-		to_chat(usr, "<span class='notice'>You cannot do this in your current condition.</span>")
-
-/obj/item/weapon/implanter/proc/can_use()
-
-	if(!ismob(loc))
-		return 0
-
-	var/mob/M = loc
-
-	if(M.incapacitated())
-		return 0
-	if((src in M.contents) || (istype(loc, /turf) && in_range(src, M)))
-		return 1
-	return 0
-
-/obj/item/weapon/implanter/attackby(obj/item/weapon/I, mob/user)
-	if(!imp && istype(I, /obj/item/weapon/implant) && user.unEquip(I,src))
-		to_chat(usr, "<span class='notice'>You slide \the [I] into \the [src].</span>")
-		imp = I
-		update_icon()
-	else
-		..()
-
-/obj/item/weapon/implanter/attack(mob/M as mob, mob/user as mob)
-	if (!istype(M, /mob/living/carbon))
-		return
-	if (user && src.imp)
-		M.visible_message("<span class='warning'>[user] is attemping to implant [M].</span>")
-
-		user.setClickCooldown(DEFAULT_QUICK_COOLDOWN)
-		user.do_attack_animation(M)
-
-		var/target_zone = user.zone_sel.selecting
-		if(src.imp.can_implant(M, user, target_zone))
-			var/imp_name = imp.name
-
-			if(do_after(user, 50, M) && src.imp.implant_in_mob(M, target_zone))
-				M.visible_message("<span class='warning'>[M] has been implanted by [user].</span>")
-				admin_attack_log(user, M, "Implanted using \the [src] ([imp_name])", "Implanted with \the [src] ([imp_name])", "used an implanter, \the [src] ([imp_name]), on")
-
-				src.imp = null
-				update_icon()
-
+		icon_state = "cimplanter0"
 	return
+
+/obj/item/weapon/implanter/compressed/attack(mob/M, mob/user)
+	var/obj/item/weapon/implant/compressed/c = imp
+	if (!c)	return
+	if (c.scanned == null)
+		to_chat(user, "Please scan an object with the implanter first.")
+		return
+	..()
+
+/obj/item/weapon/implanter/compressed/afterattack(atom/A, mob/user)
+	if(istype(A,/obj/item) && imp)
+		var/obj/item/weapon/implant/compressed/c = imp
+		if (c.scanned)
+			to_chat(user, "\red Something is already scanned inside the implant!")
+			return
+		c.scanned = A
+		if(istype(A.loc,/mob/living/carbon/human))
+			var/mob/living/carbon/human/H = A.loc
+			H.remove_from_mob(A)
+		else if(istype(A.loc,/obj/item/weapon/storage))
+			var/obj/item/weapon/storage/S = A.loc
+			S.remove_from_storage(A)
+		A.loc.contents.Remove(A)
+		update()
+
+/obj/item/weapon/implanter/storage
+	name = "implanter (storage)"
+	icon_state = "cimplanter1"
+
+/obj/item/weapon/implanter/storage/atom_init()
+	imp = new /obj/item/weapon/implant/storage(src)
+	. = ..()

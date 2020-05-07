@@ -12,10 +12,6 @@ var/global/Holiday = null
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //																							~Carn
 
-/hook/startup/proc/updateHoliday()
-	Get_Holiday()
-	return 1
-
 //sets up the Holiday global variable. Shouldbe called on game configuration or something.
 /proc/Get_Holiday()
 	if(!Holiday)	return		// Holiday stuff was not enabled in the config!
@@ -119,7 +115,7 @@ var/global/Holiday = null
 				Holiday = "Friday the 13th"
 
 //Allows GA and GM to set the Holiday variable
-/client/proc/Set_Holiday(T as text|null)
+/client/proc/Set_Holiday(T as text)
 	set name = ".Set Holiday"
 	set category = "Fun"
 	set desc = "Force-set the Holiday variable to make the game think it's a certain day."
@@ -127,21 +123,21 @@ var/global/Holiday = null
 
 	Holiday = T
 	//get a new station name
-	GLOB.using_map.station_name = null
+	station_name = null
 	station_name()
 	//update our hub status
 	world.update_status()
 	Holiday_Game_Start()
 
-	message_admins("<span class='notice'>ADMIN: Event: [key_name(src)] force-set Holiday to \"[Holiday]\"</span>")
+	message_admins("\blue ADMIN: Event: [key_name(src)] force-set Holiday to \"[Holiday]\"")
 	log_admin("[key_name(src)] force-set Holiday to \"[Holiday]\"")
 
 
 //Run at the  start of a round
 /proc/Holiday_Game_Start()
 	if(Holiday)
-		to_world("<font color='blue'>and...</font>")
-		to_world("<h4>Happy [Holiday] Everybody!</h4>")
+		to_chat(world, "<font color='blue'>and...</font>")
+		to_chat(world, "<h4>Happy [Holiday] Everybody!</h4>")
 		switch(Holiday)			//special holidays
 			if("Easter")
 				//do easter stuff
@@ -171,10 +167,10 @@ var/global/Holiday = null
 */
 /*			var/list/obj/containers = list()
 			for(var/obj/item/weapon/storage/S in world)
-				if(isNotStationLevel(S.z))	continue
+				if(S.z != ZLEVEL_STATION)	continue
 				containers += S
 
-			message_admins("<span class='notice'>DEBUG: Event: Egg spawned at [Egg.loc] ([Egg.x],[Egg.y],[Egg.z])</span>")*/
+			message_admins("\blue DEBUG: Event: Egg spawned at [Egg.loc] ([Egg.x],[Egg.y],[Egg.z])")*/
 		if("End of the World")
 			if(prob(eventchance))	GameOver()
 

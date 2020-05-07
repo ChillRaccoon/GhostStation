@@ -1,8 +1,6 @@
 #define AB_ITEM 1
 #define AB_SPELL 2
 #define AB_INNATE 3
-#define AB_GENERIC 4
-#define AB_ITEM_USE_ICON 5
 
 #define AB_CHECK_RESTRAINED 1
 #define AB_CHECK_STUNNED 2
@@ -14,13 +12,13 @@
 /datum/action
 	var/name = "Generic Action"
 	var/action_type = AB_ITEM
-	var/procname = null
+	var/action_procname = null
 	var/atom/movable/target = null
 	var/check_flags = 0
 	var/processing = 0
 	var/active = 0
 	var/obj/screen/movable/action_button/button = null
-	var/button_icon = 'icons/obj/action_buttons/actions.dmi'
+	var/button_icon = 'icons/mob/actions.dmi'
 	var/button_icon_state = "default"
 	var/background_icon_state = "bg_default"
 	var/mob/living/owner
@@ -32,14 +30,13 @@
 	if(owner)
 		Remove(owner)
 
-/datum/action/proc/SetTarget(var/atom/Target)
-	target = Target
-
 /datum/action/proc/Grant(mob/living/T)
 	if(owner)
 		if(owner == T)
 			return
 		Remove(owner)
+	if(name == "Generic Action")
+		name = target.name
 	owner = T
 	owner.actions.Add(src)
 	owner.update_action_buttons()
@@ -49,8 +46,7 @@
 	if(button)
 		if(T.client)
 			T.client.screen -= button
-		qdel(button)
-		button = null
+		del(button)
 	T.actions.Remove(src)
 	T.update_action_buttons()
 	owner = null
@@ -60,22 +56,18 @@
 	if(!Checks())
 		return
 	switch(action_type)
-		if(AB_ITEM, AB_ITEM_USE_ICON)
+		if(AB_ITEM)
+			if(target && action_procname)
+				call(target,action_procname)(usr)
+		if(AB_SPELL)
 			if(target)
-				var/obj/item/item = target
-				item.ui_action_click()
-		//if(AB_SPELL)
-		//	if(target)
-		//		var/obj/effect/proc_holder/spell = target
-		//		spell.Click()
+				var/obj/effect/proc_holder/spell = target
+				spell.Click()
 		if(AB_INNATE)
 			if(!active)
 				Activate()
 			else
 				Deactivate()
-		if(AB_GENERIC)
-			if(target && procname)
-				call(target,procname)(usr)
 	return
 
 /datum/action/proc/Activate()
@@ -84,7 +76,7 @@
 /datum/action/proc/Deactivate()
 	return
 
-/datum/action/proc/ProcessAction()
+/datum/action/proc/Process()
 	return
 
 /datum/action/proc/CheckRemoval(mob/living/user) // 1 if action is no longer valid for this mob and should be removed
@@ -92,6 +84,12 @@
 
 /datum/action/proc/IsAvailable()
 	return Checks()
+
+/obj/screen/movable/action_button/MouseEntered(location,control,params)
+	openToolTip(usr, src, params, title = name, content = desc)
+
+/obj/screen/movable/action_button/MouseExited()
+	closeToolTip(usr)
 
 /datum/action/proc/Checks()// returns 1 if all checks pass
 	if(!owner)
@@ -103,7 +101,7 @@
 		if(owner.stunned)
 			return 0
 	if(check_flags & AB_CHECK_LYING)
-		if(owner.lying)
+		if(owner.lying && !owner.crawling)
 			return 0
 	if(check_flags & AB_CHECK_ALIVE)
 		if(owner.stat)
@@ -155,7 +153,7 @@
 //Hide/Show Action Buttons ... Button
 /obj/screen/movable/action_button/hide_toggle
 	name = "Hide Buttons"
-	icon = 'icons/obj/action_buttons/actions.dmi'
+	icon = 'icons/mob/actions.dmi'
 	icon_state = "bg_default"
 	var/hidden = 0
 
@@ -170,8 +168,7 @@
 	UpdateIcon()
 	usr.update_action_buttons()
 
-
-/obj/screen/movable/action_button/hide_toggle/proc/InitialiseIcon(var/mob/living/user)
+/obj/screen/movable/action_button/hide_toggle/proc/InitialiseIcon(mob/living/user)
 	if(isalien(user))
 		icon_state = "bg_alien"
 	else
@@ -193,7 +190,7 @@
 #define AB_NORTH_OFFSET 26
 #define AB_MAX_COLUMNS 10
 
-/datum/hud/proc/ButtonNumberToScreenCoords(var/number) // TODO : Make this zero-indexed for readabilty
+/datum/hud/proc/ButtonNumberToScreenCoords(number) // TODO : Make this zero-indexed for readabilty
 	var/row = round((number-1)/AB_MAX_COLUMNS)
 	var/col = ((number - 1)%(AB_MAX_COLUMNS)) + 1
 	var/coord_col = "+[col-1]"
@@ -202,7 +199,7 @@
 	var/coord_row_offset = AB_NORTH_OFFSET
 	return "WEST[coord_col]:[coord_col_offset],NORTH[coord_row]:[coord_row_offset]"
 
-/datum/hud/proc/SetButtonCoords(var/obj/screen/button,var/number)
+/datum/hud/proc/SetButtonCoords(obj/screen/button,number)
 	var/row = round((number-1)/AB_MAX_COLUMNS)
 	var/col = ((number - 1)%(AB_MAX_COLUMNS)) + 1
 	var/x_offset = 32*(col-1) + AB_WEST_OFFSET + 2*col
@@ -221,20 +218,80 @@
 
 /datum/action/item_action/hands_free
 	check_flags = AB_CHECK_ALIVE|AB_CHECK_INSIDE
+	action_procname = "attack_self"
 
-/datum/action/item_action/organ
-	action_type = AB_ITEM_USE_ICON
-	button_icon = 'icons/obj/action_buttons/organs.dmi'
+//Preset for spells
+/datum/action/spell_action
+	action_type = AB_SPELL
+	check_flags = 0
+	background_icon_state = "bg_spell"
 
-/datum/action/item_action/organ/SetTarget(var/atom/Target)
-	. = ..()
-	var/obj/item/organ/O = target
-	if(istype(O))
-		O.refresh_action_button()
+/datum/action/spell_action/UpdateName()
+	var/obj/effect/proc_holder/spell/spell = target
+	return spell.name
 
-/datum/action/item_action/organ/augment
-	button_icon = 'icons/obj/augment.dmi'
+/datum/action/spell_action/IsAvailable()
+	if(!target)
+		return 0
+	var/obj/effect/proc_holder/spell/spell = target
+
+	if(usr)
+		return spell.can_cast(usr)
+	else
+		if(owner)
+			return spell.can_cast(owner)
+	return 1
+
+/datum/action/spell_action/CheckRemoval()
+	if(owner.mind)
+		if(target in owner.mind.spell_list)
+			return 0
+	return !(target in owner.spell_list)
 
 #undef AB_WEST_OFFSET
 #undef AB_NORTH_OFFSET
 #undef AB_MAX_COLUMNS
+
+////////Action presets
+/datum/action/item_action/attack_self
+	action_procname = "attack_self"
+
+/datum/action/item_action/ui_action_click
+	action_procname = "ui_action_click"
+
+/datum/action/item_action/toggle_hood
+	action_procname = "ToggleHood"
+
+/datum/action/item_action/toggle_stealth
+	action_procname = "toggle_stealth"
+
+/datum/action/item_action/toggle_mister
+	action_procname = "toggle_mister"
+
+/datum/action/item_action/jetpack_toggle
+	name = "toggle jetpack"
+	action_procname = "toggle"
+
+/datum/action/item_action/jetpack_stabilisation
+	name = "toggle stabilisation"
+	action_procname = "toggle_rockets"
+
+/datum/action/item_action/implant_storage
+	action_procname = "open_storage"
+
+/datum/action/item_action/toggle_paddles
+	action_procname = "toggle_paddles"
+
+/datum/action/item_action/toggle
+	action_procname = "toggle"
+
+/datum/action/item_action/attack_hand
+	action_procname = "attack_hand"
+
+/datum/action/item_action/hands_free/toggle_holomap
+	name = "toggle holomap"
+	action_procname = "toggle_holomap"
+
+/datum/action/item_action/adjust_helmet
+	name = "adjust helmet"
+	action_procname = "toggle"

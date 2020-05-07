@@ -1,326 +1,458 @@
-/obj/item/weapon/gun/projectile/automatic
-	name = "prototype SMG"
-	desc = "A protoype lightweight, fast firing submachine gun."
-	icon = 'icons/obj/guns/prototype_smg.dmi'
-	icon_state = "prototype"
-	item_state = "saber"
-	w_class = ITEM_SIZE_NORMAL
-	bulk = -1
-	load_method = MAGAZINE
-	caliber = CALIBER_PISTOL_FLECHETTE
-	origin_tech = list(TECH_COMBAT = 6, TECH_MATERIAL = 3)
-	slot_flags = SLOT_BELT
-	ammo_type = /obj/item/ammo_casing/flechette
-	magazine_type = /obj/item/ammo_magazine/proto_smg
-	allowed_magazines = /obj/item/ammo_magazine/proto_smg
-	multi_aim = 1
-	burst_delay = 2
-	mag_insert_sound = 'sound/weapons/guns/interaction/smg_magin.ogg'
-	mag_remove_sound = 'sound/weapons/guns/interaction/smg_magout.ogg'
-
-	//machine pistol, easier to one-hand with
-	firemodes = list(
-		list(mode_name="semi auto",       burst=1, fire_delay=null,    move_delay=null, one_hand_penalty=0, burst_accuracy=null, dispersion=null),
-		list(mode_name="4-round bursts", burst=4, fire_delay=null, move_delay=4,    one_hand_penalty=1, burst_accuracy=list(0,0,-1,-1),       dispersion=list(0.0, 0.0, 0.5, 0.6)),
-		list(mode_name="long bursts",   burst=8, fire_delay=null, move_delay=4,    one_hand_penalty=2, burst_accuracy=list(0,0,-1,-1,-1,-1,-2,-2), dispersion=list(0.0, 0.0, 0.5, 0.6, 0.8, 1.0, 1.0, 1.2)),
-		)
-
-/obj/item/weapon/gun/projectile/automatic/machine_pistol
-	name = "machine pistol"
-	desc = "The Hephaestus Industries MP6 Vesper, A fairly common machine pistol. Sometimes refered to as an 'uzi' by the backwater spacers it is often associated with."
-	icon = 'icons/obj/guns/machine_pistol.dmi'
-	icon_state = "mpistolen"
-	safety_icon = "safety"
-	item_state = "mpistolen"
-	caliber = CALIBER_PISTOL
-	origin_tech = list(TECH_COMBAT = 5, TECH_MATERIAL = 2, TECH_ESOTERIC = 3)
-	ammo_type = /obj/item/ammo_casing/pistol
-	magazine_type = /obj/item/ammo_magazine/machine_pistol
-	allowed_magazines = /obj/item/ammo_magazine/machine_pistol //more damage compared to the wt550, smaller mag size
-	one_hand_penalty = 2
-
-	firemodes = list(
-		list(mode_name="semi auto",       burst=1, fire_delay=null,    move_delay=null, one_hand_penalty=0, burst_accuracy=null, dispersion=null),
-		list(mode_name="3-round bursts", burst=3, fire_delay=null, move_delay=4,    one_hand_penalty=1, burst_accuracy=list(0,-1,-1),       dispersion=list(0.0, 0.6, 1.0)),
-		list(mode_name="short bursts",   burst=5, fire_delay=null, move_delay=4,    one_hand_penalty=2, burst_accuracy=list(0,-1,-1,-1,-2), dispersion=list(0.6, 0.6, 1.0, 1.0, 1.2)),
-		)
-
-/obj/item/weapon/gun/projectile/automatic/machine_pistol/on_update_icon()
-	..()
-	icon_state = "mpistolen"
-	if(ammo_magazine)
-		overlays += image(icon, "mag")
-
-	if(!ammo_magazine || !LAZYLEN(ammo_magazine.stored_ammo))
-		icon_state = "mpistolen-empty"
-		overlays += image(icon, "ammo_bad")
-	else if(LAZYLEN(ammo_magazine.stored_ammo) <= 0.5 * ammo_magazine.max_ammo)
-		overlays += image(icon, "ammo_warn")
-		return
-	else
-		overlays += image(icon, "ammo_ok")
-
-/obj/item/weapon/gun/projectile/automatic/merc_smg
+/obj/item/weapon/gun/projectile/automatic //Hopefully someone will find a way to make these fire in bursts or something. --Superxpdude
 	name = "submachine gun"
-	desc = "The NanoTrasen C-20r is a lightweight and rapid firing SMG, for when you REALLY need someone dead. Has a 'Per falcis, per pravitas' buttstamp."
-	icon = 'icons/obj/guns/merc_smg.dmi'
+	desc = "A lightweight, fast firing gun. Uses 9mm rounds."
+	icon_state = "saber"	//ugly
+	w_class = ITEM_SIZE_NORMAL
+	origin_tech = "combat=4;materials=2"
+	mag_type = /obj/item/ammo_box/magazine/msmg9mm
+	burst_mode = TRUE
+	burst_amount = 3
+	burst_delay = 3
+	var/alarmed = 0
+
+/obj/item/weapon/gun/projectile/automatic/CtrlClick(mob/user)
+	if(loc == user)
+		burst_mode = !burst_mode
+		to_chat(user, "<span class='notice'>You switch \the [src] to [burst_mode ? "burst mode" : "single mode"].</span>")
+	else
+		..()
+
+/obj/item/weapon/gun/projectile/automatic/isHandgun()
+	return 0
+
+/obj/item/weapon/gun/projectile/automatic/update_icon()
+	..()
+	icon_state = "[initial(icon_state)][magazine ? "-[magazine.max_ammo]" : ""][chambered ? "" : "-e"]"
+	return
+
+/obj/item/weapon/gun/projectile/automatic/attackby(obj/item/A, mob/user)
+	if(..() && chambered)
+		alarmed = 0
+
+/obj/item/weapon/gun/projectile/automatic/mini_uzi
+	name = "Mac-10"
+	desc = "A lightweight, fast firing gun, for when you want someone dead. Uses 9mm rounds."
+	icon_state = "mac"
+	item_state = "mac"
+	w_class = 3.0
+	origin_tech = "combat=5;materials=2;syndicate=8"
+	mag_type = /obj/item/ammo_box/magazine/uzim9mm
+
+/obj/item/weapon/gun/projectile/automatic/update_icon()
+	..()
+	icon_state = "[initial(icon_state)][magazine ? "" : "-e"]"
+	return
+
+
+/obj/item/weapon/gun/projectile/automatic/c20r
+	name = "C-20r SMG"
+	desc = "A lightweight, compact bullpup SMG. Uses .45 ACP rounds in medium-capacity magazines and has a threaded barrel for silencers. Has a 'Scarborough Arms - Per falcis, per pravitas' buttstamp."
 	icon_state = "c20r"
 	item_state = "c20r"
-	safety_icon = "safety"
-	w_class = ITEM_SIZE_LARGE
-	force = 10
-	caliber = CALIBER_PISTOL
-	origin_tech = list(TECH_COMBAT = 5, TECH_MATERIAL = 2, TECH_ESOTERIC = 8)
-	slot_flags = SLOT_BELT|SLOT_BACK
-	magazine_type = /obj/item/ammo_magazine/smg
-	allowed_magazines = /obj/item/ammo_magazine/smg
-	fire_sound = 'sound/weapons/gunshot/gunshot_smg.ogg'
-	auto_eject = 1
-	auto_eject_sound = 'sound/weapons/smg_empty_alarm.ogg'
-	bulk = -1
-	accuracy = 1
-	one_hand_penalty = 4
+	w_class = 3.0
+	origin_tech = "combat=5;materials=2;syndicate=8"
+	mag_type = /obj/item/ammo_box/magazine/m12mm
+	fire_sound = 'sound/weapons/Gunshot_smg.ogg'
+	burst_mode = TRUE
+	burst_amount = 3
+	burst_delay = 3
 
-	//SMG
-	firemodes = list(
-		list(mode_name="semi auto",       burst=1, fire_delay=null,    move_delay=null, one_hand_penalty=4, burst_accuracy=null, dispersion=null),
-		list(mode_name="3-round bursts", burst=3, fire_delay=null, move_delay=4,    one_hand_penalty=5, burst_accuracy=list(0,-1,-1),       dispersion=list(0.0, 0.6, 1.0)),
-		list(mode_name="short bursts",   burst=5, fire_delay=null, move_delay=4,    one_hand_penalty=6, burst_accuracy=list(0,-1,-1,-1,-2), dispersion=list(0.6, 0.6, 1.0, 1.0, 1.2)),
-		)
-
-/obj/item/weapon/gun/projectile/automatic/merc_smg/on_update_icon()
-	..()
-	if(ammo_magazine)
-		icon_state = "c20r-[round(ammo_magazine.stored_ammo.len,4)]"
-	else
-		icon_state = "c20r"
-
-/obj/item/weapon/gun/projectile/automatic/assault_rifle
-	name = "assault rifle"
-	desc = "The rugged STS-35 is a durable automatic weapon of a make popular on the frontier worlds. Originally produced by Hephaestus. The serial number has been scratched off."
-	icon = 'icons/obj/guns/assault_rifle.dmi'
-	icon_state = "arifle"
-	item_state = null
-	w_class = ITEM_SIZE_HUGE
-	force = 10
-	caliber = CALIBER_RIFLE
-	origin_tech = list(TECH_COMBAT = 6, TECH_MATERIAL = 1, TECH_ESOTERIC = 5)
-	slot_flags = SLOT_BACK
-	load_method = MAGAZINE
-	magazine_type = /obj/item/ammo_magazine/rifle
-	allowed_magazines = /obj/item/ammo_magazine/rifle
-	one_hand_penalty = 8
-	accuracy_power = 7
-	accuracy = 2
-	bulk = GUN_BULK_RIFLE + 1
-	wielded_item_state = "arifle-wielded"
-	mag_insert_sound = 'sound/weapons/guns/interaction/ltrifle_magin.ogg'
-	mag_remove_sound = 'sound/weapons/guns/interaction/ltrifle_magout.ogg'
-
-	//Assault rifle, burst fire degrades quicker than SMG, worse one-handing penalty, slightly increased move delay
-	firemodes = list(
-		list(mode_name="semi auto",       burst=1, fire_delay=null,    move_delay=null, one_hand_penalty=8, burst_accuracy=null, dispersion=null),
-		list(mode_name="3-round bursts", burst=3, fire_delay=null, move_delay=6,    one_hand_penalty=9, burst_accuracy=list(0,-1,-1),       dispersion=list(0.0, 0.6, 1.0)),
-		list(mode_name="short bursts",   burst=5, fire_delay=null, move_delay=6,    one_hand_penalty=11, burst_accuracy=list(0,-1,-2,-3,-3), dispersion=list(0.6, 1.0, 1.2, 1.2, 1.5)),
-		)
-
-/obj/item/weapon/gun/projectile/automatic/assault_rifle/on_update_icon()
-	..()
-	if(ammo_magazine)
-		icon_state = "arifle"
-		wielded_item_state = "arifle-wielded"
-	else
-		icon_state = "arifle-empty"
-		wielded_item_state = "arifle-wielded-empty"
-
-/obj/item/weapon/gun/projectile/automatic/sec_smg
-	name = "submachine gun"
-	desc = "The WT-550 Saber is a cheap self-defense weapon, mass-produced by Ward-Takahashi for paramilitary and private use."
-	icon = 'icons/obj/guns/sec_smg.dmi'
-	icon_state = "smg"
-	item_state = "wt550"
-	safety_icon = "safety"
-	w_class = ITEM_SIZE_NORMAL
-	caliber = CALIBER_PISTOL_SMALL
-	origin_tech = list(TECH_COMBAT = 5, TECH_MATERIAL = 2)
-	slot_flags = SLOT_BELT
-	ammo_type = /obj/item/ammo_casing/pistol/small
-	load_method = MAGAZINE
-	magazine_type = /obj/item/ammo_magazine/smg_top/rubber
-	allowed_magazines = /obj/item/ammo_magazine/smg_top
-	accuracy_power = 7
-	one_hand_penalty = 3
-
-	//machine pistol, like SMG but easier to one-hand with
-	firemodes = list(
-		list(mode_name="semi auto",       burst=1, fire_delay=null,    move_delay=null, one_hand_penalty=3, burst_accuracy=null, dispersion=null),
-		list(mode_name="3-round bursts", burst=3, fire_delay=null, move_delay=4,    one_hand_penalty=4, burst_accuracy=list(0,-1,-1),       dispersion=list(0.0, 0.6, 1.0)),
-		list(mode_name="short bursts",   burst=5, fire_delay=null, move_delay=4,    one_hand_penalty=5, burst_accuracy=list(0,-1,-1,-1,-2), dispersion=list(0.6, 0.6, 1.0, 1.0, 1.2)),
-		)
-
-/obj/item/weapon/gun/projectile/automatic/sec_smg/on_update_icon()
-	..()
-	if(ammo_magazine)
-		overlays += image(icon, "mag-[round(ammo_magazine.stored_ammo.len,5)]")
-	if(ammo_magazine && LAZYLEN(ammo_magazine.stored_ammo))
-		overlays += image(icon, "ammo-ok")
-	else
-		overlays += image(icon, "ammo-bad")
-
-/obj/item/weapon/gun/projectile/automatic/bullpup_rifle
-	name = "bullpup assault rifle"
-	desc = "The Hephaestus Industries Z8 Bulldog is an older model bullpup carbine. Makes you feel like a space marine when you hold it."
-	icon = 'icons/obj/guns/bullpup_rifle.dmi'
-	icon_state = "carbine"
-	item_state = "z8carbine"
-	w_class = ITEM_SIZE_HUGE
-	force = 10
-	caliber = CALIBER_RIFLE_MILITARY
-	origin_tech = list(TECH_COMBAT = 8, TECH_MATERIAL = 3)
-	ammo_type = /obj/item/ammo_casing/rifle/military
-	slot_flags = SLOT_BACK
-	load_method = MAGAZINE
-	magazine_type = /obj/item/ammo_magazine/mil_rifle
-	allowed_magazines = /obj/item/ammo_magazine/mil_rifle
-	auto_eject = 1
-	auto_eject_sound = 'sound/weapons/smg_empty_alarm.ogg'
-	accuracy = 2
-	accuracy_power = 7
-	one_hand_penalty = 8
-	bulk = GUN_BULK_RIFLE
-	burst_delay = 4
-	wielded_item_state = "z8carbine-wielded"
-	mag_insert_sound = 'sound/weapons/guns/interaction/batrifle_magin.ogg'
-	mag_remove_sound = 'sound/weapons/guns/interaction/batrifle_magout.ogg'
-	firemodes = list(
-		list(mode_name="semi auto",       burst=1,    fire_delay=null,    move_delay=null, use_launcher=null, one_hand_penalty=8, burst_accuracy=null, dispersion=null),
-		list(mode_name="3-round bursts", burst=3,    fire_delay=null, move_delay=6,    use_launcher=null, one_hand_penalty=9, burst_accuracy=list(0,-1,-1), dispersion=list(0.0, 0.6, 1.0)),
-		list(mode_name="fire grenades",  burst=null, fire_delay=null, move_delay=null, use_launcher=1,    one_hand_penalty=10, burst_accuracy=null, dispersion=null)
-		)
-
-	var/use_launcher = 0
-	var/obj/item/weapon/gun/launcher/grenade/underslung/launcher
-
-/obj/item/weapon/gun/projectile/automatic/bullpup_rifle/Initialize()
+/obj/item/weapon/gun/projectile/automatic/c20r/atom_init()
 	. = ..()
-	launcher = new(src)
-
-/obj/item/weapon/gun/projectile/automatic/bullpup_rifle/attackby(obj/item/I, mob/user)
-	if((istype(I, /obj/item/weapon/grenade)))
-		launcher.load(I, user)
-	else
-		..()
-
-/obj/item/weapon/gun/projectile/automatic/bullpup_rifle/attack_hand(mob/user)
-	if(user.get_inactive_hand() == src && use_launcher)
-		launcher.unload(user)
-	else
-		..()
-
-/obj/item/weapon/gun/projectile/automatic/bullpup_rifle/Fire(atom/target, mob/living/user, params, pointblank=0, reflex=0)
-	if(use_launcher)
-		launcher.Fire(target, user, params, pointblank, reflex)
-		if(!launcher.chambered)
-			switch_firemodes() //switch back automatically
-	else
-		..()
-
-/obj/item/weapon/gun/projectile/automatic/bullpup_rifle/on_update_icon()
-	..()
-	if(ammo_magazine)
-		if(ammo_magazine.stored_ammo.len)
-			icon_state = "carbine-loaded"
-		else
-			icon_state = "carbine-empty"
-	else
-		icon_state = "carbine"
-
-/obj/item/weapon/gun/projectile/automatic/bullpup_rifle/examine(mob/user)
-	. = ..()
-	if(launcher.chambered)
-		to_chat(user, "\The [launcher] has \a [launcher.chambered] loaded.")
-	else
-		to_chat(user, "\The [launcher] is empty.")
-
-/obj/item/weapon/gun/projectile/automatic/l6_saw
-	name = "light machine gun"
-	desc = "A rather traditionally made L6 SAW with a pleasantly lacquered wooden pistol grip. Has 'Aussec Armoury- 2281' engraved on the reciever." //probably should refluff this
-	icon = 'icons/obj/guns/saw.dmi'
-	icon_state = "l6closed100"
-	item_state = "l6closedmag"
-	w_class = ITEM_SIZE_HUGE
-	bulk = 10
-	force = 10
-	slot_flags = 0
-	max_shells = 50
-	caliber = CALIBER_RIFLE
-	origin_tech = list(TECH_COMBAT = 6, TECH_MATERIAL = 1, TECH_ESOTERIC = 2)
-	slot_flags = 0 //need sprites for SLOT_BACK
-	ammo_type = /obj/item/ammo_casing/rifle
-	load_method = MAGAZINE
-	magazine_type = /obj/item/ammo_magazine/box/machinegun
-	allowed_magazines = list(/obj/item/ammo_magazine/box/machinegun, /obj/item/ammo_magazine/rifle)
-	one_hand_penalty = 10
-	wielded_item_state = "gun_wielded"
-	mag_insert_sound = 'sound/weapons/guns/interaction/lmg_magin.ogg'
-	mag_remove_sound = 'sound/weapons/guns/interaction/lmg_magout.ogg'
-
-	//LMG, better sustained fire accuracy than assault rifles (comparable to SMG), higer move delay and one-handing penalty
-	//No single-shot or 3-round-burst modes since using this weapon should come at a cost to flexibility.
-	firemodes = list(
-		list(mode_name="short bursts",	can_autofire=0, burst=5, fire_delay=5, move_delay=12, one_hand_penalty=8, burst_accuracy = list(0,-1,-1,-2,-2),          dispersion = list(0.6, 1.0, 1.0, 1.0, 1.2)),
-		list(mode_name="long bursts",	can_autofire=0, burst=8, fire_delay=5, one_hand_penalty=12, burst_accuracy = list(0,-1,-1,-2,-2,-2,-3,-3), dispersion = list(1.0, 1.0, 1.0, 1.0, 1.2)),
-		list(mode_name="full auto",		can_autofire=1, burst=1, fire_delay=1, one_hand_penalty=12, burst_accuracy = list(0,-1,-1,-2,-2,-2,-3,-3), dispersion = list(1.0, 1.0, 1.0, 1.0, 1.2)),
-		)
-
-	var/cover_open = 0
-
-/obj/item/weapon/gun/projectile/automatic/l6_saw/mag
-	magazine_type = /obj/item/ammo_magazine/rifle
-
-/obj/item/weapon/gun/projectile/automatic/l6_saw/special_check(mob/user)
-	if(cover_open)
-		to_chat(user, "<span class='warning'>[src]'s cover is open! Close it before firing!</span>")
-		return 0
-	return ..()
-
-/obj/item/weapon/gun/projectile/automatic/l6_saw/proc/toggle_cover(mob/user)
-	cover_open = !cover_open
-	to_chat(user, "<span class='notice'>You [cover_open ? "open" : "close"] [src]'s cover.</span>")
 	update_icon()
 
-/obj/item/weapon/gun/projectile/automatic/l6_saw/attack_self(mob/user as mob)
+/obj/item/weapon/gun/projectile/automatic/c20r/afterattack(atom/target, mob/living/user, flag)
+	..()
+	if(!chambered && !get_ammo() && !alarmed)
+		playsound(user, 'sound/weapons/smg_empty_alarm.ogg', 40, 1)
+		update_icon()
+		alarmed = 1
+	return
+
+/obj/item/weapon/gun/projectile/automatic/c20r/attack_self(mob/user)
+	if(silenced)
+		switch(alert("Would you like to unscrew silencer, or extract magazine?","Choose.","Silencer","Magazine"))
+			if("Silencer")
+				if(loc == user)
+					if(silenced)
+						silencer_attack_hand(user)
+			if("Magazine")
+				..()
+	else
+		..()
+
+/obj/item/weapon/gun/projectile/automatic/c20r/attackby(obj/item/I, mob/user)
+	if(istype(I, /obj/item/weapon/silencer))
+		return silencer_attackby(I,user)
+	return ..()
+
+/obj/item/weapon/gun/projectile/automatic/c20r/update_icon()
+	..()
+	overlays.Cut()
+	if(magazine)
+		var/image/magazine_icon = image('icons/obj/gun.dmi', "mag-[ceil(get_ammo(0) / 4) * 4]")
+		overlays += magazine_icon
+	if(silenced)
+		var/image/silencer_icon = image('icons/obj/gun.dmi', "c20r-silencer")
+		overlays += silencer_icon
+	icon_state = "c20r[chambered ? "" : "-e"]"
+	return
+
+/obj/item/weapon/gun/projectile/automatic/l6_saw
+	name = "\improper L6 SAW"
+	desc = "A heavily modified light machine gun with a tactical plasteel frame resting on a rather traditionally-made ballistic weapon. Has 'Aussec Armoury - 2531' engraved on the reciever, as well as '7.62x51mm'."
+	icon_state = "l6closed100"
+	item_state = "l6closedmag"
+	w_class = 5
+	slot_flags = 0
+	origin_tech = "combat=5;materials=1;syndicate=2"
+	mag_type = /obj/item/ammo_box/magazine/m762
+	fire_sound = 'sound/weapons/gunshot3.wav'
+	var/cover_open = 0
+
+/obj/item/weapon/gun/projectile/automatic/l6_saw/proc/unwield()
+	wielded = 0
+	update_icon()
+
+/obj/item/weapon/gun/projectile/automatic/l6_saw/proc/wield()
+	wielded = 1
+	update_icon()
+
+/obj/item/weapon/gun/projectile/automatic/l6_saw/mob_can_equip(M, slot)
+	//Cannot equip wielded items.
+	if(wielded)
+		to_chat(M, "<span class='warning'>Unwield the [initial(name)] first!</span>")
+		return 0
+
+	return ..()
+
+/obj/item/weapon/gun/projectile/automatic/l6_saw/dropped(mob/user)
+	//handles unwielding a twohanded weapon when dropped as well as clearing up the offhand
+	if(user)
+		var/obj/item/weapon/gun/projectile/automatic/l6_saw/O = user.get_inactive_hand()
+		if(istype(O))
+			O.unwield()
+	return	unwield()
+
+/obj/item/weapon/gun/projectile/automatic/l6_saw/pickup(mob/user)
+	unwield()
+
+/obj/item/weapon/gun/projectile/automatic/l6_saw/attack_self(mob/user)
+	switch(alert("Would you like to [cover_open ? "open" : "close"], or change grip?","Choose.","Toggle cover","Change grip"))
+		if("Toggle cover")
+			if(wielded || user.get_inactive_hand())
+				to_chat(user, "<span class='warning'>You need your other hand to be empty to do this.</span>")
+				return
+			else
+				if(ishuman(user))
+					var/mob/living/carbon/human/H = user
+					if(!H.can_use_two_hands())
+						to_chat(user, "<span class='warning'>You need both of your hands to be intact.</span>")
+						return
+				cover_open = !cover_open
+				to_chat(user, "<span class='notice'>You [cover_open ? "open" : "close"] [src]'s cover.</span>")
+				update_icon()
+				return
+		if("Change grip")
+			if(wielded) //Trying to unwield it
+				unwield()
+				to_chat(user, "<span class='notice'>You are now carrying the [name] with one hand.</span>")
+				if(user.hand)
+					user.update_inv_l_hand()
+				else
+					user.update_inv_r_hand()
+
+				var/obj/item/weapon/twohanded/offhand/O = user.get_inactive_hand()
+				if(O && istype(O))
+					O.unwield()
+				return
+
+			else //Trying to wield it
+				if(ishuman(user))
+					var/mob/living/carbon/human/H = user
+					var/W = H.wield(src, initial(name))
+					if(W)
+						wield()
+
+/obj/item/weapon/gun/projectile/automatic/l6_saw/update_icon()
+	icon_state = "l6[cover_open ? "open" : "closed"][magazine ? ceil(get_ammo(0) / 12.5) * 25 : "-empty"]"
+
+/obj/item/weapon/gun/projectile/automatic/l6_saw/afterattack(atom/target, mob/living/user, flag, params) //what I tried to do here is just add a check to see if the cover is open or not and add an icon_state change because I can't figure out how c-20rs do it with overlays
+	if(!wielded)
+		to_chat(user, "<span class='notice'>You need wield [src] in both hands before firing!</span>")
+		return
 	if(cover_open)
-		toggle_cover(user) //close the cover
+		to_chat(user, "<span class='notice'>[src]'s cover is open! Close it before firing!</span>")
 	else
-		return ..() //once closed, behave like normal
+		..()
+		update_icon()
 
-/obj/item/weapon/gun/projectile/automatic/l6_saw/attack_hand(mob/user as mob)
-	if(!cover_open && user.get_inactive_hand() == src)
-		toggle_cover(user) //open the cover
-	else
-		return ..() //once open, behave like normal
+/obj/item/weapon/gun/projectile/automatic/l6_saw/attack_hand(mob/user)
+	if(loc != user)
+		..()
+		return	//let them pick it up
+	if(!cover_open || (cover_open && !magazine))
+		..()
+	else if(cover_open && magazine)
+		//drop the mag
+		magazine.update_icon()
+		magazine.loc = get_turf(src.loc)
+		user.put_in_hands(magazine)
+		magazine = null
+		update_icon()
+		to_chat(user, "<span class='notice'>You remove the magazine from [src].</span>")
 
-/obj/item/weapon/gun/projectile/automatic/l6_saw/on_update_icon()
-	..()
-	if(istype(ammo_magazine, /obj/item/ammo_magazine/box))
-		icon_state = "l6[cover_open ? "open" : "closed"][round(ammo_magazine.stored_ammo.len, 25)]"
-		item_state = "l6[cover_open ? "open" : "closed"]"
-	else if(ammo_magazine)
-		icon_state = "l6[cover_open ? "open" : "closed"]mag"
-		item_state = "l6[cover_open ? "open" : "closed"]mag"
-	else
-		icon_state = "l6[cover_open ? "open" : "closed"]-empty"
-		item_state = "l6[cover_open ? "open" : "closed"]-empty"
 
-/obj/item/weapon/gun/projectile/automatic/l6_saw/load_ammo(var/obj/item/A, mob/user)
+/obj/item/weapon/gun/projectile/automatic/l6_saw/attackby(obj/item/A, mob/user)
 	if(!cover_open)
-		to_chat(user, "<span class='warning'>You need to open the cover to load that into [src].</span>")
+		to_chat(user, "<span class='notice'>[src]'s cover is closed! You can't insert a new mag!</span>")
 		return
 	..()
 
-/obj/item/weapon/gun/projectile/automatic/l6_saw/unload_ammo(mob/user, var/allow_dump=1)
-	if(!cover_open)
-		to_chat(user, "<span class='warning'>You need to open the cover to unload [src].</span>")
-		return
+/* The thing I found with guns in ss13 is that they don't seem to simulate the rounds in the magazine in the gun.
+   Afaik, since projectile.dm features a revolver, this would make sense since the magazine is part of the gun.
+   However, it looks like subsequent guns that use removable magazines don't take that into account and just get
+   around simulating a removable magazine by adding the casings into the loaded list and spawning an empty magazine
+   when the gun is out of rounds. Which means you can't eject magazines with rounds in them. The below is a very
+   rough and poor attempt at making that happen. -Ausops */
+
+/* Where Ausops failed, I have not. -SirBayer */
+
+//=================NEW GUNS=================//
+
+/obj/item/weapon/gun/projectile/automatic/l10c
+	name = "L10-c"
+	desc = "A basic energy-based carbine with fast rate of fire."
+	icon_state = "l10-car"
+	item_state = "l10-car"
+	w_class = 4.0
+	origin_tech = "combat=3;magnets=2"
+	mag_type = /obj/item/ammo_box/magazine/l10mag
+	fire_sound = 'sound/weapons/guns/l10c-shot.ogg'
+	recoil = 0
+	energy_gun = 1
+
+/obj/item/weapon/gun/projectile/automatic/l10c/atom_init()
+	. = ..()
+	update_icon()
+
+/obj/item/weapon/gun/projectile/automatic/l10c/process_chamber()
+	return ..(0, 1, 1)
+
+/obj/item/weapon/gun/projectile/automatic/l10c/afterattack(atom/target, mob/living/user, flag)
 	..()
+	update_icon(user)
+	return
+
+/obj/item/weapon/gun/projectile/automatic/l10c/attack_self(mob/user)
+	if(magazine && magazine.ammo_count())
+		playsound(user, 'sound/weapons/guns/l10c-unload.ogg', 70, 1)
+	if(chambered)
+		var/obj/item/ammo_casing/AC = chambered //Find chambered round
+		qdel(AC)
+		chambered = null
+		magazine.stored_ammo += new magazine.ammo_type(magazine)
+	if (magazine)
+		magazine.loc = get_turf(src.loc)
+		user.put_in_hands(magazine)
+		magazine.update_icon()
+		magazine = null
+		to_chat(user, "<span class='notice'>You pull the magazine out of \the [src]!</span>")
+	else
+		to_chat(user, "<span class='notice'>There's no magazine in \the [src].</span>")
+	update_icon(user)
+	return
+
+/obj/item/weapon/gun/projectile/automatic/l10c/attackby(obj/item/A, mob/user)
+	if (istype(A, /obj/item/ammo_box/magazine))
+		var/obj/item/ammo_box/magazine/AM = A
+		if (!magazine && istype(AM, mag_type))
+			user.remove_from_mob(AM)
+			magazine = AM
+			magazine.loc = src
+			to_chat(user, "<span class='notice'>You load a new magazine into \the [src].</span>")
+			if(AM.ammo_count())
+				playsound(user, 'sound/weapons/guns/l10c-load.ogg', 70, 1)
+			chamber_round()
+			A.update_icon()
+			update_icon(user)
+			return 1
+		else if (magazine)
+			to_chat(user, "<span class='notice'>There's already a magazine in \the [src].</span>")
+	return 0
+
+/obj/item/weapon/gun/projectile/automatic/l10c/update_icon(mob/M)
+	if(!magazine)
+		icon_state = "[initial(icon_state)]-e"
+		item_state = "[initial(item_state)]-e"
+	else if(chambered)
+		icon_state = "[initial(icon_state)]"
+		item_state = "[initial(item_state)]"
+	else if(magazine && magazine.ammo_count())
+		icon_state = "[initial(icon_state)]"
+		item_state = "[initial(item_state)]"
+	else
+		icon_state = "[initial(icon_state)]-0"
+		item_state = "[initial(item_state)]-0"
+	if(ishuman(M))
+		var/mob/living/carbon/human/H = M
+		H.update_inv_l_hand()
+		H.update_inv_r_hand()
+		H.update_inv_belt()
+	return
+
+
+/obj/item/weapon/gun/projectile/automatic/c5
+	name = "security submachine gun"
+	desc = "C-5 submachine gun - cheap and light. Uses 9mm ammo."
+	icon_state = "c5"
+	item_state = "c5"
+	w_class = 3.0
+	origin_tech = "combat=4;materials=2"
+	mag_type = /obj/item/ammo_box/magazine/c5_9mm
+	fire_sound = 'sound/weapons/guns/c5_shot.wav'
+
+/obj/item/weapon/gun/projectile/automatic/c5/update_icon(mob/M)
+	icon_state = "c5[magazine ? "" : "-e"]"
+	item_state = "c5[magazine ? "" : "-e"]"
+	if(ishuman(M))
+		var/mob/living/carbon/human/H = M
+		H.update_inv_l_hand()
+		H.update_inv_r_hand()
+		H.update_inv_belt()
+	return
+
+/obj/item/weapon/gun/projectile/automatic/l13
+	name = "security submachine gun"
+	desc = "L13 personal defense weapon - for combat security operations. Uses .38 ammo."
+	icon_state = "l13"
+	item_state = "l13"
+	w_class = 3.0
+	origin_tech = "combat=4;materials=2"
+	mag_type = /obj/item/ammo_box/magazine/l13_38
+	fire_sound = 'sound/weapons/guns/l13_shot.ogg'
+
+/obj/item/weapon/gun/projectile/automatic/l13/update_icon(mob/M)
+	icon_state = "l13[magazine ? "" : "-e"]"
+	item_state = "l13[magazine ? "" : "-e"]"
+	if(ishuman(M))
+		var/mob/living/carbon/human/H = M
+		H.update_inv_l_hand()
+		H.update_inv_r_hand()
+		H.update_inv_belt()
+	return
+
+/obj/item/weapon/gun/projectile/automatic/borg
+	name = "Robot SMG"
+	icon_state = "borg_smg"
+	mag_type = /obj/item/ammo_box/magazine/borg45
+
+/obj/item/weapon/gun/projectile/automatic/borg/update_icon()
+	return
+
+/obj/item/weapon/gun/projectile/automatic/borg/attack_self(mob/user)
+	if (magazine)
+		magazine.loc = get_turf(src.loc)
+		magazine.update_icon()
+		magazine = null
+		to_chat(user, "<span class='notice'>You pull the magazine out of \the [src]!</span>")
+	else
+		to_chat(user, "<span class='notice'>There's no magazine in \the [src].</span>")
+	return
+
+/obj/item/weapon/gun/projectile/automatic/bulldog
+	name = "V15 Bulldog shotgun"
+	desc = "A compact, mag-fed semi-automatic shotgun for combat in narrow corridors. Compatible only with specialized magazines."
+	icon_state = "bulldog"
+	item_state = "bulldog"
+	w_class = 3.0
+	origin_tech = "combat=5;materials=4;syndicate=6"
+	mag_type = /obj/item/ammo_box/magazine/m12g
+	fire_sound = 'sound/weapons/Gunshot.ogg'
+
+/obj/item/weapon/gun/projectile/automatic/bulldog/atom_init()
+	. = ..()
+	update_icon()
+
+/obj/item/weapon/gun/projectile/automatic/bulldog/update_magazine()
+	if(magazine)
+		src.overlays = 0
+		overlays += "[magazine.icon_state]_o"
+		return
+
+/obj/item/weapon/gun/projectile/automatic/bulldog/update_icon()
+	src.overlays = 0
+	update_magazine()
+	icon_state = "bulldog[chambered ? "" : "-e"]"
+	return
+
+/obj/item/weapon/gun/projectile/automatic/bulldog/afterattack(atom/target, mob/living/user, flag)
+	..()
+	if(!chambered && !get_ammo() && !alarmed)
+		playsound(user, 'sound/weapons/smg_empty_alarm.ogg', 40, 1)
+		update_icon()
+		alarmed = 1
+	return
+
+/obj/item/weapon/gun/projectile/automatic/om36
+	name = "OM36 assault rifle"
+	desc = "The OM36 is a light gas-operated assault rifle, designed in the early 2530s by Cracker & Followill in Sol System Goverment as a replacement for the heavier OM3 battle rifle"
+	mag_type = /obj/item/ammo_box/magazine/om36mm
+	w_class = 3.0
+	icon_state = "om36"
+	item_state = "om36"
+	origin_tech = "combat=5;materials=4;syndicate=6"
+	fire_sound = 'sound/weapons/guns/om36f.ogg'
+	var/icon/mag_icon = icon('icons/obj/gun.dmi',"mag-om36")
+
+/obj/item/weapon/gun/projectile/automatic/om36/atom_init()
+	. = ..()
+	update_icon()
+
+/obj/item/weapon/gun/projectile/automatic/om36/update_icon()
+	overlays.Cut()
+	if(magazine)
+		overlays += mag_icon
+		item_state = "[initial(icon_state)]"
+	else
+		item_state = "[initial(icon_state)]-e"
+
+/obj/item/weapon/gun/projectile/automatic/om36/attack_self(mob/user)
+	if(..())
+		playsound(user, 'sound/weapons/guns/om36r.ogg', 50, 1)
+	update_icon()
+
+/obj/item/weapon/gun/projectile/automatic/om36/attackby(obj/item/A, mob/user)
+	if(..())
+		playsound(user, 'sound/weapons/guns/om36r.ogg', 50, 1)
+	update_icon()
+
+/obj/item/weapon/gun/projectile/automatic/type76
+	name = "Type .76"
+	desc = "Type 76 this is semi-automatic submachine gun that shoots 3 rounds per one shot. You've definitely seen this pretty one in some movie 'bout those Space-Vietnam wars. Pull the trigger, and become a narrow-eyed Solider!"
+	icon_state = "type76"
+	item_state = "type76"
+	w_class = 3.0
+	origin_tech = "combat=4;materials=2;"
+	mag_type = /obj/item/ammo_box/magazine/type76_rubber
+	fire_sound = 'sound/weapons/guns/type76_shot.ogg'
+	burst_mode = TRUE
+	burst_amount = 3
+	burst_delay = 4
+
+
+/obj/item/weapon/gun/projectile/automatic/type76/atom_init()
+	. = ..()
+	update_icon()
+
+/obj/item/weapon/gun/projectile/automatic/type76/afterattack(atom/target, mob/living/user, flag)
+	..()
+	if(!chambered && !get_ammo() && !alarmed)
+		playsound(user, 'sound/weapons/smg_empty_alarm.ogg', 40, 1)
+		update_icon()
+		alarmed = 1
+
+/obj/item/weapon/gun/projectile/automatic/type76/update_icon()
+	..()
+	icon_state = "type76_[magazine ? "clip" : "empty"]"
+	item_state = "type76_[magazine ? "clip" : "empty"]"

@@ -9,19 +9,26 @@
 	icon = 'icons/obj/surgery.dmi'
 	icon_state = "brain1"
 
-/mob/living/carbon/brain/New()
-	create_reagents(1000)
-	..()
+/mob/living/carbon/brain/atom_init()
+	var/datum/reagents/R = new/datum/reagents(1000)
+	reagents = R
+	R.my_atom = src
+	. = ..()
 
 /mob/living/carbon/brain/Destroy()
 	if(key)				//If there is a mob connected to this thing. Have to check key twice to avoid false death reporting.
 		if(stat!=DEAD)	//If not dead.
 			death(1)	//Brains can die again. AND THEY SHOULD AHA HA HA HA HA HA
-		ghostize()		//Ghostize checks for key so nothing else is necessary.
-	. = ..()
+		ghostize(bancheck = TRUE)		//Ghostize checks for key so nothing else is necessary.
+	return ..()
 
-/mob/living/carbon/brain/say_understands(var/other)//Goddamn is this hackish, but this say code is so odd
+/mob/living/carbon/brain/say_understands(other)//Goddamn is this hackish, but this say code is so odd
 	if (istype(other, /mob/living/silicon/ai))
+		if(!(container && istype(container, /obj/item/device/mmi)))
+			return 0
+		else
+			return 1
+	if (istype(other, /mob/living/silicon/decoy))
 		if(!(container && istype(container, /obj/item/device/mmi)))
 			return 0
 		else
@@ -42,16 +49,10 @@
 		return 1
 	return ..()
 
-/mob/living/carbon/brain/UpdateLyingBuckledAndVerbStatus()
-	if(istype(loc, /obj/item/device/mmi))
-		use_me = 1
 
-/mob/living/carbon/brain/isSynthetic()
-	return istype(loc, /obj/item/device/mmi/digital)
-
-/mob/living/carbon/brain/binarycheck()
-	return isSynthetic()
-
-/mob/living/carbon/brain/check_has_mouth()
-	return 0
-
+/mob/living/carbon/brain/update_canmove()
+	if(in_contents_of(/obj/mecha))
+		canmove = 1
+		use_me = 1 //If it can move, let it emote
+	else							canmove = 0
+	return canmove

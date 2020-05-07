@@ -1,96 +1,68 @@
-/obj/item/weapon/gun/projectile/heavysniper
-	name = "anti-materiel rifle"
-	desc = "A portable anti-armour rifle fitted with a scope, the HI PTR-7 Rifle was originally designed to be used against armoured exosuits. It is capable of punching through windows and non-reinforced walls with ease."
-	icon = 'icons/obj/guns/heavysniper.dmi'
-	icon_state = "heavysniper"
-	item_state = "heavysniper" //sort of placeholder
-	w_class = ITEM_SIZE_HUGE
+/obj/item/weapon/gun/projectile/heavyrifle
+	name = "\improper PTR-7 rifle"
+	desc = "A portable anti-armour rifle. Originally designed to used against armoured exosuits, it is capable of punching through windows with ease. Fires armor piercing 14.5mm shells."
+	icon_state = "heavyrifle"
+	item_state = "l6closednomag"
+	w_class = 5
 	force = 10
 	slot_flags = SLOT_BACK
-	origin_tech = list(TECH_COMBAT = 8, TECH_MATERIAL = 2, TECH_ESOTERIC = 8)
-	caliber = CALIBER_ANTIMATERIAL
-	screen_shake = 2 //extra kickback
-	handle_casings = HOLD_CASINGS
-	load_method = SINGLE_CASING
-	max_shells = 1
-	ammo_type = /obj/item/ammo_casing/shell
-	one_hand_penalty = 6
-	accuracy = -2
-	bulk = 8
-	scoped_accuracy = 8 //increased accuracy over the LWAP because only one shot
-	scope_zoom = 2
+	origin_tech = "combat=8;materials=2;syndicate=8"
+	recoil = 3 //extra kickback
+	mag_type = /obj/item/ammo_box/magazine/internal/heavyrifle
+	fire_sound = 'sound/weapons/heavysniper_shot.ogg'
 	var/bolt_open = 0
-	wielded_item_state = "heavysniper-wielded" //sort of placeholder
-	load_sound = 'sound/weapons/guns/interaction/rifle_load.ogg'
-	fire_delay = 12
 
-/obj/item/weapon/gun/projectile/heavysniper/on_update_icon()
-	..()
+/obj/item/weapon/gun/projectile/heavyrifle/isHandgun()
+	return 0
+
+/obj/item/weapon/gun/projectile/heavyrifle/update_icon()
 	if(bolt_open)
-		icon_state = "[initial(icon_state)]-open"
+		icon_state = "heavyrifle-open"
 	else
-		icon_state = "[initial(icon_state)]"
+		icon_state = "heavyrifle"
 
-/obj/item/weapon/gun/projectile/heavysniper/handle_post_fire(mob/user, atom/target, var/pointblank=0, var/reflex=0)
-	..()
-	if(user && user.skill_check(SKILL_WEAPONS, SKILL_PROF))
-		to_chat(user, "<span class='notice'>You work the bolt open with a reflexive motion, ejecting [chambered]!</span>")
-		unload_shell()
+/obj/item/weapon/gun/projectile/heavyrifle/process_chamber()
+	return ..(0, 0)
 
-/obj/item/weapon/gun/projectile/heavysniper/proc/unload_shell()
+/obj/item/weapon/gun/projectile/heavyrifle/attackby(obj/item/A, mob/user)
+	if(!bolt_open)
+		return
 	if(chambered)
-		if(!bolt_open)
-			playsound(src.loc, 'sound/weapons/guns/interaction/rifle_boltback.ogg', 50, 1)
-			bolt_open = 1
-		chambered.dropInto(src.loc)
-		loaded -= chambered
-		chambered = null
+		to_chat(user, "<span class='warning'>There is a shell inside \the [src]!</span>")
+		return
+	var/num_loaded = magazine.attackby(A, user, 1)
+	if(num_loaded)
+		user.SetNextMove(CLICK_CD_INTERACT)
+		playsound(src.loc, 'sound/weapons/heavybolt_in.ogg', 50, 1)
+		to_chat(user, "<span class='notice'>You load [num_loaded] shell\s into \the [src]!</span>")
+		var/obj/item/ammo_casing/AC = magazine.get_round() //load next casing.
+		chambered = AC
+		update_icon()	//I.E. fix the desc
+		A.update_icon()
 
-/obj/item/weapon/gun/projectile/heavysniper/attack_self(mob/user as mob)
+/obj/item/weapon/gun/projectile/heavyrifle/attack_self(mob/user)
 	bolt_open = !bolt_open
 	if(bolt_open)
+		playsound(src.loc, 'sound/weapons/heavybolt_out.ogg', 50, 1)
 		if(chambered)
+			spawn(3)
+				playsound(src.loc, 'sound/weapons/shell_drop.ogg', 50, 1)
 			to_chat(user, "<span class='notice'>You work the bolt open, ejecting [chambered]!</span>")
-			unload_shell()
+			chambered.loc = get_turf(src)//Eject casing
+			chambered.SpinAnimation(5, 1)
+			chambered = null
 		else
 			to_chat(user, "<span class='notice'>You work the bolt open.</span>")
+
 	else
+		playsound(src.loc, 'sound/weapons/heavybolt_reload.ogg', 50, 1)
 		to_chat(user, "<span class='notice'>You work the bolt closed.</span>")
-		playsound(src.loc, 'sound/weapons/guns/interaction/rifle_boltforward.ogg', 50, 1)
 		bolt_open = 0
 	add_fingerprint(user)
 	update_icon()
 
-/obj/item/weapon/gun/projectile/heavysniper/special_check(mob/user)
+/obj/item/weapon/gun/projectile/heavyrifle/special_check(mob/user)
 	if(bolt_open)
 		to_chat(user, "<span class='warning'>You can't fire [src] while the bolt is open!</span>")
 		return 0
 	return ..()
-
-/obj/item/weapon/gun/projectile/heavysniper/load_ammo(var/obj/item/A, mob/user)
-	if(!bolt_open)
-		return
-	..()
-
-/obj/item/weapon/gun/projectile/heavysniper/unload_ammo(mob/user, var/allow_dump=1)
-	if(!bolt_open)
-		return
-	..()
-
-
-/obj/item/weapon/gun/projectile/heavysniper/boltaction
-	name = "bolt action rifle"
-	desc = "An old bolt action rifle from some forgotten war, still commonplace among farmers and colonists as an anti-varmint rifle."
-	icon = 'icons/obj/guns/boltaction.dmi'
-	icon_state = "boltaction"
-	item_state = "boltaction"
-	w_class = ITEM_SIZE_LARGE
-	origin_tech = list(TECH_COMBAT = 2)
-	caliber = CALIBER_RIFLE
-	ammo_type = /obj/item/ammo_casing/rifle
-	load_method = SINGLE_CASING|SPEEDLOADER
-	max_shells = 5
-	accuracy = 4
-	scope_zoom = 0
-	scoped_accuracy = 0
-	wielded_item_state = "boltaction-wielded"

@@ -1,27 +1,28 @@
 /datum/event/blob
 	announceWhen	= 12
+	endWhen			= 120
 
 	var/obj/effect/blob/core/Blob
 
+
 /datum/event/blob/announce()
-	level_seven_announcement()
+	command_alert("Confirmed outbreak of level 7 biohazard aboard [station_name()]. All personnel must contain the outbreak.", "Biohazard Alert")
+	world << sound('sound/AI/outbreak7.ogg')
+
 
 /datum/event/blob/start()
-	var/turf/T = pick_subarea_turf(/area/maintenance, list(/proc/is_station_turf, /proc/not_turf_contains_dense_objects))
+	var/turf/T = pick(blobstart)
 	if(!T)
-		log_and_message_admins("Blob failed to find a viable turf.")
 		kill()
 		return
-
-	log_and_message_admins("Blob spawned in \the [get_area(T)]", location = T)
-	Blob = new /obj/effect/blob/core(T)
+	Blob = new /obj/effect/blob/core(T, 120)
 	for(var/i = 1; i < rand(3, 4), i++)
-		Blob.Process()
+		Blob.process()
+
 
 /datum/event/blob/tick()
-	if(!Blob || !Blob.loc)
-		Blob = null
+	if(!Blob)
 		kill()
 		return
 	if(IsMultiple(activeFor, 3))
-		Blob.Process()
+		Blob.process()

@@ -1,74 +1,90 @@
 /mob/living/carbon/human/proc/monkeyize()
-	if (HAS_TRANSFORMATION_MOVEMENT_HANDLER(src))
+	if (notransform)
+		return
+	if (monkeyizing)
 		return
 	for(var/obj/item/W in src)
 		if (W==w_uniform) // will be torn
 			continue
 		drop_from_inventory(W)
 	regenerate_icons()
-	ADD_TRANSFORMATION_MOVEMENT_HANDLER(src)
+	monkeyizing = 1
+	canmove = 0
 	stunned = 1
 	icon = null
-	set_invisibility(101)
-	for(var/t in organs)
+	invisibility = 101
+	alpha = 0
+	for(var/t in bodyparts)
 		qdel(t)
-	var/atom/movable/overlay/animation = new /atom/movable/overlay(src)
+	var/atom/movable/overlay/animation = new /atom/movable/overlay( loc )
 	animation.icon_state = "blank"
 	animation.icon = 'icons/mob/mob.dmi'
+	animation.master = src
 	flick("h2monkey", animation)
 	sleep(48)
 	//animation = null
 
-	DEL_TRANSFORMATION_MOVEMENT_HANDLER(src)
-	stunned = 0
-	UpdateLyingBuckledAndVerbStatus()
-	set_invisibility(initial(invisibility))
-
-	if(!species.primitive_form) //If the creature in question has no primitive set, this is going to be messy.
+	if(!species.primitive) //If the creature in question has no primitive set, this is going to be messy.
 		gib()
 		return
 
-	for(var/obj/item/W in src)
-		drop_from_inventory(W)
-	set_species(species.primitive_form)
-	dna.SetSEState(GLOB.MONKEYBLOCK,1)
-	dna.SetSEValueRange(GLOB.MONKEYBLOCK,0xDAC, 0xFFF)
+	var/mob/living/carbon/monkey/O = null
 
-	to_chat(src, "<B>You are now [species.name]. </B>")
+	O = new species.primitive(loc)
+
+	O.dna = dna.Clone()
+	O.dna.SetSEState(MONKEYBLOCK,1)
+	O.dna.SetSEValueRange(MONKEYBLOCK,0xDAC, 0xFFF)
+	O.loc = loc
+	O.viruses = viruses
+	O.a_intent = "hurt"
+
+	for(var/datum/disease/D in O.viruses)
+		D.affected_mob = O
+
+	//if (client) //#Z2.1 fix Players can't get back in the body,
+	//	client.mob = O//when we transform them back to human using genetics. So they forever ghosts, if someone un_monkeyize them.
+	if(mind)
+		mind.transfer_to(O)
+
+	to_chat(O, "<B>You are now [O]. </B>")
+
+	spawn(0)//To prevent the proc from returning null.
+		qdel(src)
 	qdel(animation)
 
-	return src
+	return O
 
-/mob/new_player/AIize()
+/mob/dead/new_player/AIize()
 	spawning = 1
 	return ..()
 
 /mob/living/carbon/human/AIize(move=1) // 'move' argument needs defining here too because BYOND is dumb
-	if (HAS_TRANSFORMATION_MOVEMENT_HANDLER(src))
+	if (monkeyizing)
 		return
-	for(var/t in organs)
+	for(var/t in bodyparts)
 		qdel(t)
-	QDEL_NULL_LIST(worn_underwear)
+
 	return ..(move)
 
 /mob/living/carbon/AIize()
-	if (HAS_TRANSFORMATION_MOVEMENT_HANDLER(src))
+	if (monkeyizing)
 		return
 	for(var/obj/item/W in src)
 		drop_from_inventory(W)
-	ADD_TRANSFORMATION_MOVEMENT_HANDLER(src)
+	monkeyizing = 1
+	canmove = 0
 	icon = null
-	set_invisibility(101)
+	invisibility = 101
 	return ..()
 
 /mob/proc/AIize(move=1)
 	if(client)
-		sound_to(src, sound(null, repeat = 0, wait = 0, volume = 85, channel = GLOB.lobby_sound_channel))// stop the jams for AIs
-
-
-	var/mob/living/silicon/ai/O = new (loc, GLOB.using_map.default_law_type,,1)//No MMI but safety is in effect.
-	O.set_invisibility(0)
+		src << sound(null, repeat = 0, wait = 0, volume = 85, channel = 1) // stop the jams for AIs
+	var/mob/living/silicon/ai/O = new (loc, base_law_type,,1)//No MMI but safety is in effect.
+	O.invisibility = 0
 	O.aiRestorePowerRoutine = 0
+
 	if(mind)
 		mind.transfer_to(O)
 		O.mind.original = O
@@ -80,7 +96,7 @@
 		for(var/obj/effect/landmark/start/sloc in landmarks_list)
 			if (sloc.name != "AI")
 				continue
-			if (locate(/mob/living) in sloc.loc)
+			if ((locate(/mob/living) in sloc.loc) || (locate(/obj/structure/AIcore) in sloc.loc))
 				continue
 			loc_landmark = sloc
 		if (!loc_landmark)
@@ -94,64 +110,127 @@
 			for(var/obj/effect/landmark/start/sloc in landmarks_list)
 				if (sloc.name == "AI")
 					loc_landmark = sloc
-		O.forceMove(loc_landmark.loc)
-		O.on_mob_init()
+
+		O.loc = loc_landmark.loc
+		for (var/obj/item/device/radio/intercom/comm in O.loc)
+			comm.ai += O
+
+	to_chat(O, "<B>You are playing the station's AI. The AI cannot move, but can interact with many objects while viewing them (through cameras).</B>")
+	to_chat(O, "<B>To look at other parts of the station, click on yourself to get a camera menu.</B>")
+	to_chat(O, "<B>While observing through a camera, you can use most (networked) devices which you can see, such as computers, APCs, intercoms, doors, etc.</B>")
+	to_chat(O, "To use something, simply click on it.")
+	to_chat(O, {"Use say ":b to speak to your cyborgs through binary."})
+	if (!(ticker && ticker.mode && (O.mind in ticker.mode.malf_ai)))
+		O.show_laws()
+		to_chat(O, "<b>These laws may be changed by other players, or by you being the traitor.</b>")
 
 	O.add_ai_verbs()
+	O.job = "AI"
 
 	O.rename_self("ai",1)
-	spawn(0)	// Mobs still instantly del themselves, thus we need to spawn or O will never be returned
+	spawn(0)
 		qdel(src)
 	return O
 
 //human -> robot
-/mob/living/carbon/human/proc/Robotize(var/supplied_robot_type = /mob/living/silicon/robot)
-	if (HAS_TRANSFORMATION_MOVEMENT_HANDLER(src))
+/mob/living/carbon/human/proc/Robotize()
+	if (monkeyizing)
 		return
-	QDEL_NULL_LIST(worn_underwear)
 	for(var/obj/item/W in src)
 		drop_from_inventory(W)
 	regenerate_icons()
-	ADD_TRANSFORMATION_MOVEMENT_HANDLER(src)
+	monkeyizing = 1
+	canmove = 0
 	icon = null
-	set_invisibility(101)
-	for(var/t in organs)
+	invisibility = 101
+	for(var/t in bodyparts)
 		qdel(t)
 
-	var/mob/living/silicon/robot/O = new supplied_robot_type( loc )
+	var/mob/living/silicon/robot/O = new /mob/living/silicon/robot( loc )
+
+	// cyborgs produced by Robotize get an automatic power cell
+	O.cell = new(O)
+	O.cell.maxcharge = 7500
+	O.cell.charge = 7500
+
 
 	O.gender = gender
-	O.set_invisibility(0)
+	O.invisibility = 0
 
-	if(mind)
+	if(mind)		//TODO
 		mind.transfer_to(O)
-		if(O.mind && O.mind.assigned_role == "Robot")
+		if(O.mind.assigned_role == "Cyborg")
 			O.mind.original = O
-			var/mmi_type = SSrobots.get_mmi_type_by_title(O.mind.role_alt_title ? O.mind.role_alt_title : O.mind.assigned_role)
-			if(mmi_type)
-				O.mmi = new mmi_type(O)
-				O.mmi.transfer_identity(src)
+		else if(mind && mind.special_role)
+			O.mind.store_memory("In case you look at this after being borged, the objectives are only here until I find a way to make them not show up for you, as I can't simply delete them without screwing up round-end reporting. --NeoFite")
 	else
 		O.key = key
 
-	O.dropInto(loc)
-	O.job = "Robot"
-	callHook("borgify", list(O))
+	O.loc = loc
+	O.job = "Cyborg"
+	if(O.mind.assigned_role == "Cyborg")
+		if(O.mind.role_alt_title == "Android")
+			O.mmi = new /obj/item/device/mmi/posibrain(O)
+		else if(O.mind.role_alt_title == "Robot")
+			O.mmi = null //Robots do not have removable brains.
+		else
+			O.mmi = new /obj/item/device/mmi(O)
+
+		if(O.mmi) O.mmi.transfer_identity(src) //Does not transfer key/client.
+
+	var/datum/game_mode/mutiny/mode = get_mutiny_mode()
+	if(mode)
+		mode.borgify_directive(O)
+
 	O.Namepick()
 
-	qdel(src) // Queues us for a hard delete
+	spawn(0)//To prevent the proc from returning null.
+		qdel(src)
 	return O
 
-/mob/living/carbon/human/proc/slimeize(adult as num, reproduce as num)
-	if (HAS_TRANSFORMATION_MOVEMENT_HANDLER(src))
+//human -> alien
+/mob/living/carbon/human/proc/Alienize()
+	if (monkeyizing)
 		return
 	for(var/obj/item/W in src)
 		drop_from_inventory(W)
 	regenerate_icons()
-	ADD_TRANSFORMATION_MOVEMENT_HANDLER(src)
+	monkeyizing = 1
+	canmove = 0
 	icon = null
-	set_invisibility(101)
-	for(var/t in organs)
+	invisibility = 101
+	for(var/t in bodyparts)
+		qdel(t)
+
+	var/alien_caste = pick("Hunter","Sentinel","Drone")
+	var/mob/living/carbon/alien/humanoid/new_xeno
+	switch(alien_caste)
+		if("Hunter")
+			new_xeno = new /mob/living/carbon/alien/humanoid/hunter(loc)
+		if("Sentinel")
+			new_xeno = new /mob/living/carbon/alien/humanoid/sentinel(loc)
+		if("Drone")
+			new_xeno = new /mob/living/carbon/alien/humanoid/drone(loc)
+
+	new_xeno.a_intent = "hurt"
+	new_xeno.key = key
+
+	to_chat(new_xeno, "<B>You are now an alien.</B>")
+	spawn(0)//To prevent the proc from returning null.
+		qdel(src)
+	return
+
+/mob/living/carbon/human/proc/slimeize(adult, reproduce)
+	if (monkeyizing)
+		return
+	for(var/obj/item/W in src)
+		drop_from_inventory(W)
+	regenerate_icons()
+	monkeyizing = 1
+	canmove = 0
+	icon = null
+	invisibility = 101
+	for(var/t in bodyparts)
 		qdel(t)
 
 	var/mob/living/carbon/slime/new_slime
@@ -160,39 +239,43 @@
 		var/list/babies = list()
 		for(var/i=1,i<=number,i++)
 			var/mob/living/carbon/slime/M = new/mob/living/carbon/slime(loc)
-			M.set_nutrition(round(nutrition/number))
+			M.nutrition = round(nutrition/number)
 			step_away(M,src)
 			babies += M
 		new_slime = pick(babies)
 	else
-		new_slime = new /mob/living/carbon/slime(loc)
 		if(adult)
-			new_slime.is_adult = 1
+			new_slime = new /mob/living/carbon/slime/adult(loc)
 		else
+			new_slime = new /mob/living/carbon/slime(loc)
+	new_slime.a_intent = "hurt"
 	new_slime.key = key
 
 	to_chat(new_slime, "<B>You are now a slime. Skreee!</B>")
-	qdel(src)
+	spawn(0)//To prevent the proc from returning null.
+		qdel(src)
 	return
 
 /mob/living/carbon/human/proc/corgize()
-	if (HAS_TRANSFORMATION_MOVEMENT_HANDLER(src))
+	if (monkeyizing)
 		return
 	for(var/obj/item/W in src)
 		drop_from_inventory(W)
 	regenerate_icons()
-	ADD_TRANSFORMATION_MOVEMENT_HANDLER(src)
+	monkeyizing = 1
+	canmove = 0
 	icon = null
-	set_invisibility(101)
-	for(var/t in organs)	//this really should not be necessary
+	invisibility = 101
+	for(var/t in bodyparts)	//this really should not be necessary
 		qdel(t)
 
 	var/mob/living/simple_animal/corgi/new_corgi = new /mob/living/simple_animal/corgi (loc)
-	new_corgi.a_intent = I_HURT
+	new_corgi.a_intent = "hurt"
 	new_corgi.key = key
 
 	to_chat(new_corgi, "<B>You are now a Corgi. Yap Yap!</B>")
-	qdel(src)
+	spawn(0)//To prevent the proc from returning null.
+		qdel(src)
 	return
 
 /mob/living/carbon/human/Animalize()
@@ -201,26 +284,27 @@
 	var/mobpath = input("Which type of mob should [src] turn into?", "Choose a type") in mobtypes
 
 	if(!safe_animal(mobpath))
-		to_chat(usr, "<span class='warning'>Sorry but this mob type is currently unavailable.</span>")
+		to_chat(usr, "\red Sorry but this mob type is currently unavailable.")
 		return
 
-	if(HAS_TRANSFORMATION_MOVEMENT_HANDLER(src))
+	if(monkeyizing)
 		return
 	for(var/obj/item/W in src)
 		drop_from_inventory(W)
 
 	regenerate_icons()
-	ADD_TRANSFORMATION_MOVEMENT_HANDLER(src)
+	monkeyizing = 1
+	canmove = 0
 	icon = null
-	set_invisibility(101)
+	invisibility = 101
 
-	for(var/t in organs)
+	for(var/t in bodyparts)
 		qdel(t)
 
 	var/mob/new_mob = new mobpath(src.loc)
 
 	new_mob.key = key
-	new_mob.a_intent = I_HURT
+	new_mob.a_intent = "hurt"
 
 
 	to_chat(new_mob, "You suddenly feel more... animalistic.")
@@ -234,13 +318,13 @@
 	var/mobpath = input("Which type of mob should [src] turn into?", "Choose a type") in mobtypes
 
 	if(!safe_animal(mobpath))
-		to_chat(usr, "<span class='warning'>Sorry but this mob type is currently unavailable.</span>")
+		to_chat(usr, "\red Sorry but this mob type is currently unavailable.")
 		return
 
 	var/mob/new_mob = new mobpath(src.loc)
 
 	new_mob.key = key
-	new_mob.a_intent = I_HURT
+	new_mob.a_intent = "hurt"
 	to_chat(new_mob, "You feel more... animalistic")
 
 	qdel(src)
@@ -248,13 +332,16 @@
 /* Certain mob types have problems and should not be allowed to be controlled by players.
  *
  * This proc is here to force coders to manually place their mob in this list, hopefully tested.
- * This also gives a place to explain -why- players shouldn't be turn into certain mobs and hopefully someone can fix them.
+ * This also gives a place to explain -why- players shouldnt be turn into certain mobs and hopefully someone can fix them.
  */
-/mob/proc/safe_animal(var/MP)
+/mob/proc/safe_animal(MP)
 
 //Bad mobs! - Remember to add a comment explaining what's wrong with the mob
 	if(!MP)
 		return 0	//Sanity, this should never happen.
+
+	if(ispath(MP, /mob/living/simple_animal/space_worm))
+		return 0 //Unfinished. Very buggy, they seem to just spawn additional space worms everywhere and eating your own tail results in new worms spawning.
 
 	if(ispath(MP, /mob/living/simple_animal/construct/behemoth))
 		return 0 //I think this may have been an unfinished WiP or something. These constructs should really have their own class simple_animal/construct/subtype
@@ -281,38 +368,17 @@
 		return 1
 	if(ispath(MP, /mob/living/simple_animal/shade))
 		return 1
-	if(ispath(MP, /mob/living/simple_animal/tomato))
+	if(ispath(MP, /mob/living/simple_animal/hostile/tomato)) //no good anymore
 		return 1
 	if(ispath(MP, /mob/living/simple_animal/mouse))
 		return 1 //It is impossible to pull up the player panel for mice (Fixed! - Nodrak)
 	if(ispath(MP, /mob/living/simple_animal/hostile/bear))
 		return 1 //Bears will auto-attack mobs, even if they're player controlled (Fixed! - Nodrak)
-	if(ispath(MP, /mob/living/simple_animal/hostile/retaliate/parrot))
+	if(ispath(MP, /mob/living/simple_animal/parrot))
 		return 1 //Parrots are no longer unfinished! -Nodrak
 
 	//Not in here? Must be untested!
-	return 0
+	return 1
 
 
-/mob/living/carbon/human/proc/zombify()
-	ChangeToHusk()
-	mutations |= MUTATION_CLUMSY
-	src.visible_message("<span class='danger'>\The [src]'s skin decays before your very eyes!</span>", "<span class='danger'>Your entire body is ripe with pain as it is consumed down to flesh and bones. You ... hunger. Not only for flesh, but to spread this gift.</span>")
-	if (src.mind)
-		if (src.mind.special_role == "Zombie")
-			return
-		src.mind.special_role = "Zombie"
-	log_admin("[key_name(src)] has transformed into a zombie!")
-	Weaken(5)
-	if (should_have_organ(BP_HEART))
-		vessel.add_reagent(/datum/reagent/blood, species.blood_volume - vessel.total_volume)
-	for (var/o in organs)
-		var/obj/item/organ/organ = o
-		organ.vital = 0
-		if (!BP_IS_ROBOTIC(organ))
-			organ.rejuvenate(1)
-			organ.max_damage *= 3
-			organ.min_broken_damage = Floor(organ.max_damage * 0.75)
-	verbs += /mob/living/proc/breath_death
-	verbs += /mob/living/proc/consume
-	playsound(get_turf(src), 'sound/hallucinations/wail.ogg', 20, 1)
+

@@ -4,75 +4,67 @@
 	desc = "Small wall-mounted holographic projector."
 	icon = 'icons/obj/holosign.dmi'
 	icon_state = "sign_off"
-	layer = ABOVE_DOOR_LAYER
-	idle_power_usage = 2
-	active_power_usage = 70
-	anchored = 1
+	layer = 4
 	var/lit = 0
+	var/id = null
 	var/on_icon = "sign_on"
 
-	uncreated_component_parts = list(
-		/obj/item/weapon/stock_parts/radio/receiver,
-		/obj/item/weapon/stock_parts/power/apc
-	)
-	public_variables = list(
-		/decl/public_access/public_variable/holosign_on
-	)
-	public_methods = list(
-		/decl/public_access/public_method/holosign_toggle
-	)
-	stock_part_presets = list(/decl/stock_part_preset/radio/receiver/holosign = 1)
+	proc/toggle()
+		if (stat & (BROKEN|NOPOWER))
+			return
+		lit = !lit
+		update_icon()
 
-/obj/machinery/holosign/proc/toggle()
-	if (inoperable())
-		return
-	lit = !lit
-	update_use_power(lit ? POWER_USE_ACTIVE : POWER_USE_IDLE)
 	update_icon()
+		if (!lit)
+			icon_state = "sign_off"
+		else
+			icon_state = on_icon
 
-/obj/machinery/holosign/on_update_icon()
-	if (!lit || inoperable())
-		icon_state = "sign_off"
-		set_light(0)
-	else
-		icon_state = on_icon
-		set_light(0.5, 0.5, 1, l_color = COLOR_CYAN_BLUE)
-
-/decl/public_access/public_variable/holosign_on
-	expected_type = /obj/machinery/holosign
-	name = "holosign active"
-	desc = "Whether or not the holosign is active."
-	can_write = FALSE
-	has_updates = FALSE
-
-/decl/public_access/public_variable/holosign_on/access_var(obj/machinery/holosign/sign)
-	return sign.lit
-
-/decl/public_access/public_method/holosign_toggle
-	name = "holosign toggle"
-	desc = "Toggle the holosign's active state."
-	call_proc = /obj/machinery/holosign/proc/toggle
-
-/decl/stock_part_preset/radio/receiver/holosign
-	frequency = BUTTON_FREQ
-	receive_and_call = list("button_active" = /decl/public_access/public_method/holosign_toggle)
+	power_change()
+		if (stat & NOPOWER)
+			lit = 0
+		update_icon()
 
 /obj/machinery/holosign/surgery
 	name = "surgery holosign"
 	desc = "Small wall-mounted holographic projector. This one reads SURGERY."
 	on_icon = "surgery"
-
-/obj/machinery/holosign/chapel
-	name = "chapel holosign"
-	desc = "Small wall-mounted holographic projector. This one reads SERVICE."
-	on_icon = "service"
-
 ////////////////////SWITCH///////////////////////////////////////
-/obj/machinery/button/holosign
-	name = "holosign switch"
-	desc = "A remote control switch for holosign."
-	icon = 'icons/obj/power.dmi'
-	icon_state = "crema_switch"
 
-/obj/machinery/button/holosign/on_update_icon()
-	icon_state = "light[active]"
+/obj/machinery/holosign_switch
+	name = "holosign switch"
+	icon = 'icons/obj/power.dmi'
+	icon_state = "light1"
+	desc = "A remote control switch for holosign."
+	anchored = TRUE
+	use_power = 1
+	idle_power_usage = 2
+	active_power_usage = 4
+	var/id = null
+	var/active = FALSE
+
+/obj/machinery/holosign_switch/attackby(obj/item/weapon/W, mob/user)
+	if(istype(W, /obj/item/device/detective_scanner))
+		return
+	return attack_hand(user)
+
+/obj/machinery/holosign_switch/attack_hand(mob/user)
+	. = ..()
+	if(.)
+		return
+
+	use_power(5)
+	user.SetNextMove(CLICK_CD_INTERACT)
+
+	active = !active
+	if(active)
+		icon_state = "light1"
+	else
+		icon_state = "light0"
+
+	for(var/obj/machinery/holosign/M in machines)
+		if (M.id == src.id)
+			spawn( 0 )
+				M.toggle()
+				return

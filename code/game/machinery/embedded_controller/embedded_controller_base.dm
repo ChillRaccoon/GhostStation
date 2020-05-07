@@ -1,19 +1,19 @@
 /obj/machinery/embedded_controller
+	var/datum/computer/file/embedded_program/program
+
 	name = "Embedded Controller"
 	anchored = 1
-	idle_power_usage = 10
-	var/datum/computer/file/embedded_program/program	//the currently executing program
+	allowed_checks = ALLOWED_CHECK_TOPIC
+
 	var/on = 1
 
-/obj/machinery/embedded_controller/Initialize()
+/obj/machinery/embedded_controller/radio/Destroy()
+	if(radio_controller)
+		radio_controller.remove_object(src,frequency)
 	if(program)
-		program = new program(src)
+		qdel(program)
 	return ..()
 
-/obj/machinery/embedded_controller/Destroy()
-	if(istype(program))
-		qdel(program) // the program will clear the ref in its Destroy
-	return ..()
 
 /obj/machinery/embedded_controller/proc/post_signal(datum/signal/signal, comm_line)
 	return 0
@@ -25,73 +25,85 @@
 		program.receive_signal(signal, receive_method, receive_param)
 			//spawn(5) program.process() //no, program.process sends some signals and machines respond and we here again and we lag -rastaf0
 
-/obj/machinery/embedded_controller/Topic(href, href_list)
-	if(..())
-		return
-	if(usr)
-		usr.set_machine(src)
-	if(program)
-		return program.receive_user_command(href_list["command"]) // Any further sanitization should be done in here.
-
-/obj/machinery/embedded_controller/Process()
+/obj/machinery/embedded_controller/process()
 	if(program)
 		program.process()
 
 	update_icon()
+	updateUsrDialog()
 
-/obj/machinery/embedded_controller/interface_interact(mob/user)
-	ui_interact(user)
-	return TRUE
+/obj/machinery/embedded_controller/attack_paw(mob/user)
+	to_chat(user, "You do not have the dexterity to use this.")
+	return
 
 /obj/machinery/embedded_controller/radio
 	icon = 'icons/obj/airlock_machines.dmi'
-	icon_state = "airlock_control_off"
+	icon_state = "airlock_control_standby"
 	power_channel = ENVIRON
 	density = 0
+
+	// Setup parameters only
+	var/id_tag
+	var/tag_exterior_door
+	var/tag_interior_door
+	var/tag_airpump
+	var/tag_chamber_sensor
+	var/tag_exterior_sensor
+	var/tag_interior_sensor
+	var/tag_secure = 0
+	var/tag_air_alarm
+	var/cycle_to_external_air = 0
+	var/tag_pump_out_external
+	var/tag_pump_out_internal
+
+	frequency = 1379
+
 	unacidable = 1
-	var/frequency = 1379
-	var/radio_filter = null
-	var/datum/radio_frequency/radio_connection
 
-/obj/machinery/embedded_controller/radio/Initialize()
-	set_frequency(frequency)
+/obj/machinery/embedded_controller/radio/atom_init()
 	. = ..()
+	set_frequency(frequency)
+	var/datum/computer/file/embedded_program/new_prog = new
 
-obj/machinery/embedded_controller/radio/Destroy()
-	if(radio_controller)
-		radio_controller.remove_object(src,frequency)
-	..()
+	new_prog.id_tag = id_tag
+	new_prog.tag_exterior_door = tag_exterior_door
+	new_prog.tag_interior_door = tag_interior_door
+	new_prog.tag_airpump = tag_airpump
+	new_prog.tag_chamber_sensor = tag_chamber_sensor
+	new_prog.tag_exterior_sensor = tag_exterior_sensor
+	new_prog.tag_interior_sensor = tag_interior_sensor
+	new_prog.tag_air_alarm = tag_air_alarm
+	new_prog.cycle_to_external_air = cycle_to_external_air
+	if(cycle_to_external_air)
+		new_prog.tag_pump_out_external = tag_pump_out_external
+		new_prog.tag_pump_out_internal = tag_pump_out_internal
+	new_prog.memory["secure"] = tag_secure
 
-/obj/machinery/embedded_controller/radio/on_update_icon()
-	overlays.Cut()
-	if(!on || !istype(program))
-		return
-	if(!program.memory["processing"])
-		overlays += image(icon, "screen_standby")
-		overlays += image(icon, "indicator_done")
-	else
-		overlays += image(icon, "indicator_active")
-	var/datum/computer/file/embedded_program/docking/airlock/docking_program = program
-	var/datum/computer/file/embedded_program/airlock/docking/airlock_program = program
-	if(istype(docking_program))
-		if(docking_program.override_enabled)
-			overlays += image(icon, "indicator_forced")
-		airlock_program = docking_program.airlock_program
-	
-	if(istype(airlock_program) && airlock_program.memory["processing"])
-		if(airlock_program.memory["pump_status"] == "siphon")
-			overlays += image(icon, "screen_drain")
+	new_prog.master = src
+	program = new_prog
+
+	spawn(10)
+		program.signalDoor(tag_exterior_door, "update")		//signals connected doors to update their status
+		program.signalDoor(tag_interior_door, "update")
+
+/obj/machinery/embedded_controller/radio/update_icon()
+	if(on && program)
+		if(program.memory["processing"])
+			icon_state = "airlock_control_process"
 		else
-			overlays += image(icon, "screen_fill")
+			icon_state = "airlock_control_standby"
+	else
+		icon_state = "airlock_control_off"
 
-/obj/machinery/embedded_controller/radio/post_signal(datum/signal/signal, var/radio_filter = null)
+/obj/machinery/embedded_controller/radio/post_signal(datum/signal/signal)
 	signal.transmission_method = TRANSMISSION_RADIO
 	if(radio_connection)
-		return radio_connection.post_signal(src, signal, radio_filter, AIRLOCK_CONTROL_RANGE)
+		return radio_connection.post_signal(src, signal)
 	else
 		qdel(signal)
 
-/obj/machinery/embedded_controller/radio/proc/set_frequency(new_frequency)
+/obj/machinery/embedded_controller/radio/set_frequency(new_frequency)
 	radio_controller.remove_object(src, frequency)
 	frequency = new_frequency
-	radio_connection = radio_controller.add_object(src, frequency, radio_filter)
+	if(frequency)
+		radio_connection = radio_controller.add_object(src, frequency)

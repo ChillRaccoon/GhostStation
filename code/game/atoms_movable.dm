@@ -1,240 +1,332 @@
 /atom/movable
-	layer = OBJ_LAYER
-
+	layer = 3
 	appearance_flags = TILE_BOUND
-	glide_size = 8
-
-	var/waterproof = TRUE
-	var/movable_flags
-
 	var/last_move = null
 	var/anchored = 0
-	// var/elevation = 2    - not used anywhere
 	var/move_speed = 10
 	var/l_move_time = 1
-	var/m_flag = 1
-	var/datum/thrownthing/throwing
+	var/throwing = 0
+	var/thrower
+	var/turf/throw_source = null
 	var/throw_speed = 2
 	var/throw_range = 7
+	var/fly_speed = 0  // Used to get throw speed param exposed in proc, so we could use it in hitby reactions.
 	var/moved_recently = 0
 	var/mob/pulledby = null
-	var/item_state = null // Used to specify the item state for the on-mob overlays.
-	var/does_spin = TRUE // Does the atom spin when thrown (of course it does :P)
+
+	var/inertia_dir = 0
+	var/atom/inertia_last_loc
+	var/inertia_moving = 0
+	var/inertia_next_move = 0
+	var/inertia_move_delay = 5
+
+	var/list/focused_by = list() // Who is telekinetically grabbing us.
+	var/list/client_mobs_in_contents
+	var/freeze_movement = FALSE
 
 /atom/movable/Destroy()
-	. = ..()
-	if(!(atom_flags & ATOM_FLAG_INITIALIZED))
-		crash_with("Was deleted before initalization")
+	//If we have opacity, make sure to tell (potentially) affected light sources.
+	var/turf/T = loc
+	if(opacity && istype(T))
+		opacity = 0
+		T.recalc_atom_opacity()
+		T.reconsider_lights()
 
-	for(var/A in src)
-		qdel(A)
+	unbuckle_mob()
 
-	forceMove(null)
-	if (pulledby)
-		if (pulledby.pulling == src)
-			pulledby.pulling = null
-		pulledby = null
+	if(loc)
+		loc.handle_atom_del(src)
+	for(var/atom/movable/AM in contents)
+		qdel(AM)
+	loc = null
+	invisibility = 101
+	if(pulledby)
+		pulledby.stop_pulling()
+	return ..()
 
-	if(LAZYLEN(movement_handlers) && !ispath(movement_handlers[1]))
-		QDEL_NULL_LIST(movement_handlers)
+/atom/movable/Move(atom/newloc, direct = 0)
+	if(!loc || !newloc || freeze_movement)
+		return FALSE
 
-	if (bound_overlay)
-		QDEL_NULL(bound_overlay)
+	var/atom/oldloc = loc
 
-	if(virtual_mob && !ispath(virtual_mob))
-		qdel(virtual_mob)
-		virtual_mob = null
+	if(loc != newloc)
+		if (!(direct & (direct - 1))) //Cardinal move
+			. = ..()
+		else //Diagonal move, split it into cardinal moves
+			if (direct & 1)
+				if (direct & 4)
+					if (step(src, NORTH))
+						. = step(src, EAST)
+					else if (step(src, EAST))
+						. = step(src, NORTH)
+				else if (direct & 8)
+					if (step(src, NORTH))
+						. = step(src, WEST)
+					else if (step(src, WEST))
+						. = step(src, NORTH)
+			else if (direct & 2)
+				if (direct & 4)
+					if (step(src, SOUTH))
+						. = step(src, EAST)
+					else if (step(src, EAST))
+						. = step(src, SOUTH)
+				else if (direct & 8)
+					if (step(src, SOUTH))
+						. = step(src, WEST)
+					else if (step(src, WEST))
+						. = step(src, SOUTH)
 
-/atom/movable/Bump(var/atom/A, yes)
-	if(!QDELETED(throwing))
-		throwing.hit_atom(A)
+	if(!loc || (loc == oldloc && oldloc != newloc))
+		last_move = 0
+		return FALSE
 
-	if (A && yes)
-		A.last_bumped = world.time
-		INVOKE_ASYNC(A, /atom/proc/Bumped, src) // Avoids bad actors sleeping or unexpected side effects, as the legacy behavior was to spawn here
-	..()
+	src.move_speed = world.time - src.l_move_time
+	src.l_move_time = world.time
 
-/atom/movable/proc/forceMove(atom/destination)
-	if((gc_destroyed && gc_destroyed != GC_CURRENTLY_BEING_QDELETED) && !isnull(destination))
-		CRASH("Attempted to forceMove a QDELETED [src] out of nullspace!!!")
-	if(loc == destination)
-		return 0
-	var/is_origin_turf = isturf(loc)
-	var/is_destination_turf = isturf(destination)
-	// It is a new area if:
-	//  Both the origin and destination are turfs with different areas.
-	//  When either origin or destination is a turf and the other is not.
-	var/is_new_area = (is_origin_turf ^ is_destination_turf) || (is_origin_turf && is_destination_turf && loc.loc != destination.loc)
+	last_move = direct
 
-	var/atom/origin = loc
-	loc = destination
+	if(. && buckled_mob && !handle_buckled_mob_movement(loc,direct)) //movement failed due to buckled mob
+		. = 0
 
-	if(origin)
-		origin.Exited(src, destination)
-		if(is_origin_turf)
-			for(var/atom/movable/AM in origin)
-				AM.Uncrossed(src)
-			if(is_new_area && is_origin_turf)
-				origin.loc.Exited(src, destination)
+	if(.)
+		Moved(oldloc, direct)
 
-	if(destination)
-		destination.Entered(src, origin)
-		if(is_destination_turf) // If we're entering a turf, cross all movable atoms
-			for(var/atom/movable/AM in loc)
-				if(AM != src)
-					AM.Crossed(src)
-			if(is_new_area && is_destination_turf)
-				destination.loc.Entered(src, origin)
+/atom/movable/proc/Moved(atom/OldLoc, Dir)
+	if (!inertia_moving)
+		inertia_next_move = world.time + inertia_move_delay
+		newtonian_move(Dir)
+	if(length(client_mobs_in_contents))
+		update_parallax_contents()
+
+	if (orbiters)
+		for (var/thing in orbiters)
+			var/datum/orbit/O = thing
+			O.Check()
+	if (orbiting)
+		orbiting.Check()
 	return 1
 
-/atom/movable/forceMove(atom/dest)
-	var/old_loc = loc
+/atom/movable/proc/setLoc(T, teleported=0)
+	loc = T
+
+/atom/movable/Bump(atom/A, non_native_bump)
+	STOP_THROWING(src, A)
+
+	if(A && non_native_bump)
+		A.last_bumped = world.time
+		A.Bumped(src)
+
+/atom/movable/proc/forceMove(atom/destination)
+	if(destination)
+		if(pulledby)
+			pulledby.stop_pulling()
+		var/atom/oldloc = loc
+		var/same_loc = (oldloc == destination)
+		var/area/old_area = get_area(oldloc)
+		var/area/destarea = get_area(destination)
+
+		if(oldloc && !same_loc)
+			oldloc.Exited(src, destination)
+			if(old_area)
+				old_area.Exited(src, destination)
+
+		loc = destination
+
+		if(!same_loc)
+			destination.Entered(src, oldloc)
+			if(destarea && old_area != destarea)
+				destarea.Entered(src, oldloc)
+
+			for(var/atom/movable/AM in destination)
+				if(AM == src)
+					continue
+				AM.Crossed(src)
+
+		Moved(oldloc, 0)
+		return TRUE
+	return FALSE
+
+/mob/living/forceMove()
+	stop_pulling()
+	if(buckled)
+		buckled.unbuckle_mob()
 	. = ..()
-	if (.)
-		// observ
-		if(!loc)
-			GLOB.moved_event.raise_event(src, old_loc, null)
+	update_canmove()
 
-		// freelook
-		if(opacity)
-			updateVisibility(src)
-
-		// lighting
-		if (light_sources)	// Yes, I know you can for-null safely, but this is slightly faster. Hell knows why.
-			for (var/datum/light_source/L in light_sources)
-				L.source_atom.update_light()
-
-/atom/movable/Move(...)
-	var/old_loc = loc
-	. = ..()
-	if (.)
-		if(!loc)
-			GLOB.moved_event.raise_event(src, old_loc, null)
-
-		// freelook
-		if(opacity)
-			updateVisibility(src)
-
-		// lighting
-		if (light_sources)	// Yes, I know you can for-null safely, this is slightly faster. Hell knows why.
-			for (var/datum/light_source/L in light_sources)
-				L.source_atom.update_light()
+/mob/dead/observer/forceMove(atom/destination)
+	if(destination)
+		if(loc)
+			loc.Exited(src)
+		loc = destination
+		loc.Entered(src)
+		return 1
+	return 0
 
 //called when src is thrown into hit_atom
-/atom/movable/proc/throw_impact(atom/hit_atom, var/datum/thrownthing/TT)
-	if(istype(hit_atom,/mob/living))
-		var/mob/living/M = hit_atom
-		M.hitby(src,TT)
+/atom/movable/proc/throw_impact(atom/hit_atom)
+	hit_atom.hitby(src)
 
-	else if(isobj(hit_atom))
+	if(isobj(hit_atom))
 		var/obj/O = hit_atom
 		if(!O.anchored)
-			step(O, src.last_move)
-		O.hitby(src,TT)
+			O.Move(get_step(O, dir))
 
-	else if(isturf(hit_atom))
-		var/turf/T = hit_atom
-		T.hitby(src,TT)
+	if(isturf(hit_atom) && hit_atom.density)
+		Move(get_step(src, turn(dir, 180)))
 
-/atom/movable/proc/throw_at(atom/target, range, speed, mob/thrower, spin = TRUE, datum/callback/callback) //If this returns FALSE then callback will not be called.
-	. = TRUE
-	if (!target || speed <= 0 || QDELETED(src) || (target.z != src.z))
-		return FALSE
+/atom/movable/proc/throw_at(atom/target, range, speed, mob/thrower, spin = TRUE, diagonals_first = FALSE, datum/callback/callback, datum/callback/early_callback)
+	if (!target || speed <= 0)
+		return
 
 	if (pulledby)
 		pulledby.stop_pulling()
 
-	var/datum/thrownthing/TT = new(src, target, range, speed, thrower, callback)
-	throwing = TT
+	//They are moving! Wouldn't it be cool if we calculated their momentum and added it to the throw?
+	if (thrower && thrower.last_move && thrower.client && thrower.client.move_delay >= world.time + world.tick_lag*2)
+		var/user_momentum = thrower.movement_delay()
+		if (!user_momentum) //no movement_delay, this means they move once per byond tick, lets calculate from that instead.
+			user_momentum = world.tick_lag
 
-	pixel_z = 0
-	if(spin && does_spin)
-		SpinAnimation(4,1)
+		user_momentum = 1 / user_momentum // convert from ds to the tiles per ds that throw_at uses.
+
+		if (get_dir(thrower, target) & last_move)
+			user_momentum = user_momentum //basically a noop, but needed
+		else if (get_dir(target, thrower) & last_move)
+			user_momentum = -user_momentum //we are moving away from the target, lets slowdown the throw accordingly
+		else
+			user_momentum = 0
+
+
+		if (user_momentum)
+			//first lets add that momentum to range.
+			range *= (user_momentum / speed) + 1
+			//then lets add it to speed
+			speed += user_momentum
+			if (speed <= 0)
+				return //no throw speed, the user was moving too fast.
+
+	var/datum/thrownthing/TT = new()
+	TT.thrownthing = src
+	TT.target = target
+	TT.target_turf = get_turf(target)
+	TT.init_dir = get_dir(src, target)
+	TT.maxrange = range
+	TT.speed = speed
+	TT.thrower = thrower
+	TT.diagonals_first = diagonals_first
+	TT.callback = callback
+	TT.early_callback = early_callback
+
+	var/dist_x = abs(target.x - src.x)
+	var/dist_y = abs(target.y - src.y)
+	var/dx = (target.x > src.x) ? EAST : WEST
+	var/dy = (target.y > src.y) ? NORTH : SOUTH
+
+	if (dist_x == dist_y)
+		TT.pure_diagonal = TRUE
+
+	else if(dist_x <= dist_y)
+		var/olddist_x = dist_x
+		var/olddx = dx
+		dist_x = dist_y
+		dist_y = olddist_x
+		dx = dy
+		dy = olddx
+	TT.dist_x = dist_x
+	TT.dist_y = dist_y
+	TT.dx = dx
+	TT.dy = dy
+	TT.diagonal_error = dist_x/2 - dist_y
+	TT.start_time = world.time
+
+	if(pulledby)
+		pulledby.stop_pulling()
+
+	src.thrower = thrower
+	throw_source = get_turf(loc)
+	fly_speed = speed
+	throwing = TRUE
+	if(spin)
+		SpinAnimation(5, 1)
 
 	SSthrowing.processing[src] = TT
 	if (SSthrowing.state == SS_PAUSED && length(SSthrowing.currentrun))
 		SSthrowing.currentrun[src] = TT
+	TT.tick()
+
+//Called whenever an object moves and by mobs when they attempt to move themselves through space
+//And when an object or action applies a force on src, see newtonian_move() below
+//Return 0 to have src start/keep drifting in a no-grav area and 1 to stop/not start drifting
+//Mobs should return 1 if they should be able to move of their own volition, see client/Move() in mob_movement.dm
+//movement_dir == 0 when stopping or any dir when trying to move
+/atom/movable/proc/Process_Spacemove(movement_dir = 0)
+	if(has_gravity(src))
+		return 1
+
+	if(pulledby)
+		return 1
+
+	if(throwing)
+		return 1
+
+	if(locate(/obj/structure/lattice) in orange(1, get_turf(src))) //Not realistic but makes pushing things in space easier
+		return 1
+
+	return 0
+
+/atom/movable/proc/newtonian_move(direction) //Only moves the object if it's under no gravity
+
+	if(!loc || Process_Spacemove(0))
+		inertia_dir = 0
+		return 0
+
+	inertia_dir = direction
+	if(!direction)
+		return 1
+
+	inertia_last_loc = loc
+	SSspacedrift.processing[src] = src
+	return 1
 
 //Overlays
 /atom/movable/overlay
 	var/atom/master = null
-	var/follow_proc = /atom/movable/proc/move_to_loc_or_null
-	anchored = TRUE
-	simulated = FALSE
+	anchored = 1
 
-/atom/movable/overlay/Initialize()
-	if(!loc)
-		crash_with("[type] created in nullspace.")
-		return INITIALIZE_HINT_QDEL
-	master = loc
-	SetName(master.name)
-	set_dir(master.dir)
-
-	if(istype(master, /atom/movable))
-		GLOB.moved_event.register(master, src, follow_proc)
-		SetInitLoc()
-
-	GLOB.destroyed_event.register(master, src, /datum/proc/qdel_self)
-	GLOB.dir_set_event.register(master, src, /atom/proc/recursive_dir_set)
-
+/atom/movable/overlay/atom_init()
 	. = ..()
+	for(var/x in verbs)
+		verbs -= x
 
-/atom/movable/overlay/proc/SetInitLoc()
-	forceMove(master.loc)
+/atom/movable/overlay/attackby(a, b, params)
+	if (src.master)
+		return src.master.attackby(a, b)
+	return
 
-/atom/movable/overlay/Destroy()
-	if(istype(master, /atom/movable))
-		GLOB.moved_event.unregister(master, src)
-	GLOB.destroyed_event.unregister(master, src)
-	GLOB.dir_set_event.unregister(master, src)
-	master = null
-	. = ..()
+/atom/movable/overlay/attack_paw(a, b, c)
+	if (src.master)
+		return src.master.attack_paw(a, b, c)
+	return
 
-/atom/movable/overlay/attackby(obj/item/I, mob/user)
-	if (master)
-		return master.attackby(I, user)
+/atom/movable/overlay/attack_hand(a, b, c)
+	if (src.master)
+		return src.master.attack_hand(a, b, c)
+	return
 
-/atom/movable/overlay/attack_hand(mob/user)
-	if (master)
-		return master.attack_hand(user)
+/atom/movable/proc/handle_rotation()
+	return
 
-/atom/movable/proc/touch_map_edge()
-	if(!simulated)
-		return
+/atom/movable/proc/handle_buckled_mob_movement(newloc,direct)
+	if(!buckled_mob.Move(newloc, direct))
+		loc = buckled_mob.loc
+		last_move = buckled_mob.last_move
+		inertia_dir = last_move
+		buckled_mob.inertia_dir = last_move
+		return 0
+	return 1
 
-	if(!z || (z in GLOB.using_map.sealed_levels))
-		return
-
-	if(!GLOB.universe.OnTouchMapEdge(src))
-		return
-
-	if(GLOB.using_map.use_overmap)
-		overmap_spacetravel(get_turf(src), src)
-		return
-
-	var/new_x
-	var/new_y
-	var/new_z = GLOB.using_map.get_transit_zlevel(z)
-	if(new_z)
-		if(x <= TRANSITIONEDGE)
-			new_x = world.maxx - TRANSITIONEDGE - 2
-			new_y = rand(TRANSITIONEDGE + 2, world.maxy - TRANSITIONEDGE - 2)
-
-		else if (x >= (world.maxx - TRANSITIONEDGE + 1))
-			new_x = TRANSITIONEDGE + 1
-			new_y = rand(TRANSITIONEDGE + 2, world.maxy - TRANSITIONEDGE - 2)
-
-		else if (y <= TRANSITIONEDGE)
-			new_y = world.maxy - TRANSITIONEDGE -2
-			new_x = rand(TRANSITIONEDGE + 2, world.maxx - TRANSITIONEDGE - 2)
-
-		else if (y >= (world.maxy - TRANSITIONEDGE + 1))
-			new_y = TRANSITIONEDGE + 1
-			new_x = rand(TRANSITIONEDGE + 2, world.maxx - TRANSITIONEDGE - 2)
-
-		var/turf/T = locate(new_x, new_y, new_z)
-		if(T)
-			forceMove(T)
-
-/atom/movable/proc/get_bullet_impact_effect_type()
-	return BULLET_IMPACT_NONE
+/atom/movable/CanPass(atom/movable/mover, turf/target, height=1.5)
+	if(buckled_mob == mover)
+		return 1
+	return ..()

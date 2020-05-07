@@ -1,14 +1,12 @@
 /proc/getbrokeninhands()
-	var/icon/IL = new('icons/mob/onmob/items/lefthand.dmi')
-	var/list/Lstates = IL.IconStates()
-	var/icon/IR = new('icons/mob/onmob/items/righthand.dmi')
-	var/list/Rstates = IR.IconStates()
-
-
 	var/text
 	for(var/A in typesof(/obj/item))
 		var/obj/item/O = new A( locate(1,1,1) )
 		if(!O) continue
+		var/icon/IL = new(O.lefthand_file)
+		var/list/Lstates = IL.IconStates()
+		var/icon/IR = new(O.righthand_file)
+		var/list/Rstates = IR.IconStates()
 		var/icon/J = new(O.icon)
 		var/list/istates = J.IconStates()
 		if(!Lstates.Find(O.icon_state) && !Lstates.Find(O.item_state))
@@ -30,8 +28,7 @@
 	if(text)
 		var/F = file("broken_icons.txt")
 		fdel(F)
-		F << text
-		log_debug("Completeled successfully and written to [F]")
-
+		to_chat(F, text)
+		to_chat(world, "Completeled successfully and written to [F]")
 
 

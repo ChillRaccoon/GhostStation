@@ -1,150 +1,176 @@
-/obj/item/weapon/gun/projectile/shotgun/pump
+/obj/item/weapon/gun/projectile/shotgun
 	name = "shotgun"
-	desc = "The mass-produced W-T Remmington 29x shotgun is a favourite of police and security forces on many worlds. Useful for sweeping alleys."
-	icon = 'icons/obj/guns/shotguns.dmi'
+	desc = "Useful for sweeping alleys."
+	icon = 'icons/obj/guns/projectile/shotguns.dmi'
 	icon_state = "shotgun"
 	item_state = "shotgun"
-	max_shells = 4
-	w_class = ITEM_SIZE_HUGE
+	w_class = ITEM_SIZE_LARGE
+	lefthand_file = 'icons/mob/inhands/shotguns_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/shotguns_righthand.dmi'
 	force = 10
-	obj_flags =  OBJ_FLAG_CONDUCTIBLE
 	slot_flags = SLOT_BACK
-	caliber = CALIBER_SHOTGUN
-	origin_tech = list(TECH_COMBAT = 4, TECH_MATERIAL = 2)
-	load_method = SINGLE_CASING
-	ammo_type = /obj/item/ammo_casing/shotgun/beanbag
-	handle_casings = HOLD_CASINGS
-	one_hand_penalty = 8
-	bulk = 6
+	origin_tech = "combat=4;materials=2"
+	mag_type = /obj/item/ammo_box/magazine/internal/shot
+	twohands_required = TRUE
 	var/recentpump = 0 // to prevent spammage
-	wielded_item_state = "shotgun-wielded"
-	load_sound = 'sound/weapons/guns/interaction/shotgun_instert.ogg'
+	var/pumped = 0
+	fire_sound =  'sound/weapons/guns/station/shotgun_shot1.ogg'
+	var/pump_sound = 'sound/weapons/shotgunpump.ogg'
 
-/obj/item/weapon/gun/projectile/shotgun/on_update_icon()
-	..()
-	if(length(loaded))
-		icon_state = initial(icon_state)
+/obj/item/weapon/gun/projectile/shotgun/isHandgun()
+	return FALSE
+
+/obj/item/weapon/gun/projectile/shotgun/update_icon()
+	if(wielded)
+		item_state = "[initial(icon_state)]_wield"
 	else
-		icon_state = "[initial(icon_state)]-empty"
+		item_state = "[initial(icon_state)]"
 
-/obj/item/weapon/gun/projectile/shotgun/pump/consume_next_projectile()
-	if(chambered)
-		return chambered.BB
-	return null
+/obj/item/weapon/gun/projectile/shotgun/attackby(obj/item/A, mob/user)
+	var/num_loaded = magazine.attackby(A, user, 1)
+	if(num_loaded)
+		to_chat(user, "<span class='notice'>You load [num_loaded] shell\s into \the [src]!</span>")
+		A.update_icon()
+		update_icon()
 
-/obj/item/weapon/gun/projectile/shotgun/pump/attack_self(mob/living/user as mob)
-	if(world.time >= recentpump + 10)
-		pump(user)
-		recentpump = world.time
+/obj/item/weapon/gun/projectile/shotgun/process_chamber()
+	return ..(0, 0)
 
-/obj/item/weapon/gun/projectile/shotgun/pump/proc/pump(mob/M as mob)
-	playsound(M, 'sound/weapons/shotgunpump.ogg', 60, 1)
+/obj/item/weapon/gun/projectile/shotgun/chamber_round()
+	return
 
+/obj/item/weapon/gun/projectile/shotgun/attack_self(mob/living/user)
+	if(recentpump)	return
+	pump(user)
+	recentpump = 1
+	spawn(10)
+		recentpump = 0
+	return
+
+/obj/item/weapon/gun/projectile/shotgun/proc/pump(mob/M)
+	playsound(M, pump_sound, 60, 1)
+	pumped = 0
 	if(chambered)//We have a shell in the chamber
-		chambered.dropInto(loc)//Eject casing
-		if(LAZYLEN(chambered.fall_sounds))
-			playsound(loc, pick(chambered.fall_sounds), 50, 1)
+		chambered.loc = get_turf(src)//Eject casing
+		chambered.SpinAnimation(5, 1)
 		chambered = null
+	if(!magazine.ammo_count())	return 0
+	var/obj/item/ammo_casing/AC = magazine.get_round() //load next casing.
+	chambered = AC
+	update_icon()	//I.E. fix the desc
+	return 1
 
-	if(loaded.len)
-		var/obj/item/ammo_casing/AC = loaded[1] //load next casing.
-		loaded -= AC //Remove casing from loaded list.
-		chambered = AC
+/obj/item/weapon/gun/projectile/shotgun/examine(mob/user)
+	..()
+	if (chambered)
+		to_chat(user, "A [chambered.BB ? "live" : "spent"] one is in the chamber.")
+
+/obj/item/weapon/gun/projectile/shotgun/combat
+	name = "combat shotgun"
+	icon_state = "cshotgun"
+	origin_tech = "combat=5;materials=2"
+	mag_type = /obj/item/ammo_box/magazine/internal/shotcom
+	w_class = ITEM_SIZE_HUGE
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel
+	name = "double-barreled shotgun"
+	desc = "A true classic."
+	icon = 'icons/obj/guns/projectile/shotguns.dmi'
+	icon_state = "dshotgun"
+	item_state = "dshotgun"
+	lefthand_file = 'icons/mob/inhands/shotguns_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/shotguns_righthand.dmi'
+	w_class = ITEM_SIZE_LARGE
+	force = 10
+	slot_flags = SLOT_BACK
+	origin_tech = "combat=3;materials=1"
+	mag_type = /obj/item/ammo_box/magazine/internal/cylinder/dualshot
+	var/open = 0
+	var/short = 0
+	lefthand_file = 'icons/mob/inhands/shotguns_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/shotguns_righthand.dmi'
+	fire_sound = 'sound/weapons/guns/station/shotgun_shot1.ogg'
+	twohands_required = TRUE
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/isHandgun()
+	return FALSE
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/update_icon()
+	if(short)
+		icon_state = "sawnshotgun[open ? "-o" : ""]"
+	else
+		icon_state = "dshotgun[open ? "-o" : ""]"
+	if(wielded)
+		item_state = "[initial(icon_state)]_wield"
+	else
+		item_state = "[initial(icon_state)]"
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/attackby(obj/item/A, mob/user)
+	if(open)
+		..()
+	else
+		to_chat(user, "<span class='notice'>You can't load shell while [src] is closed!</span>")
+	if(istype(A, /obj/item/weapon/circular_saw) || istype(A, /obj/item/weapon/melee/energy) || istype(A, /obj/item/weapon/pickaxe/plasmacutter))
+		if(short) return
+		to_chat(user, "<span class='notice'>You begin to shorten the barrel of \the [src].</span>")
+		if(get_ammo())
+			afterattack(user, user)	//will this work?
+			afterattack(user, user)	//it will. we call it twice, for twice the FUN
+			playsound(user, fire_sound, 50, 1)
+			user.visible_message("<span class='danger'>The shotgun goes off!</span>", "<span class='danger'>The shotgun goes off in your face!</span>")
+			return
+		if(!user.is_busy() && do_after(user, 30, target = src))	//SHIT IS STEALTHY EYYYYY
+			icon_state = "sawnshotgun[open ? "-o" : ""]"
+			w_class = ITEM_SIZE_NORMAL
+			twohands_required = FALSE
+			item_state = "gun"
+			slot_flags &= ~SLOT_BACK	//you can't sling it on your back
+			slot_flags |= SLOT_BELT		//but you can wear it on your belt (poorly concealed under a trenchcoat, ideally)
+			to_chat(user, "<span class='warning'>You shorten the barrel of \the [src]!</span>")
+			name = "sawn-off shotgun"
+			desc = "Omar's coming!"
+			short = 1
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/attack_self(mob/living/user)
+	add_fingerprint(user)
+	open = !open
+	if(open)
+		//playsound(src.loc, 'sound/weapons/heavybolt_out.ogg', 50, 1)
+		var/num_unloaded = 0
+		while (get_ammo() > 0)
+			spawn(3)
+				playsound(src.loc, 'sound/weapons/shell_drop.ogg', 50, 1)
+			var/obj/item/ammo_casing/CB
+			CB = magazine.get_round(0)
+			chambered = null
+			CB.loc = get_turf(src.loc)
+			CB.SpinAnimation(5, 1)
+			CB.update_icon()
+			num_unloaded++
+		if (num_unloaded)
+			to_chat(user, "<span class = 'notice'>You break open \the [src] and unload [num_unloaded] shell\s.</span>")
+		else
+			to_chat(user, "<span class = 'notice'>You break open \the [src].</span>")
 
 	update_icon()
 
-/obj/item/weapon/gun/projectile/shotgun/pump/combat
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/special_check(mob/user)
+	if(open)
+		to_chat(user, "<span class='warning'>You can't fire [src] while its open!</span>")
+		return FALSE
+	return ..()
+
+/obj/item/weapon/gun/projectile/shotgun/combat/military
 	name = "combat shotgun"
-	desc = "Built for close quarters combat, the Hephaestus Industries KS-40 is widely regarded as a weapon of choice for repelling boarders."
-	icon_state = "cshotgun"
-	item_state = "cshotgun"
-	wielded_item_state = "cshotgun-wielded"
-	origin_tech = list(TECH_COMBAT = 5, TECH_MATERIAL = 2)
-	max_shells = 7 //match the ammo box capacity, also it can hold a round in the chamber anyways, for a total of 8.
-	ammo_type = /obj/item/ammo_casing/shotgun
-	one_hand_penalty = 8
+	icon_state = "shotgun"
+	bypass_icon = "bypass/gun/military.dmi"
+	pump_sound = 'sound/weapons/guns/military/shotgun_pump.ogg'
+	fire_sound = 'sound/weapons/guns/military/shotgun_shot.ogg'
 
-/obj/item/weapon/gun/projectile/shotgun/pump/combat/on_update_icon()
-	..()
-	if(length(loaded) > 3)
-		for(var/i = 0 to length(loaded) - 4)
-			var/image/I = image(icon, "shell")
-			I.pixel_x = i * 2
-			overlays += I
 
-/obj/item/weapon/gun/projectile/shotgun/doublebarrel
-	name = "double-barreled shotgun"
-	desc = "A true classic."
-	icon = 'icons/obj/guns/shotguns.dmi'
-	icon_state = "dshotgun"
-	item_state = "dshotgun"
-	wielded_item_state = "dshotgun-wielded"
-	//SPEEDLOADER because rapid unloading.
-	//In principle someone could make a speedloader for it, so it makes sense.
-	load_method = SINGLE_CASING|SPEEDLOADER
-	handle_casings = CYCLE_CASINGS
-	max_shells = 2
-	w_class = ITEM_SIZE_HUGE
-	force = 10
-	obj_flags =  OBJ_FLAG_CONDUCTIBLE
-	slot_flags = SLOT_BACK
-	caliber = CALIBER_SHOTGUN
-	origin_tech = list(TECH_COMBAT = 3, TECH_MATERIAL = 1)
-	ammo_type = /obj/item/ammo_casing/shotgun/beanbag
-	one_hand_penalty = 2
-	wielded_item_state = "gun_wielded"
-
-	burst_delay = 0
-	firemodes = list(
-		list(mode_name="fire one barrel at a time", burst=1),
-		list(mode_name="fire both barrels at once", burst=2),
-		)
-
-/obj/item/weapon/gun/projectile/shotgun/doublebarrel/pellet
-	ammo_type = /obj/item/ammo_casing/shotgun/pellet
-
-/obj/item/weapon/gun/projectile/shotgun/doublebarrel/flare
-	name = "signal shotgun"
-	desc = "A double-barreled shotgun meant to fire signal flash shells."
-	ammo_type = /obj/item/ammo_casing/shotgun/flash
-
-/obj/item/weapon/gun/projectile/shotgun/doublebarrel/unload_ammo(user, allow_dump)
-	..(user, allow_dump=1)
-
-//this is largely hacky and bad :(	-Pete
-/obj/item/weapon/gun/projectile/shotgun/doublebarrel/attackby(var/obj/item/A as obj, mob/user as mob)
-	if(w_class > 3 && (istype(A, /obj/item/weapon/circular_saw) || istype(A, /obj/item/weapon/melee/energy) || istype(A, /obj/item/weapon/gun/energy/plasmacutter)))
-		if(istype(A, /obj/item/weapon/gun/energy/plasmacutter))
-			var/obj/item/weapon/gun/energy/plasmacutter/cutter = A
-			if(!cutter.slice(user))
-				return ..()
-		to_chat(user, "<span class='notice'>You begin to shorten the barrel of \the [src].</span>")
-		if(loaded.len)
-			for(var/i in 1 to max_shells)
-				Fire(user, user)	//will this work? //it will. we call it twice, for twice the FUN
-			user.visible_message("<span class='danger'>The shotgun goes off!</span>", "<span class='danger'>The shotgun goes off in your face!</span>")
-			return
-		if(do_after(user, 30, src))	//SHIT IS STEALTHY EYYYYY
-			user.unEquip(src)
-			var/obj/item/weapon/gun/projectile/shotgun/doublebarrel/sawn/empty/buddy = new(loc)
-			transfer_fingerprints_to(buddy)
-			qdel(src)
-			to_chat(user, "<span class='warning'>You shorten the barrel of \the [src]!</span>")
-	else
-		..()
-
-/obj/item/weapon/gun/projectile/shotgun/doublebarrel/sawn
-	name = "sawn-off shotgun"
-	desc = "Omar's coming!"
-	icon_state = "sawnshotgun"
-	item_state = "sawnshotgun"
-	wielded_item_state = "sawnshotgun-wielded"
-	slot_flags = SLOT_BELT|SLOT_HOLSTER
-	ammo_type = /obj/item/ammo_casing/shotgun/pellet
-	w_class = ITEM_SIZE_NORMAL
-	force = 5
-	one_hand_penalty = 4
-	bulk = 2
-
-/obj/item/weapon/gun/projectile/shotgun/doublebarrel/sawn/empty
-	starts_loaded = FALSE
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/quake
+	name = "relic double-barreled weapon"
+	desc = "A weird gun that looks like overcomplicated double-barreled shotgun"
+	bypass_icon = "bypass/gun/relics.dmi"
+	fire_sound = 'sound/weapons/guns/quake/shotgun_shot1.ogg'
+	mag_type = /obj/item/ammo_box/magazine/internal/cylinder/dualshot/quake

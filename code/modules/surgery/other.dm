@@ -1,225 +1,226 @@
-//Procedures in this file: Internal wound patching, Implant removal.
+//Procedures in this file: Inernal wound patching, Implant removal, Fixing groin organs in IPCs and Dioneae
 //////////////////////////////////////////////////////////////////
 //					INTERNAL WOUND PATCHING						//
 //////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////
-//	 Tendon fix surgery step
-//////////////////////////////////////////////////////////////////
-/decl/surgery_step/fix_tendon
-	name = "Repair tendon"
+
+/datum/surgery_step/fix_vein
+	priority = 2
 	allowed_tools = list(
-		/obj/item/weapon/FixOVein = 100,
-		/obj/item/stack/cable_coil = 75,
-		/obj/item/weapon/tape_roll = 50
+	/obj/item/weapon/FixOVein = 100, \
+	/obj/item/stack/cable_coil = 75
 	)
 	can_infect = 1
 	blood_level = 1
+
 	min_duration = 70
 	max_duration = 90
-	shock_level = 40
-	delicate = 1
-	surgery_candidate_flags = SURGERY_NO_CRYSTAL | SURGERY_NO_ROBOTIC | SURGERY_NO_STUMP | SURGERY_NEEDS_RETRACTED
 
-/decl/surgery_step/fix_tendon/assess_bodypart(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	var/obj/item/organ/external/affected = ..()
-	if(affected && (affected.status & ORGAN_TENDON_CUT))
-		return affected
+/datum/surgery_step/fix_vein/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	if(!ishuman(target))
+		return 0
 
-/decl/surgery_step/fix_tendon/begin_step(mob/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-	user.visible_message("[user] starts reattaching the damaged [affected.tendon_name] in [target]'s [affected.name] with \the [tool]." , \
-	"You start reattaching the damaged [affected.tendon_name] in [target]'s [affected.name] with \the [tool].")
-	target.custom_pain("The pain in your [affected.name] is unbearable!",100,affecting = affected)
+	var/obj/item/organ/external/BP = target.get_bodypart(target_zone)
+	return BP && (BP.status & ORGAN_ARTERY_CUT) && BP.open >= 2
+
+/datum/surgery_step/fix_vein/begin_step(mob/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	var/obj/item/organ/external/BP = target.get_bodypart(target_zone)
+	user.visible_message("[user] starts patching the damaged vein in [target]'s [BP.name] with \the [tool]." , \
+	"You start patching the damaged vein in [target]'s [BP.name] with \the [tool].")
+	target.custom_pain("The pain in [BP.name] is unbearable!",1)
 	..()
 
-/decl/surgery_step/fix_tendon/end_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-	user.visible_message("<span class='notice'>[user] has reattached the [affected.tendon_name] in [target]'s [affected.name] with \the [tool].</span>", \
-		"<span class='notice'>You have reattached the [affected.tendon_name] in [target]'s [affected.name] with \the [tool].</span>")
-	affected.status &= ~ORGAN_TENDON_CUT
-	affected.update_damages()
+/datum/surgery_step/fix_vein/end_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	var/obj/item/organ/external/BP = target.get_bodypart(target_zone)
+	user.visible_message("\blue [user] has patched the damaged vein in [target]'s [BP.name] with \the [tool].", \
+		"\blue You have patched the damaged vein in [target]'s [BP.name] with \the [tool].")
 
-/decl/surgery_step/fix_tendon/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-	user.visible_message("<span class='warning'>[user]'s hand slips, smearing [tool] in the incision in [target]'s [affected.name]!</span>" , \
-	"<span class='warning'>Your hand slips, smearing [tool] in the incision in [target]'s [affected.name]!</span>")
-	affected.take_external_damage(5, used_weapon = tool)
+	BP.status &= ~ORGAN_ARTERY_CUT
 
-//////////////////////////////////////////////////////////////////
-//	 IB fix surgery step
-//////////////////////////////////////////////////////////////////
-/decl/surgery_step/fix_vein
-	name = "Repair arterial bleeding"
-	allowed_tools = list(
-		/obj/item/weapon/FixOVein = 100,
-		/obj/item/stack/cable_coil = 75,
-		/obj/item/weapon/tape_roll = 50
-	)
-	can_infect = 1
-	blood_level = 1
-	min_duration = 70
-	max_duration = 90
-	shock_level = 40
-	delicate = 1
-	strict_access_requirement = FALSE
-	surgery_candidate_flags = SURGERY_NO_CRYSTAL | SURGERY_NO_ROBOTIC | SURGERY_NO_STUMP | SURGERY_NEEDS_RETRACTED
+	make_blood(user,target,1,40)
 
-/decl/surgery_step/fix_vein/assess_bodypart(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	var/obj/item/organ/external/affected = ..()
-	if(affected && (affected.status & ORGAN_ARTERY_CUT))
-		return affected
+/datum/surgery_step/fix_vein/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	var/obj/item/organ/external/BP = target.get_bodypart(target_zone)
+	user.visible_message("\red [user]'s hand slips, smearing [tool] in the incision in [target]'s [BP.name]!" , \
+	"\red Your hand slips, smearing [tool] in the incision in [target]'s [BP.name]!")
+	BP.take_damage(5, 0)
 
-/decl/surgery_step/fix_vein/begin_step(mob/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-	user.visible_message("[user] starts patching the damaged [affected.artery_name] in [target]'s [affected.name] with \the [tool]." , \
-	"You start patching the damaged [affected.artery_name] in [target]'s [affected.name] with \the [tool].")
-	target.custom_pain("The pain in your [affected.name] is unbearable!",100,affecting = affected)
-	..()
-
-/decl/surgery_step/fix_vein/end_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-	user.visible_message("<span class='notice'>[user] has patched the [affected.artery_name] in [target]'s [affected.name] with \the [tool].</span>", \
-		"<span class='notice'>You have patched the [affected.artery_name] in [target]'s [affected.name] with \the [tool].</span>")
-	affected.status &= ~ORGAN_ARTERY_CUT
-	affected.update_damages()
-
-/decl/surgery_step/fix_vein/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-	user.visible_message("<span class='warning'>[user]'s hand slips, smearing [tool] in the incision in [target]'s [affected.name]!</span>" , \
-	"<span class='warning'>Your hand slips, smearing [tool] in the incision in [target]'s [affected.name]!</span>")
-	affected.take_external_damage(5, used_weapon = tool)
-
-
-//////////////////////////////////////////////////////////////////
-//	 Hardsuit removal surgery step
-//////////////////////////////////////////////////////////////////
-/decl/surgery_step/hardsuit
-	name = "Remove hardsuit"
-	allowed_tools = list(
-		/obj/item/weapon/weldingtool = 80,
-		/obj/item/weapon/circular_saw = 60,
-		/obj/item/psychic_power/psiblade/master/grand/paramount = 100,
-		/obj/item/psychic_power/psiblade = 75,
-		/obj/item/weapon/gun/energy/plasmacutter = 30
-	)
+/datum/surgery_step/gender_reassignment
+	priority = 2
 	can_infect = 0
-	blood_level = 0
-	min_duration = 120
-	max_duration = 180
-	surgery_candidate_flags = 0
+	blood_level = 1
 
-/decl/surgery_step/hardsuit/assess_bodypart(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	return TRUE
+/datum/surgery_step/gender_reassignment/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	if (!ishuman(target))
+		return 0
+	if (target_zone != BP_GROIN)
+		return 0
+	var/obj/item/organ/external/groin = target.get_bodypart(BP_GROIN)
+	if (!groin)
+		return 0
+	if (groin.open < 1)
+		return 0
+	return 1
+//////////////////////////////////////////////////////////////////
+//					GROIN ORGAN PATCHING						//
+//////////////////////////////////////////////////////////////////
+/datum/surgery_step/groin_organs
+	priority = 3
+	can_infect = 0
+	blood_level = 1
+	disallowed_species = list("exclude", DIONA, IPC) // Just so you can fail on fixing IPC's groin organs.
 
-/decl/surgery_step/hardsuit/get_skill_reqs(mob/living/user, mob/living/carbon/human/target, obj/item/tool)
-	return list(SKILL_EVA = SKILL_BASIC) 
-
-/decl/surgery_step/hardsuit/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	if(!istype(target))
+/datum/surgery_step/groin_organs/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	if(!ishuman(target))
 		return FALSE
-	if(isWelder(tool))
-		var/obj/item/weapon/weldingtool/welder = tool
-		if(!welder.isOn() || !welder.remove_fuel(1,user))
-			return FALSE
-	return (target_zone == BP_CHEST) && istype(target.back, /obj/item/weapon/rig) && !(target.back.canremove)
-
-/decl/surgery_step/hardsuit/begin_step(mob/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	user.visible_message("[user] starts cutting through the support systems of [target]'s [target.back] with \the [tool]." , \
-	"You start cutting through the support systems of [target]'s [target.back] with \the [tool].")
-	..()
-
-/decl/surgery_step/hardsuit/end_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-
-	var/obj/item/weapon/rig/rig = target.back
-	if(!istype(rig))
-		return
-	rig.reset()
-	user.visible_message("<span class='notice'>[user] has cut through the support systems of [target]'s [rig] with \the [tool].</span>", \
-		"<span class='notice'>You have cut through the support systems of [target]'s [rig] with \the [tool].</span>")
-
-/decl/surgery_step/hardsuit/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	user.visible_message("<span class='danger'>[user]'s [tool] can't quite seem to get through the metal...</span>", \
-	"<span class='danger'>Your [tool] can't quite seem to get through the metal. It's weakening, though - try again.</span>")
-
-
-//////////////////////////////////////////////////////////////////
-//	 Disinfection step
-//////////////////////////////////////////////////////////////////
-/decl/surgery_step/sterilize
-	name = "Sterilize wound"
-	allowed_tools = list(
-		/obj/item/weapon/reagent_containers/spray = 100,
-		/obj/item/weapon/reagent_containers/dropper = 100,
-		/obj/item/weapon/reagent_containers/glass/bottle = 90,
-		/obj/item/weapon/reagent_containers/food/drinks/flask = 90,
-		/obj/item/weapon/reagent_containers/glass/beaker = 75,
-		/obj/item/weapon/reagent_containers/food/drinks/bottle = 75,
-		/obj/item/weapon/reagent_containers/food/drinks/glass2 = 75,
-		/obj/item/weapon/reagent_containers/glass/bucket = 50
-	)
-	can_infect = 0
-	blood_level = 0
-	min_duration = 50
-	max_duration = 60
-
-/decl/surgery_step/sterilize/assess_bodypart(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	var/obj/item/organ/external/affected = ..()
-	if(affected && !affected.is_disinfected() && check_chemicals(tool))
-		return affected
-
-/decl/surgery_step/sterilize/get_skill_reqs(mob/living/user, mob/living/carbon/human/target, obj/item/tool)
-	return list(SKILL_MEDICAL = SKILL_BASIC) 
-
-/decl/surgery_step/sterilize/begin_step(mob/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-	user.visible_message("[user] starts pouring [tool]'s contents on \the [target]'s [affected.name]." , \
-	"You start pouring [tool]'s contents on \the [target]'s [affected.name].")
-	target.custom_pain("Your [affected.name] is on fire!",50,affecting = affected)
-	..()
-
-/decl/surgery_step/sterilize/end_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-
-	if (!istype(tool, /obj/item/weapon/reagent_containers))
-		return
-
-	var/obj/item/weapon/reagent_containers/container = tool
-
-	var/amount = container.amount_per_transfer_from_this
-	var/temp_holder = new/obj()
-	var/datum/reagents/temp_reagents = new(amount, temp_holder)
-	container.reagents.trans_to_holder(temp_reagents, amount)
-
-	var/trans = temp_reagents.trans_to_mob(target, temp_reagents.total_volume, CHEM_BLOOD) //technically it's contact, but the reagents are being applied to internal tissue
-	if (trans > 0)
-		user.visible_message("<span class='notice'>[user] rubs [target]'s [affected.name] down with \the [tool]'s contents</span>.", \
-			"<span class='notice'>You rub [target]'s [affected.name] down with \the [tool]'s contents.</span>")
-	affected.disinfect()
-	qdel(temp_reagents)
-	qdel(temp_holder)
-
-/decl/surgery_step/sterilize/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
-	var/obj/item/organ/external/affected = target.get_organ(target_zone)
-
-	if (!istype(tool, /obj/item/weapon/reagent_containers))
-		return
-
-	var/obj/item/weapon/reagent_containers/container = tool
-
-	container.reagents.trans_to_mob(target, container.amount_per_transfer_from_this, CHEM_BLOOD)
-
-	user.visible_message("<span class='warning'>[user]'s hand slips, spilling \the [tool]'s contents over the [target]'s [affected.name]!</span>" , \
-	"<span class='warning'>Your hand slips, spilling \the [tool]'s contents over the [target]'s [affected.name]!</span>")
-	affected.disinfect()
-
-/decl/surgery_step/sterilize/proc/check_chemicals(var/obj/item/weapon/reagent_containers/container)
-	if(istype(container) && container.is_open_container())
-		if(container.reagents.has_reagent(/datum/reagent/sterilizine))
-			return TRUE
-		else
-			var/datum/reagent/ethanol/booze = locate() in container.reagents.reagent_list
-			if(istype(booze))
-				if(booze.strength <= 40)
-					return TRUE
+	if(target_zone != BP_GROIN)
+		return FALSE
+	var/obj/item/organ/external/groin = target.get_bodypart(BP_GROIN)
+	if(!groin)
+		return FALSE
+	if(groin.open < 1)
+		return FALSE
+	for(var/obj/item/organ/internal/IO in groin.bodypart_organs) // If they ain't got nothing to fix, don't.
+		return TRUE
 	return FALSE
+
+/datum/surgery_step/groin_organs/fixing
+	allowed_tools = list(
+	/obj/item/stack/medical/advanced/bruise_pack= 100,
+	/obj/item/stack/medical/bruise_pack = 20,
+	/obj/item/stack/medical/bruise_pack/tajaran = 70
+	)
+
+	min_duration = 70
+	max_duration = 90
+
+/datum/surgery_step/groin_organs/fixing/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	var/is_groin_organ_damaged = FALSE
+	var/obj/item/organ/external/groin/BP = target.get_bodypart(BP_GROIN)
+	for(var/obj/item/organ/internal/IO in BP.bodypart_organs)
+		if(IO.damage > 0)
+			is_groin_organ_damaged = TRUE
+			break
+	return ..() && is_groin_organ_damaged
+
+/datum/surgery_step/groin_organs/fixing/begin_step(mob/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	var/tool_name = "\the [tool]"
+	if (istype(tool, /obj/item/stack/medical/advanced/bruise_pack))
+		tool_name = "regenerative membrane"
+	if (istype(tool, /obj/item/stack/medical/bruise_pack))
+		if (istype(tool, /obj/item/stack/medical/bruise_pack/tajaran))
+			tool_name = "the poultice"
+		else
+			tool_name = "the bandaid"
+	var/obj/item/organ/external/groin/BP = target.get_bodypart(BP_GROIN)
+	for(var/obj/item/organ/internal/IO in BP.bodypart_organs)
+		if(IO && IO.damage > 0)
+			if(IO.robotic < 2)
+				user.visible_message("[user] starts treating damage to [target]'s [IO.name] with [tool_name].",
+				"You start treating damage to [target]'s [IO.name] with [tool_name]." )
+			else
+				user.visible_message("<span class='notice'>[user] attempts to repair [target]'s mechanical [IO.name] with [tool_name]...</span>",
+				"<span class='notice'>You attempt to repair [target]'s mechanical [IO.name] with [tool_name]...</span>")
+
+	if(target.species && target.species.flags[NO_PAIN])
+		to_chat(target, "You notice slight movement in your groin.")
+	else
+		target.custom_pain("The pain in your groin is living hell!",1)
+	..()
+
+/datum/surgery_step/groin_organs/fixing/end_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	var/tool_name = "\the [tool]"
+	if (istype(tool, /obj/item/stack/medical/advanced/bruise_pack))
+		tool_name = "regenerative membrane"
+	if (istype(tool, /obj/item/stack/medical/bruise_pack))
+		if (istype(tool, /obj/item/stack/medical/bruise_pack/tajaran))
+			tool_name = "the poultice"
+		else
+			tool_name = "the bandaid"
+	var/obj/item/organ/external/groin/BP = target.get_bodypart(BP_GROIN)
+	for(var/obj/item/organ/internal/IO in BP.bodypart_organs)
+		if(IO && IO.damage > 0)
+			if(IO.robotic < 2)
+				user.visible_message("<span class='notice'>[user] treats damage to [target]'s [IO.name] with [tool_name].</span>",
+				"<span class='notice'>You treat damage to [target]'s [IO.name] with [tool_name].</span>" )
+				IO.damage = 0
+			else
+				user.visible_message("<span class='notice'>[user] pokes [target]'s mechanical [IO.name] with [tool_name]...</span>",
+				"<span class='notice'>You poke [target]'s mechanical [IO.name] with [tool_name]... <span class='warning'>For no effect, since it's robotic.</span>")
+
+/datum/surgery_step/groin_organs/fixing/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	var/obj/item/organ/external/groin/BP = target.get_bodypart(BP_GROIN)
+	user.visible_message("<span class='warning'>[user]'s hand slips, getting mess and tearing the inside of [target]'s groin with \the [tool]!</span>",
+	"<span class='warning'>Your hand slips, getting mess and tearing the inside of [target]'s groin with \the [tool]!</span>")
+	var/dam_amt = 2
+
+	if (istype(tool, /obj/item/stack/medical/advanced/bruise_pack))
+		target.adjustToxLoss(5)
+
+	else if(istype(tool, /obj/item/stack/medical/bruise_pack))
+		if(istype(tool, /obj/item/stack/medical/bruise_pack/tajaran))
+			target.adjustToxLoss(7)
+		else
+			dam_amt = 5
+			target.adjustToxLoss(10)
+			BP.createwound(CUT, 5)
+
+	for(var/obj/item/organ/internal/IO in BP.bodypart_organs)
+		if(IO && IO.damage > 0)
+			IO.take_damage(dam_amt,0)
+
+/datum/surgery_step/groin_organs/fixing_robot //For artificial organs
+	allowed_tools = list(
+	/obj/item/stack/nanopaste = 100,
+	/obj/item/weapon/bonegel = 30,
+	/obj/item/weapon/wrench = 70
+	)
+
+	min_duration = 70
+	max_duration = 90
+
+/datum/surgery_step/groin_organs/fixing_robot/can_use(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	var/is_groin_organ_damaged = FALSE
+	var/obj/item/organ/external/groin/BP = target.get_bodypart(BP_GROIN)
+	for(var/obj/item/organ/internal/IO in BP.bodypart_organs)
+		if(IO.damage > 0 && IO.robotic == 2)
+			is_groin_organ_damaged = TRUE
+			break
+	return ..() && is_groin_organ_damaged
+
+/datum/surgery_step/groin_organs/fixing_robot/begin_step(mob/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	var/obj/item/organ/external/groin/BP = target.get_bodypart(BP_GROIN)
+	for(var/obj/item/organ/internal/IO in BP.bodypart_organs)
+		if(IO.damage > 0 && IO.robotic == 2)
+			user.visible_message("[user] starts mending the mechanisms on [target]'s [IO] with \the [tool].",
+			"You start mending the mechanisms on [target]'s [IO] with \the [tool]." )
+			continue
+	if(target.species && target.species.flags[NO_PAIN])
+		to_chat(target, "You notice slight movement in your groin.")
+	else
+		target.custom_pain("The pain in your groin is living hell!",1)
+	..()
+
+/datum/surgery_step/groin_organs/fixing_robot/end_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	var/obj/item/organ/external/groin/BP = target.get_bodypart(BP_GROIN)
+	for(var/obj/item/organ/internal/IO in BP.bodypart_organs)
+		if(IO.damage > 0 && IO.robotic == 2)
+			user.visible_message("<span class='notice'>[user] repairs [target]'s [IO] with \the [tool].</span>",
+			"<span class='notice'>You repair [target]'s [IO] with \the [tool].</span>" )
+			IO.damage = 0
+
+/datum/surgery_step/groin_organs/fixing_robot/fail_step(mob/living/user, mob/living/carbon/human/target, target_zone, obj/item/tool)
+	var/obj/item/organ/external/groin/BP = target.get_bodypart(BP_GROIN)
+	for(var/obj/item/organ/internal/IO in BP.bodypart_organs)
+		user.visible_message("<span class='warning'>[user]'s hand slips, smearing [tool] in the incision in [target]'s [IO], gumming it up!</span>",
+		"<span class='warning'>Your hand slips, smearing [tool] in the incision in [target]'s [IO], gumming it up!</span>")
+		var/dam_amt = 2
+		if(istype(tool, /obj/item/stack/nanopaste) || istype(tool, /obj/item/weapon/bonegel))
+			target.apply_damage(6, BURN, BP, null)
+
+		else if(istype(tool, /obj/item/weapon/wrench))
+			target.apply_damage(12, BRUTE, BP, null)
+			BP.createwound(CUT, 5)
+
+		if(IO.damage > 0 && IO.robotic == 2)
+			IO.take_damage(dam_amt,0)

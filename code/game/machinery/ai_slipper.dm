@@ -1,9 +1,9 @@
 /obj/machinery/ai_slipper
-	name = "\improper AI Liquid Dispenser"
+	name = "AI Liquid Dispenser"
 	icon = 'icons/obj/device.dmi'
-	icon_state = "motion0"
+	icon_state = "motion3"
+	layer = 3
 	anchored = 1.0
-	idle_power_usage = 10
 	var/uses = 20
 	var/disabled = 1
 	var/lethal = 0
@@ -13,18 +13,17 @@
 	var/cooldown_on = 0
 	req_access = list(access_ai_upload)
 
-
-/obj/machinery/ai_slipper/New()
-	..()
-	update_icon()
-
-/obj/machinery/ai_slipper/on_update_icon()
-	if (stat & NOPOWER || stat & BROKEN)
-		icon_state = "motion0"
+/obj/machinery/ai_slipper/power_change()
+	if(stat & BROKEN)
+		return
 	else
-		icon_state = disabled ? "motion0" : "motion3"
+		if( powered() )
+			stat &= ~NOPOWER
+		else
+			icon_state = "motion0"
+			stat |= NOPOWER
 
-/obj/machinery/ai_slipper/proc/setState(var/enabled, var/uses)
+/obj/machinery/ai_slipper/proc/setState(enabled, uses)
 	src.disabled = disabled
 	src.uses = uses
 	src.power_change()
@@ -33,62 +32,60 @@
 	if(stat & (NOPOWER|BROKEN))
 		return
 	if (istype(user, /mob/living/silicon))
-		return attack_ai(user)
+		return src.attack_hand(user)
 	else // trying to unlock the interface
-		if(allowed(user))
+		if (src.allowed(usr))
 			locked = !locked
 			to_chat(user, "You [ locked ? "lock" : "unlock"] the device.")
 			if (locked)
 				if (user.machine==src)
 					user.unset_machine()
-					close_browser(user, "window=ai_slipper")
+					user << browse(null, "window=ai_slipper")
 			else
 				if (user.machine==src)
-					interact(user)
+					src.attack_hand(usr)
 		else
-			to_chat(user, "<span class='warning'>Access denied.</span>")
+			to_chat(user, "\red Access denied.")
+			return
+	return
 
-/obj/machinery/ai_slipper/interface_interact(mob/user)
-	interact(user)
-	return TRUE
-
-/obj/machinery/ai_slipper/interact(mob/user)
+/obj/machinery/ai_slipper/ui_interact(mob/user)
 	var/area/area = get_area(src)
-	if(!area || isturf(loc))
+
+	if (!istype(area))
+		to_chat(user, text("Turret badly positioned - area is [].", area))
 		return
 	var/t = "<TT><B>AI Liquid Dispenser</B> ([area.name])<HR>"
 
-	if(src.locked && (!istype(user, /mob/living/silicon)))
+	if(locked && !issilicon_allowed(user) && !isobserver(user))
 		t += "<I>(Swipe ID card to unlock control panel.)</I><BR>"
 	else
 		t += text("Dispenser [] - <A href='?src=\ref[];toggleOn=1'>[]?</a><br>\n", src.disabled?"deactivated":"activated", src, src.disabled?"Enable":"Disable")
 		t += text("Uses Left: [uses]. <A href='?src=\ref[src];toggleUse=1'>Activate the dispenser?</A><br>\n")
 
-	show_browser(user, t, "window=computer;size=575x450")
+	user << browse(entity_ja(t), "window=computer;size=575x450")
 	onclose(user, "computer")
 
-/obj/machinery/ai_slipper/CanUseTopic(user)
-	if(locked && !issilicon(user))
-		to_chat(user, "<span class='warning'>The control panel is locked!</span>")
-		return min(..(), STATUS_UPDATE)
-	return ..()
-
-/obj/machinery/ai_slipper/OnTopic(user, href_list)
+/obj/machinery/ai_slipper/Topic(href, href_list)
+	. = ..()
+	if(!.)
+		return
+	if (locked && !issilicon_allowed(usr) && !isobserver(usr))
+		to_chat(usr, "Control panel is locked!")
+		return FALSE
 	if (href_list["toggleOn"])
 		src.disabled = !src.disabled
-		update_icon()
-		. = TOPIC_REFRESH
-	if (href_list["toggleUse"])
-		if(!(cooldown_on || disabled))
+		icon_state = src.disabled? "motion0":"motion3"
+	else if (href_list["toggleUse"])
+		if(cooldown_on || disabled)
+			return FALSE
+		else
 			new /obj/effect/effect/foam(src.loc)
 			src.uses--
 			cooldown_on = 1
 			cooldown_time = world.timeofday + 100
 			slip_process()
-		. = TOPIC_REFRESH
-
-	if(. == TOPIC_REFRESH)
-		attack_hand(user)
+	updateUsrDialog()
 
 /obj/machinery/ai_slipper/proc/slip_process()
 	while(cooldown_time - world.timeofday > 0)

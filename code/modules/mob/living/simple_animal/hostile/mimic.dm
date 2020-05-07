@@ -2,20 +2,6 @@
 // Abstract Class
 //
 
-var/global/list/protected_objects = list(/obj/machinery,
-										 /obj/structure/table,
-										 /obj/structure/cable,
-										 /obj/structure/window,
-										 /obj/structure/wall_frame,
-										 /obj/structure/grille,
-										 /obj/structure/catwalk,
-										 /obj/structure/ladder,
-										 /obj/structure/stairs,
-										 /obj/structure/sign,
-										 /obj/structure/railing,
-										 /obj/item/modular_computer,
-										 /obj/item/projectile/animate)
-
 /mob/living/simple_animal/hostile/mimic
 	name = "crate"
 	desc = "A rectangular steel crate."
@@ -23,57 +9,157 @@ var/global/list/protected_objects = list(/obj/machinery,
 	icon_state = "crate"
 	icon_living = "crate"
 
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/fish
-	response_help = "touches"
-	response_disarm = "pushes"
-	response_harm = "hits"
+	response_help = "touches the"
+	response_disarm = "pushes the"
+	response_harm = "hits the"
 	speed = 4
-	maxHealth = 100
-	health = 100
+	maxHealth = 250
+	health = 250
 
 	harm_intent_damage = 5
 	melee_damage_lower = 8
 	melee_damage_upper = 12
-	attacktext = "attacked"
+	attack_message = list("attacks")
 	attack_sound = 'sound/weapons/bite.ogg'
 
-	min_gas = null
-	max_gas = null
+	min_oxy = 0
+	max_oxy = 0
+	min_tox = 0
+	max_tox = 0
+	min_co2 = 0
+	max_co2 = 0
+	min_n2 = 0
+	max_n2 = 0
 	minbodytemp = 0
 
 	faction = "mimic"
 	move_to_delay = 8
 
-	var/weakref/copy_of
-	var/weakref/creator // the creator
-	var/destroy_objects = 0
-	var/knockdown_people = 0
-	pass_flags = PASS_FLAG_TABLE
-
-/mob/living/simple_animal/hostile/mimic/New(newloc, var/obj/o, var/mob/living/creator)
-	..()
-	if(o)
-		if(ispath(o))
-			o = new o(newloc)
-		CopyObject(o,creator)
-
 /mob/living/simple_animal/hostile/mimic/FindTarget()
 	. = ..()
 	if(.)
-		audible_emote("growls at [.]")
+		emote("growls at [.]")
 
-/mob/living/simple_animal/hostile/mimic/ListTargets()
+/mob/living/simple_animal/hostile/mimic/death()
+	..()
+	visible_message("\red <b>[src]</b> stops moving!")
+	qdel(src)
+
+
+
+//
+// Crate Mimic
+//
+
+
+// Aggro when you try to open them. Will also pickup loot when spawns and drop it when dies.
+/mob/living/simple_animal/hostile/mimic/crate
+
+	attack_message = list("bites")
+
+	stop_automated_movement = 1
+	wander = 0
+	var/attempt_open = 0
+
+// Pickup loot
+/mob/living/simple_animal/hostile/mimic/crate/atom_init()
+	. = ..()
+	for(var/obj/item/I in loc)
+		I.loc = src
+
+/mob/living/simple_animal/hostile/mimic/crate/DestroySurroundings()
+	..()
+	if(prob(90))
+		icon_state = "[initial(icon_state)]open"
+	else
+		icon_state = initial(icon_state)
+
+/mob/living/simple_animal/hostile/mimic/crate/ListTargets()
+	if(attempt_open)
+		return ..()
+	return view(src, 1)
+
+/mob/living/simple_animal/hostile/mimic/crate/FindTarget()
+	. = ..()
+	if(.)
+		trigger()
+
+/mob/living/simple_animal/hostile/mimic/crate/AttackingTarget()
+	. = ..()
+	if(.)
+		icon_state = initial(icon_state)
+
+/mob/living/simple_animal/hostile/mimic/crate/proc/trigger()
+	if(!attempt_open)
+		visible_message("<b>[src]</b> starts to move!")
+		attempt_open = 1
+
+/mob/living/simple_animal/hostile/mimic/crate/adjustBruteLoss(damage)
+	trigger()
+	..(damage)
+
+/mob/living/simple_animal/hostile/mimic/crate/LoseTarget()
+	..()
+	icon_state = initial(icon_state)
+
+/mob/living/simple_animal/hostile/mimic/crate/LostTarget()
+	..()
+	icon_state = initial(icon_state)
+
+/mob/living/simple_animal/hostile/mimic/crate/death()
+
+	var/obj/structure/closet/crate/C = new(get_turf(src))
+	// Put loot in crate
+	for(var/obj/O in src)
+		O.loc = C
+	..()
+
+/mob/living/simple_animal/hostile/mimic/crate/AttackingTarget()
+	. =..()
+	var/mob/living/L = .
+	if(istype(L))
+		if(prob(15))
+			L.Weaken(2)
+			L.visible_message("<span class='danger'>\the [src] knocks down \the [L]!</span>")
+
+//
+// Copy Mimic
+//
+
+var/global/list/protected_objects = list(/obj/structure/table, /obj/structure/cable, /obj/structure/window, /obj/item/projectile/magic/animate)
+
+/mob/living/simple_animal/hostile/mimic/copy
+
+	health = 100
+	maxHealth = 100
+	var/mob/living/creator = null // the creator
+	var/destroy_objects = 0
+	var/knockdown_people = 0
+
+/mob/living/simple_animal/hostile/mimic/copy/atom_init(mapload, obj/copy, mob/living/creator)
+	. = ..()
+	CopyObject(copy, creator)
+
+/mob/living/simple_animal/hostile/mimic/copy/death()
+
+	for(var/atom/movable/M in src)
+		M.loc = get_turf(src)
+	..()
+
+/mob/living/simple_animal/hostile/mimic/copy/ListTargets()
 	// Return a list of targets that isn't the creator
 	. = ..()
-	if(creator)
-		return . - creator.resolve()
+	return . - creator
 
-/mob/living/simple_animal/hostile/mimic/proc/CopyObject(var/obj/O, var/mob/living/creator)
+/mob/living/simple_animal/hostile/mimic/copy/proc/CopyObject(obj/O, mob/living/creator)
 
 	if((istype(O, /obj/item) || istype(O, /obj/structure)) && !is_type_in_list(O, protected_objects))
-		O.forceMove(src)
-		copy_of = weakref(O)
-		appearance = O
+
+		O.loc = src
+		name = O.name
+		desc = O.desc
+		icon = O.icon
+		icon_state = O.icon_state
 		icon_living = icon_state
 
 		if(istype(O, /obj/structure))
@@ -92,41 +178,16 @@ var/global/list/protected_objects = list(/obj/machinery,
 
 		maxHealth = health
 		if(creator)
-			src.creator = weakref(creator)
+			src.creator = creator
 			faction = "\ref[creator]" // very unique
 		return 1
 	return
 
-/mob/living/simple_animal/hostile/mimic/death()
-	if(!copy_of)
-		return
-	var/atom/movable/C = copy_of.resolve()
-	..(null, "dies!")
-	if(C)
-		C.forceMove(src.loc)
-
-		if(istype(C,/obj/structure/closet))
-			for(var/atom/movable/M in src)
-				M.forceMove(C)
-
-		if(istype(C,/obj/item/weapon/storage))
-			var/obj/item/weapon/storage/S = C
-			for(var/atom/movable/M in src)
-				if(S.can_be_inserted(M,null,1))
-					S.handle_item_insertion(M)
-				else
-					M.forceMove(src.loc)
-
-		for(var/atom/movable/M in src)
-			M.dropInto(loc)
-		qdel(src)
-
-
-/mob/living/simple_animal/hostile/mimic/DestroySurroundings()
+/mob/living/simple_animal/hostile/mimic/copy/DestroySurroundings()
 	if(destroy_objects)
 		..()
 
-/mob/living/simple_animal/hostile/mimic/AttackingTarget()
+/mob/living/simple_animal/hostile/mimic/copy/AttackingTarget()
 	. =..()
 	if(knockdown_people)
 		var/mob/living/L = .
@@ -135,35 +196,8 @@ var/global/list/protected_objects = list(/obj/machinery,
 				L.Weaken(1)
 				L.visible_message("<span class='danger'>\the [src] knocks down \the [L]!</span>")
 
-/mob/living/simple_animal/hostile/mimic/Destroy()
-	copy_of = null
-	creator = null
-	..()
-
-/mob/living/simple_animal/hostile/mimic/sleeping
-	wander = 0
-	stop_automated_movement = 1
-
-	var/awake = 0
-
-/mob/living/simple_animal/hostile/mimic/sleeping/ListTargets()
-	if(!awake)
-		return null
-	return ..()
-
-/mob/living/simple_animal/hostile/mimic/sleeping/proc/trigger()
-	if(!awake)
-		src.visible_message("<b>\The [src]</b> starts to move!")
-		awake = 1
-
-/mob/living/simple_animal/hostile/mimic/sleeping/adjustBruteLoss(var/damage)
-	trigger()
-	..(damage)
-
-/mob/living/simple_animal/hostile/mimic/sleeping/attack_hand()
-	trigger()
-	..()
-
-/mob/living/simple_animal/hostile/mimic/sleeping/DestroySurroundings()
-	if(awake)
-		..()
+/mob/living/simple_animal/hostile/mimic/copy/proc/ChangeOwner(mob/owner)
+	if(owner != creator)
+		LoseTarget()
+		creator = owner
+		faction = "\ref[owner]"

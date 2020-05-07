@@ -48,8 +48,6 @@ NanoStateManager = function ()
 	var receiveUpdateData = function (jsonString)
 	{
 		var updateData;
-		
-		//alert("recieveUpdateData called." + "<br>Type: " + typeof jsonString); //debug hook
 		try
 		{
 			// parse the JSON string from the server into a JSON object
@@ -57,12 +55,10 @@ NanoStateManager = function ()
 		}
 		catch (error)
 		{
-			alert("recieveUpdateData failed. " + "<br>Error name: " + error.name + "<br>Error Message: " + error.message);
+			alert(error.Message);
 			return;
 		}
 
-		//alert("recieveUpdateData passed trycatch block."); //debug hook
-		
 		if (!updateData.hasOwnProperty('data'))
 		{
 			if (_data && _data.hasOwnProperty('data'))

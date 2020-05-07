@@ -1,104 +1,207 @@
-/*
-=== Item Click Call Sequences ===
-These are the default click code call sequences used when clicking on stuff with an item.
-
-Atoms:
-
-mob/ClickOn() calls the item's resolve_attackby() proc.
-item/resolve_attackby() calls the target atom's attackby() proc.
-
-Mobs:
-
-mob/living/attackby() after checking for surgery, calls the item's attack() proc.
-item/attack() generates attack logs, sets click cooldown and calls the mob's attacked_with_item() proc. If you override this, consider whether you need to set a click cooldown, play attack animations, and generate logs yourself.
-mob/attacked_with_item() should then do mob-type specific stuff (like determining hit/miss, handling shields, etc) and then possibly call the item's apply_hit_effect() proc to actually apply the effects of being hit.
-
-Item Hit Effects:
-
-item/apply_hit_effect() can be overriden to do whatever you want. However "standard" physical damage based weapons should make use of the target mob's hit_with_weapon() proc to
-avoid code duplication. This includes items that may sometimes act as a standard weapon in addition to having other effects (e.g. stunbatons on harm intent).
-*/
 
 // Called when the item is in the active hand, and clicked; alternately, there is an 'activate held object' verb or you can hit pagedown.
 /obj/item/proc/attack_self(mob/user)
 	return
 
-//I would prefer to rename this to attack(), but that would involve touching hundreds of files.
-/obj/item/proc/resolve_attackby(atom/A, mob/user, var/click_params)
-	if(!(item_flags & ITEM_FLAG_NO_PRINT))
-		add_fingerprint(user)
-	return A.attackby(src, user, click_params)
-
 // No comment
-/atom/proc/attackby(obj/item/W, mob/user, var/click_params)
+/atom/proc/attackby(obj/item/W, mob/user, params)
 	return
 
-/atom/movable/attackby(obj/item/W, mob/user)
-	if(!(W.item_flags & ITEM_FLAG_NO_BLUDGEON))
+/atom/movable/attackby(obj/item/W, mob/user, params)
+	user.do_attack_animation(src)
+	user.SetNextMove(CLICK_CD_MELEE)
+	add_fingerprint(user)
+	if(W && !(W.flags & NOBLUDGEON))
 		visible_message("<span class='danger'>[src] has been hit by [user] with [W].</span>")
 
-/mob/living/attackby(obj/item/I, mob/user)
-	if(!ismob(user))
-		return 0
-	if(can_operate(src,user) && I.do_surgery(src,user)) //Surgery
-		return 1
-	return I.attack(src, user, user.zone_sel.selecting)
+/mob/living/attackby(obj/item/I, mob/user, params)
+	if(!istype(I) || !ismob(user))
+		return
+	user.SetNextMove(CLICK_CD_MELEE)
 
-/mob/living/carbon/human/attackby(obj/item/I, mob/user)
-	if(user == src && zone_sel.selecting == BP_MOUTH && can_devour(I, silent = TRUE))
-		var/obj/item/blocked = src.check_mouth_coverage()
-		if(blocked)
-			to_chat(user, SPAN_WARNING("\The [blocked] is in the way!"))
-			return TRUE
-		if(devour(I))
-			return TRUE
-	return ..()
+	if(user.zone_sel && user.zone_sel.selecting)
+		I.attack(src, user, user.zone_sel.selecting)
+	else
+		I.attack(src, user)
+
+	if(ishuman(user))	//When abductor will hit someone from stelth he will reveal himself
+		var/mob/living/carbon/human/H = user
+		if(istype(H.wear_suit, /obj/item/clothing/suit))
+			var/obj/item/clothing/suit/V = H.wear_suit
+			V.attack_reaction(H, REACTION_INTERACT_ARMED, src)
+
+	if(ishuman(src))
+		var/mob/living/carbon/human/H = src
+		if(istype(H.wear_suit, /obj/item/clothing/suit))
+			var/obj/item/clothing/suit/V = H.wear_suit
+			V.attack_reaction(src, REACTION_ATACKED, user)
 
 // Proximity_flag is 1 if this afterattack was called on something adjacent, in your square, or on your person.
 // Click parameters is the params string from byond Click() code, see that documentation.
 /obj/item/proc/afterattack(atom/target, mob/user, proximity_flag, click_parameters)
 	return
 
-/datum/attack_result
-	var/hit_zone = 0
-	var/mob/living/attackee = null
 
-//I would prefer to rename this attack_as_weapon(), but that would involve touching hundreds of files.
-/obj/item/proc/attack(mob/living/M, mob/living/user, var/target_zone)
-	if(!force || (item_flags & ITEM_FLAG_NO_BLUDGEON))
-		return 0
-	if(M == user && user.a_intent != I_HURT)
-		return 0
+/obj/item/proc/attack(mob/living/M, mob/living/user, def_zone)
+	var/messagesource = M
+	if (can_operate(M))        //Checks if mob is lying down on table for surgery
+		if (do_surgery(M,user,src))
+			return 0
+	// Knifing
+	if(edge)
+		for(var/obj/item/weapon/grab/G in M.grabbed_by)
+			if(G.assailant == user && G.state >= GRAB_NECK && world.time >= (G.last_action + 20) && def_zone == BP_HEAD)
+				var/protected = 0
+				if(ishuman(M))
+					var/mob/living/carbon/human/AH = M
+					if(AH.is_in_space_suit())
+						protected = 1
+				if(!protected)
+					//TODO: better alternative for applying damage multiple times? Nice knifing sound?
+					var/damage_flags = damage_flags()
+					M.apply_damage(20, BRUTE, BP_HEAD, null, damage_flags)
+					M.apply_damage(20, BRUTE, BP_HEAD, null, damage_flags)
+					M.apply_damage(20, BRUTE, BP_HEAD, null, damage_flags)
+					M.adjustOxyLoss(60) // Brain lacks oxygen immediately, pass out
+					playsound(loc, 'sound/effects/throat_cutting.ogg', 50, 1, 1)
+					flick(G.hud.icon_state, G.hud)
+					G.last_action = world.time
+					user.visible_message("<span class='danger'>[user] slit [M]'s throat open with \the [name]!</span>")
 
-	/////////////////////////
+					user.attack_log += "\[[time_stamp()]\]<font color='red'> Knifed [M.name] ([M.ckey]) with [name] (INTENT: [uppertext(user.a_intent)]) (DAMTYE: [uppertext(damtype)])</font>"
+					M.attack_log += "\[[time_stamp()]\]<font color='orange'> Got knifed by [user.name] ([user.ckey]) with [name] (INTENT: [uppertext(user.a_intent)]) (DAMTYE: [uppertext(damtype)])</font>"
+					if(!isvrhuman(M))
+						msg_admin_attack("[key_name(user)] knifed [key_name(M)] with [name] (INTENT: [uppertext(user.a_intent)]) (DAMTYE: [uppertext(damtype)])" )
+					return
 
-	if(!no_attack_log)
-		admin_attack_log(user, M, "Attacked using \a [src] (DAMTYE: [uppertext(damtype)])", "Was attacked with \a [src] (DAMTYE: [uppertext(damtype)])", "used \a [src] (DAMTYE: [uppertext(damtype)]) to attack")
-	/////////////////////////
-	user.setClickCooldown(attack_cooldown + w_class)
-	user.do_attack_animation(M)
-	if(!user.aura_check(AURA_TYPE_WEAPON, src, user))
-		return 0
-
-	var/hit_zone = M.resolve_item_attack(src, user, target_zone)
-
-	var/datum/attack_result/AR = hit_zone
-	if(istype(AR))
-		if(AR.hit_zone)
-			apply_hit_effect(AR.attackee ? AR.attackee : M, user, AR.hit_zone)
-		return 1
-	if(hit_zone)
-		apply_hit_effect(M, user, hit_zone)
-
-	return 1
-
-//Called when a weapon is used to make a successful melee attack on a mob. Returns whether damage was dealt.
-/obj/item/proc/apply_hit_effect(mob/living/target, mob/living/user, var/hit_zone)
-	if(hitsound)
+	if (istype(M,/mob/living/carbon/brain))
+		messagesource = M:container
+	if (hitsound)
 		playsound(loc, hitsound, 50, 1, -1)
+	/////////////////////////
+	user.lastattacked = M
+	M.lastattacker = user
+	user.do_attack_animation(M)
+
+	user.attack_log += "\[[time_stamp()]\]<font color='red'> Attacked [M.name] ([M.ckey]) with [name] (INTENT: [uppertext(user.a_intent)]) (DAMTYE: [uppertext(damtype)])</font>"
+	M.attack_log += "\[[time_stamp()]\]<font color='orange'> Attacked by [user.name] ([user.ckey]) with [name] (INTENT: [uppertext(user.a_intent)]) (DAMTYE: [uppertext(damtype)])</font>"
+	if(!isvrhuman(M) || !isanimal(user))
+		msg_admin_attack("[key_name(user)] attacked [key_name(M)] with [name] (INTENT: [uppertext(user.a_intent)]) (DAMTYE: [uppertext(damtype)]) (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)" )
 
 	var/power = force
-	if(MUTATION_HULK in user.mutations)
+	if(HULK in user.mutations)
 		power *= 2
-	return target.hit_with_weapon(src, user, power, hit_zone)
 
+	if(!ishuman(M))
+		if(isslime(M))
+			var/mob/living/carbon/slime/slime = M
+			if(prob(25))
+				to_chat(user, "\red [src] passes right through [M]!")
+				return
+
+			if(power > 0)
+				slime.attacked += 10
+
+			if(slime.Discipline && prob(50))	// wow, buddy, why am I getting attacked??
+				slime.Discipline = 0
+
+			if(power >= 3)
+				if(istype(slime, /mob/living/carbon/slime/adult))
+					if(prob(5 + round(power/2)))
+
+						if(slime.Victim)
+							if(prob(80) && !slime.client)
+								slime.Discipline++
+						slime.Victim = null
+						slime.anchored = 0
+
+						spawn()
+							if(slime)
+								slime.SStun = 1
+								sleep(rand(5,20))
+								if(slime)
+									slime.SStun = 0
+
+						spawn(0)
+							if(slime)
+								slime.canmove = 0
+								step_away(slime, user)
+								if(prob(25 + power))
+									sleep(2)
+									if(slime && user)
+										step_away(slime, user)
+								slime.canmove = 1
+
+				else
+					if(prob(10 + power*2))
+						if(slime)
+							if(slime.Victim)
+								if(prob(80) && !slime.client)
+									slime.Discipline++
+
+									if(slime.Discipline == 1)
+										slime.attacked = 0
+
+								spawn()
+									if(slime)
+										slime.SStun = 1
+										sleep(rand(5,20))
+										if(slime)
+											slime.SStun = 0
+
+							slime.Victim = null
+							slime.anchored = 0
+
+
+						spawn(0)
+							if(slime && user)
+								step_away(slime, user)
+								slime.canmove = 0
+								if(prob(25 + power*4))
+									sleep(2)
+									if(slime && user)
+										step_away(slime, user)
+								slime.canmove = 1
+
+
+		var/showname = "."
+		if(user)
+			showname = " by [user]."
+		if(!(user in viewers(M, null)))
+			showname = "."
+
+		for(var/mob/O in viewers(messagesource, null))
+			if(attack_verb.len)
+				O.show_message("\red <B>[M] has been [pick(attack_verb)] with [src][showname] </B>", 1)
+			else
+				O.show_message("\red <B>[M] has been attacked with [src][showname] </B>", 1)
+
+		if(!showname && user)
+			if(user.client)
+				to_chat(user, "\red <B>You attack [M] with [src]. </B>")
+
+
+
+	if(ishuman(M))
+		var/mob/living/carbon/human/H = M
+		return H.attacked_by(src, user, def_zone)	//make sure to return whether we have hit or miss
+	else
+		switch(damtype)
+			if("brute")
+				if(istype(src, /mob/living/carbon/slime))
+					M.adjustBrainLoss(power)
+
+				else
+
+					M.take_bodypart_damage(power)
+					if (prob(33)) // Added blood for whacking non-humans too
+						var/turf/location = M.loc
+						if (istype(location, /turf/simulated))
+							location:add_blood_floor(M)
+			if("fire")
+				if (!(COLD_RESISTANCE in M.mutations))
+					M.take_bodypart_damage(0, power)
+					to_chat(M, "Aargh it burns!")
+		M.updatehealth()
+	add_fingerprint(user)
+	return 1

@@ -1,46 +1,62 @@
 /obj/item/weapon/reagent_containers/food/snacks/meat
 	name = "meat"
 	desc = "A slab of meat."
-	icon = 'icons/obj/food_ingredients.dmi'
 	icon_state = "meat"
-	slice_path = /obj/item/weapon/reagent_containers/food/snacks/rawcutlet
-	slices_num = 3
 	health = 180
-	filling_color = "#ff1c1c"
-	center_of_mass = "x=16;y=14"
-	New()
+	filling_color = "#FF1C1C"
+	bitesize = 3
+
+/obj/item/weapon/reagent_containers/food/snacks/meat/atom_init()
+	. = ..()
+	reagents.add_reagent("protein", 3)
+
+/obj/item/weapon/reagent_containers/food/snacks/meat/attackby(obj/item/weapon/W, mob/user)
+	if(istype(W,/obj/item/weapon/kitchenknife))
+		new /obj/item/weapon/reagent_containers/food/snacks/rawcutlet(src)
+		new /obj/item/weapon/reagent_containers/food/snacks/rawcutlet(src)
+		new /obj/item/weapon/reagent_containers/food/snacks/rawcutlet(src)
+		to_chat(user, "You cut the meat in thin strips.")
+		qdel(src)
+	else
 		..()
-		reagents.add_reagent(/datum/reagent/nutriment/protein, 9)
-		src.bitesize = 3
 
 /obj/item/weapon/reagent_containers/food/snacks/meat/syntiflesh
 	name = "synthetic meat"
-	desc = "A slab of flesh synthetized from reconstituted biomass or artificially grown from chemicals."
-	icon = 'icons/obj/food.dmi'
+	desc = "A synthetic slab of flesh."
 
-// Separate definitions because some food likes to know if it's human.
-// TODO: rewrite kitchen code to check a var on the meat item so we can remove
-// all these sybtypes.
 /obj/item/weapon/reagent_containers/food/snacks/meat/human
+	name = "meat"
+	var/subjectname = ""
+	var/subjectjob = null
+
+/obj/item/weapon/reagent_containers/food/snacks/meat/slab/meatproduct
+	name = "meat product"
+	desc = "A slab of station reclaimed and chemically processed meat product."
+
 /obj/item/weapon/reagent_containers/food/snacks/meat/monkey
 	//same as plain meat
 
 /obj/item/weapon/reagent_containers/food/snacks/meat/corgi
-	name = "corgi meat"
-	desc = "Tastes like... well, you know."
+	name = "meat"
+	desc = "Tastes like... something korean..."
 
-/obj/item/weapon/reagent_containers/food/snacks/meat/beef
-	name = "beef slab"
-	desc = "The classic red meat."
+/obj/item/weapon/reagent_containers/food/snacks/meat/pug
+	name = "meat"
+	desc = "Tastes like... uhhhh..."
 
-/obj/item/weapon/reagent_containers/food/snacks/meat/goat
-	name = "chevon slab"
-	desc = "Goat meat, to the uncultured."
+/obj/item/weapon/reagent_containers/food/snacks/meat/ham
+	name = "Ham"
+	desc = "Taste like bacon."
 
-/obj/item/weapon/reagent_containers/food/snacks/meat/chicken
-	name = "chicken piece"
-	desc = "It tastes like you'd expect."
+/obj/item/weapon/reagent_containers/food/snacks/meat/meatwheat
+	name = "meatwheat clump"
+	desc = "This doesn't look like meat, but your standards aren't <i>that</i> high to begin with."
+	filling_color = rgb(150, 0, 0)
+	icon_state = "meatwheat_clump"
+	bitesize = 4
 
-/obj/item/weapon/reagent_containers/food/snacks/meat/chicken/game
-	name = "game bird piece"
-	desc = "Fresh game meat, harvested from some wild bird."
+/obj/item/weapon/reagent_containers/food/snacks/meat/meatwheat/atom_init()
+	. = ..()
+	reagents.add_reagent("nutriment", 3)
+	reagents.add_reagent("vitamin", 2)
+	reagents.add_reagent("blood", 5)

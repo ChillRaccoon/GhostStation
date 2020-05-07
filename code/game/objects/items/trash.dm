@@ -4,184 +4,73 @@
 //Added by Jack Rost
 /obj/item/trash
 	icon = 'icons/obj/trash.dmi'
-	w_class = ITEM_SIZE_SMALL
+	w_class = 2.0
 	desc = "This is rubbish."
-	var/age = 0
+	raisins
+		name = "4no raisins"
+		icon_state= "4no_raisins"
+	candy
+		name = "Candy"
+		icon_state= "candy"
+	cheesie
+		name = "Cheesie honkers"
+		icon_state = "cheesie_honkers"
+	chips
+		name = "Chips"
+		icon_state = "chips"
+	popcorn
+		name = "Popcorn"
+		icon_state = "popcorn"
+	sosjerky
+		name = "Scaredy's Private Reserve Beef Jerky"
+		icon_state = "sosjerky"
+	syndi_cakes
+		name = "Syndi cakes"
+		icon_state = "syndi_cakes"
+	waffles
+		name = "Waffles"
+		icon_state = "waffles"
+	plate
+		name = "Plate"
+		icon_state = "plate"
+	snack_bowl
+		name = "Snack bowl"
+		icon_state	= "snack_bowl"
+	pistachios
+		name = "Pistachios pack"
+		icon_state = "pistachios_pack"
+	semki
+		name = "Semki pack"
+		icon_state = "semki_pack"
+	tray
+		name = "Tray"
+		icon_state = "tray"
+	candle
+		name = "candle"
+		icon = 'icons/obj/candle.dmi'
+		icon_state = "candle4"
+	liquidfood
+		name = "\improper \"LiquidFood\" ration"
+		icon_state = "liquidfood"
+	proteinbar
+		name = "protein bar"
+		icon_state = "proteinbar"
+	fruitbar
+		name = "fruit bar"
+		icon_state = "fruitbar"
 
-/obj/item/trash/New(var/newloc, var/_age)
-	..(newloc)
-	if(!isnull(_age))
-		age = _age
+/obj/item/trash/candle/ghost
+	icon_state = "gcandle4"
 
-/obj/item/trash/Initialize()
-	SSpersistence.track_value(src, /datum/persistent/filth/trash)
-	. = ..()
+/obj/item/trash/candle/ghost/attackby(obj/item/weapon/W, mob/living/carbon/human/user)
+	..()
+	if(user.getBrainLoss() >= 60 || user.mind.assigned_role == "Chaplain" || user.mind.role_alt_title == "Paranormal Investigator")
+		if(istype(W, /obj/item/weapon/nullrod))
+			var/obj/item/trash/candle/C = new /obj/item/trash/candle(loc)
+			if(istype(loc, /mob))
+				user.put_in_hands(C)
+				dropped()
+			qdel(src)
 
-/obj/item/trash/Destroy()
-	SSpersistence.forget_value(src, /datum/persistent/filth/trash)
-	. = ..()
-
-/obj/item/trash/raisins
-	name = "\improper 4no raisins"
-	icon_state = "4no_raisins"
-
-/obj/item/trash/candy
-	name = "candy"
-	icon_state = "candy"
-
-/obj/item/trash/candy/proteinbar
-	name = "protein bar"
-	icon_state = "proteinbar"
-
-/obj/item/trash/cheesie
-	name = "\improper Cheesie Honkers"
-	icon_state = "cheesie_honkers"
-
-/obj/item/trash/chips
-	name = "chips"
-	icon_state = "chips"
-
-/obj/item/trash/popcorn
-	name = "popcorn"
-	icon_state = "popcorn"
-
-/obj/item/trash/sosjerky
-	name = "Scaredy's Private Reserve Beef Jerky"
-	icon_state = "sosjerky"
-
-/obj/item/trash/syndi_cakes
-	name = "syndi cakes"
-	icon_state = "syndi_cakes"
-
-/obj/item/trash/waffles
-	name = "waffles"
-	icon_state = "waffles"
-
-/obj/item/trash/plate
-	name = "plate"
-	icon_state = "plate"
-
-/obj/item/trash/snack_bowl
-	name = "snack bowl"
-	icon_state	= "snack_bowl"
-
-/obj/item/trash/pistachios
-	name = "pistachios pack"
-	icon_state = "pistachios_pack"
-
-/obj/item/trash/semki
-	name = "semki pack"
-	icon_state = "semki_pack"
-
-/obj/item/trash/fishegg
-	name = "caviar can"
-	icon_state = "fisheggs"
-
-/obj/item/trash/carpegg
-	name = "caviar can"
-	icon_state = "carpeggs"
-
-/obj/item/trash/salo
-	name = "salo pack"
-	icon_state = "salo"
-
-/obj/item/trash/croutons
-	name = "suhariki pack"
-	icon_state = "croutons"
-
-/obj/item/trash/squid
-	name = "calamari pack"
-	icon_state = "squid"
-
-/obj/item/trash/driedfish
-	name = "vobla pack"
-	icon_state = "driedfish"
-
-/obj/item/trash/tray
-	name = "tray"
-	icon_state = "tray"
-
-/obj/item/trash/candle
-	name = "candle"
-	icon = 'icons/obj/candle.dmi'
-	icon_state = "candle4"
-
-/obj/item/trash/liquidfood
-	name = "\improper \"LiquidFood\" MRE"
-	icon_state = "liquidfood"
-
-/obj/item/trash/tastybread
-	name = "bread tube"
-	icon_state = "tastybread"
-
-/obj/item/trash/cubewrapper
-	name = "discarded wrapper"
-	icon_state = "monkeywrap"
-
-/obj/item/trash/beef
-	name = "empty can"
-	icon_state = "beef"
-
-/obj/item/trash/beans
-	name = "empty can"
-	icon_state = "beans"
-
-/obj/item/trash/tomato
-	name = "empty can"
-	icon_state = "tomato"
-
-/obj/item/trash/spinach
-	name = "empty can"
-	icon_state = "spinach"
-
-/obj/item/trash/cakewrap
-	name = "wrapper"
-	icon_state = "cakewrap"
-
-/obj/item/trash/mochicakewrap
-	name = "wrapper"
-	icon_state = "mochicakewrap"
-
-/obj/item/trash/mooncakewrap
-	name = "wrapper"
-	icon_state = "mooncakewrap"
-
-/obj/item/trash/tidegobs
-	name = "tide gob bag"
-	icon_state = "tidegobs"
-
-/obj/item/trash/saturno
-	name = "\improper saturn-Os bag"
-	icon_state = "saturno"
-
-/obj/item/trash/jupiter
-	name = "gello cup"
-	icon_state = "jupiter"
-
-/obj/item/trash/pluto
-	name = "rod bag"
-	icon_state = "pluto"
-
-/obj/item/trash/venus
-	name = "hot cakes bag"
-	icon_state = "venus"
-
-/obj/item/trash/mars
-	name = "frouka box"
-	icon_state = "mars"
-
-/obj/item/trash/oort
-	name = "oort rock bag"
-	icon_state = "oort"
-
-/obj/item/trash/weebonuts
-	name = "red alert nuts bag"
-	icon_state = "weebonuts"
-
-/obj/item/trash/stick
-	name = "stick"
-	desc = "a stick from some snack food item or a lollipop, not even useful as crafting material."
-	icon_state = "stick"
-
-/obj/item/trash/attack(mob/M as mob, mob/living/user as mob)
+/obj/item/trash/attack(mob/M, mob/living/user)
 	return

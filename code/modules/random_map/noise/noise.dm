@@ -33,8 +33,8 @@
 // Diamond-square algorithm.
 /datum/random_map/noise/seed_map()
 	// Instantiate the grid.
-	for(var/x = 1, x <= limit_x, x++)
-		for(var/y = 1, y <= limit_y, y++)
+	for(var/x in 1 to limit_x)
+		for(var/y in 1 to limit_y)
 			map[TRANSLATE_COORD(x,y)] = 0
 
 	// Now dump in the actual random data.
@@ -104,7 +104,7 @@
 
  	// Recurse until size is too small to subdivide.
 	if(isize>3)
-		if(!priority_process) 
+		if(!priority_process)
 			CHECK_TICK
 		iteration++
 		subdivide(iteration, x,       y,       hsize)

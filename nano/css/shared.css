@@ -148,10 +148,6 @@ h4 {
     font-size: 12px;
 }
 
-abbr {
-    border-bottom: .1em dotted;
-}
-
 .white {
     color: white;
     font-weight: bold;
@@ -239,10 +235,6 @@ div.notice {
     clear: both;
 }
 
-.notice.info {
-    background: url(uiInfoBackground.jpg) 50% 50%;
-}
-
 .itemGroup {
     border: 1px solid #e9c183;
     background: #2c2c2c;
@@ -254,44 +246,35 @@ div.notice {
     width: 100%;
     margin: 4px 0 0 0;
     clear: both;
-	overflow: auto;
-}
-
-.itemContentNarrow, .itemContent {
-    float: left;
-}
-
-.itemContentNarrow {
-    width: 30%;
-}
-
-.itemContent {
-    width: 69%;
-}
-
-.itemLabelNarrow, .itemLabel, .itemLabelWide, .itemLabelWider, .itemLabelWidest {
-    float: left;
-    color: #e9c183;
-}
-
-.itemLabelNarrow {
-    width: 20%;
 }
 
 .itemLabel {
+    float: left;
     width: 30%;
+    color: #e9c183;
 }
 
-.itemLabelWide {
-    width: 45%;
-}
-
-.itemLabelWider {
+.itemContent {
+    float: left;
     width: 69%;
 }
 
+.itemLabelNarrow {
+    float: left;
+    width: 20%;
+    color: #e9c183;
+}
+
+.itemLabelWide {
+    float: left;
+    width: 45%;
+    color: #e9c183;
+}
+
 .itemLabelWidest {
+    float: left;
     width: 100%;
+    color: #e9c183;
 }
 
 .itemContentWide {
@@ -315,7 +298,6 @@ div.notice {
     border: 1px solid #40628a;
     padding: 4px;
     margin: 3px 0;
-	overflow: hidden;
 }
 
 .statusDisplayRecords {
@@ -326,19 +308,6 @@ div.notice {
     margin: 3px 0;
     overflow-x: hidden;
     overflow-y: auto;
-}
-
-.statusDisplayComm {
-	width: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    color: #ffffff;
-	padding-bottom: 4px;
-	border-top: 0 none;
-	border-left: 0 none;
-	border-right: 0 none;
-	border-bottom: 2px inset #40628a;
-    margin: 3px 0;
-	overflow: hidden;
 }
 
 .statusLabel {
@@ -374,7 +343,7 @@ div.notice {
     background: #000000;
 }
 
-.displayBarText, .displayBarVerticalText, .displayBarBeakerText{
+.displayBarText {
     position: absolute;
     top: -2px;
     left: 5px;
@@ -390,48 +359,6 @@ div.notice {
     background: #40628a;
     overflow: hidden;
     float: left;
-}
-
-.displayBarVertical {
-    position: relative;
-    width: 16px;
-    height: 200px;
-    border: 1px solid #666666;
-    float: left;
-    margin: 0 5px 0 0;
-    overflow: hidden;
-	background: #40628a;
-}
-
-.displayBarVerticalFill {
-    width: 100%;
-    height: 0%;
-    overflow: hidden;
-    float: left;
-	background: #000000;
-}
-
-/*used in xenobio2 computer*/
-
-.displayBarBeaker {
-    position: relative;
-    width: 100px;
-    height: 110px;
-    border-right: 2px solid rgb(102, 179, 255);
-	border-left: 2px solid rgb(102, 179, 255);
-	border-bottom: 2px solid rgb(102, 179, 255);
-    float: left;
-    margin: 0 5px 0 0;
-    overflow: hidden;
-	background: #40628a;
-}
-
-.displayBarBeakerFill {
-    width: 100%;
-    height: 0%;
-    overflow: hidden;
-    float: left;
-	background: rgba(153, 204, 255, 0.3);
 }
 
 .displayBarFill.alignRight {
@@ -509,10 +436,6 @@ div.notice {
 
 .floatRight {
     float: right;
-}
-
-.floatLeft {
-	float: left;
 }
 
 /* Used in PDA */
@@ -600,12 +523,6 @@ th.command {
     color: #ffffff;
 }
 
-th.spt {
-    background: #4f4ff2;
-    font-weight: bold;
-    color: #ffffff;
-}
-
 th.sec {
     background: #8e0000;
     font-weight: bold;
@@ -630,44 +547,14 @@ th.sci {
     color: #ffffff;
 }
 
-th.car {
-    background: #bb9040;
-    font-weight: bold;
-    color: #ffffff;
-}
-
-th.sup {
-    background: #bb9040;
-    font-weight: bold;
-    color: #ffffff;
-}
-
 th.civ {
     background: #a32800;
     font-weight: bold;
     color: #ffffff;
 }
 
-th.srv {
-    background: #88b764;
-    font-weight: bold;
-    color: #ffffff;
-}
-
-th.exp {
-    background: #68099e;
-    font-weight: bold;
-    color: #ffffff;
-}
-
 th.misc {
     background: #666666;
-    font-weight: bold;
-    color: #ffffff;
-}
-
-th.bot {
-    background: #414249;
     font-weight: bold;
     color: #ffffff;
 }
@@ -687,26 +574,10 @@ th.bot {
 }
 
 .oxyloss {
-    color: cyan;
+    color: blue;
 }
 
 /* 75px width used in power monitoring console buttons */
 .width75btn {
     width: 75px;
-}
-.wideTable tr:nth-child(odd) {
-    background-color: #272727;
-}
-
-/* Candystriped rows for tables */
-.candystripe {
-	background-color: rgba(148, 148, 148, 0.25);
-}
-.candystripe:nth-child(odd) {
-	background-color: rgba(0, 0, 0, 0.16);
-}
-
-.redacted {
-	background-color: black;
-	color: black;
 }

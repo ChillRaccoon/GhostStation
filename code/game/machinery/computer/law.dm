@@ -1,40 +1,75 @@
-/obj/machinery/computer/upload
-	name = "unused upload console"
-	icon_keyboard = "rd_key"
-	icon_screen = "command"
-	var/mob/living/silicon/current
+//This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:31
 
-/obj/machinery/computer/upload/attackby(obj/item/weapon/O, mob/user)
+/obj/machinery/computer/aiupload
+	name = "AI Upload"
+	desc = "Used to upload laws to the AI."
+	icon_state = "command"
+	circuit = /obj/item/weapon/circuitboard/aiupload
+	light_color = "#FFFFFF"
+	var/mob/living/silicon/ai/current = null
+	var/opened = FALSE
+
+
+/obj/machinery/computer/aiupload/verb/AccessInternals()
+	set category = "Object"
+	set name = "Access Computer's Internals"
+	set src in oview(1)
+	if(get_dist(src, usr) > 1 || usr.restrained() || usr.lying || usr.stat || issilicon(usr))
+		return
+
+	opened = !opened
+	if(opened)
+		to_chat(usr, "\blue The access panel is now open.")
+	else
+		to_chat(usr, "\blue The access panel is now closed.")
+	return
+
+
+/obj/machinery/computer/aiupload/attackby(obj/item/weapon/O, mob/user)
+	if (user.z > ZLEVEL_EMPTY)
+		to_chat(user, "\red <b>Unable to establish a connection</b>: \black You're too far away from the station!")
+		return
 	if(istype(O, /obj/item/weapon/aiModule))
 		var/obj/item/weapon/aiModule/M = O
-		M.install(src, user)
+		M.install(src)
 	else
 		..()
 
-/obj/machinery/computer/upload/ai
-	name = "\improper AI upload console"
-	desc = "Used to upload laws to the AI."
 
-/obj/machinery/computer/upload/ai/interface_interact(mob/user)
-	if(!CanInteract(user, DefaultTopicState()))
-		return FALSE
-	current = select_active_ai(user, get_z(src))
+/obj/machinery/computer/aiupload/attack_hand(mob/user)
+	. = ..()
+	if(.)
+		return
+
+	current = select_active_ai(user)
 	if (!current)
 		to_chat(user, "No active AIs detected.")
 	else
 		to_chat(user, "[current.name] selected for law changes.")
-	return TRUE
 
-/obj/machinery/computer/upload/robot
-	name = "cyborg upload console"
+/obj/machinery/computer/borgupload
+	name = "Cyborg Upload"
 	desc = "Used to upload laws to Cyborgs."
+	icon_state = "command"
+	circuit = /obj/item/weapon/circuitboard/borgupload
+	var/mob/living/silicon/robot/current = null
 
-/obj/machinery/computer/upload/robot/interface_interact(mob/user)
-	if(!CanInteract(user, DefaultTopicState()))
-		return FALSE
-	current = freeborg(get_z(src))
+
+/obj/machinery/computer/borgupload/attackby(obj/item/weapon/aiModule/module, mob/user)
+	if(istype(module, /obj/item/weapon/aiModule))
+		module.install(src)
+	else
+		return ..()
+
+
+/obj/machinery/computer/borgupload/attack_hand(mob/user)
+	. = ..()
+	if(.)
+		return
+
+	current = freeborg()
+
 	if (!current)
 		to_chat(user, "No free cyborgs detected.")
 	else
-		to_chat(user, "[current.name] selected for law changes.")
-	return TRUE
+		to_chat(user, "[src.current.name] selected for law changes.")

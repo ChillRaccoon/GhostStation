@@ -1,4 +1,5 @@
 /datum/event/rogue_drone
+	startWhen = 10
 	endWhen = 1000
 	var/list/drones_list = list()
 
@@ -24,12 +25,15 @@
 /datum/event/rogue_drone/announce()
 	var/msg
 	if(prob(33))
-		msg = "Attention: unidentified patrol drones detected within proximity to the [location_name()]"
+		msg = "A combat drone wing operating out of the NMV Icarus has failed to return from a sweep of this sector, if any are sighted approach with caution."
 	else if(prob(50))
-		msg = "Unidentified Unmanned Drones approaching the [location_name()]. All hands take notice."
+		msg = "Contact has been lost with a combat drone wing operating out of the NMV Icarus. If any are sighted in the area, approach with caution."
 	else
-		msg = "Class II Laser Fire detected nearby the [location_name()]."
-	command_announcement.Announce(msg, "[location_name()] Sensor Array", zlevels = affecting_z)
+		msg = "Unidentified hackers have targetted a combat drone wing deployed from the NMV Icarus. If any are sighted in the area, approach with caution."
+	command_alert(msg, "Rogue drone alert")
+
+/datum/event/rogue_drone/tick()
+	return
 
 /datum/event/rogue_drone/end()
 	var/num_recovered = 0
@@ -37,13 +41,13 @@
 		var/datum/effect/effect/system/spark_spread/sparks = new /datum/effect/effect/system/spark_spread()
 		sparks.set_up(3, 0, D.loc)
 		sparks.start()
-		D.z = GLOB.using_map.admin_levels[1]
+		D.z = config.admin_levels[1]
 		D.has_loot = 0
 
 		qdel(D)
 		num_recovered++
 
 	if(num_recovered > drones_list.len * 0.75)
-		command_announcement.Announce("Be advised: sensors indicate the unidentified drone swarm has left the immediate proximity of the [location_name()].", "[location_name()] Sensor Array", zlevels = affecting_z)
+		command_alert("Icarus drone control reports the malfunctioning wing has been recovered safely.", "Rogue drone alert")
 	else
-		command_announcement.Announce("Be advised: sensors indicate the unidentified drone swarm has left the immediate proximity of the [location_name()].", "[location_name()] Sensor Array", zlevels = affecting_z)
+		command_alert("Icarus drone control registers disappointment at the loss of the drones, but the survivors have been recovered.", "Rogue drone alert")

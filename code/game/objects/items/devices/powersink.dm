@@ -1,147 +1,120 @@
 // Powersink - used to drain station power
 
 /obj/item/device/powersink
-	name = "power sink"
 	desc = "A nulling power sink which drains energy from electrical systems."
+	name = "power sink"
 	icon_state = "powersink0"
 	item_state = "electronic"
-	w_class = ITEM_SIZE_LARGE
-	obj_flags = OBJ_FLAG_CONDUCTIBLE
+	w_class = 4.0
+	flags = CONDUCT
 	throwforce = 5
 	throw_speed = 1
 	throw_range = 2
+	m_amt = 750
+	w_amt = 750
+	origin_tech = "powerstorage=3;syndicate=5"
+	var/drain_rate = 600000		// amount of power to drain per tick
+	var/power_drained = 0 		// has drained this much power
+	var/max_power = 1e8		// maximum power that can be drained before exploding
+	var/mode = 0		// 0 = off, 1=clamped (off), 2=operating
 
-	matter = list(MATERIAL_STEEL = 750,MATERIAL_WASTE = 750)
-
-	origin_tech = list(TECH_POWER = 3, TECH_ESOTERIC = 5)
-	var/drain_rate = 1500000		// amount of power to drain per tick
-	var/apc_drain_rate = 5000 		// Max. amount drained from single APC. In Watts.
-	var/dissipation_rate = 20000	// Passive dissipation of drained power. In Watts.
-	var/power_drained = 0 			// Amount of power drained.
-	var/max_power = 5e9				// Detonation point.
-	var/mode = 0					// 0 = off, 1=clamped (off), 2=operating
-	var/datum/powernet/PN			// Our powernet
-
-	var/const/DISCONNECTED = 0
-	var/const/CLAMPED_OFF = 1
-	var/const/OPERATING = 2
 
 	var/obj/structure/cable/attached		// the attached cable
 
-/obj/item/device/powersink/on_update_icon()
-	icon_state = "powersink[mode == OPERATING]"
-
-/obj/item/device/powersink/proc/set_mode(value)
-	if(value == mode)
-		return
-	switch(value)
-		if(DISCONNECTED)
-			attached = null
-			if(mode == OPERATING)
-				STOP_PROCESSING_POWER_OBJECT(src)
-			anchored = FALSE
-
-		if(CLAMPED_OFF)
-			if(!attached)
-				return
-			if(mode == OPERATING)
-				STOP_PROCESSING_POWER_OBJECT(src)
-			anchored = TRUE
-
-		if(OPERATING)
-			if(!attached)
-				return
-			START_PROCESSING_POWER_OBJECT(src)
-			anchored = TRUE
-
-	mode = value
-	update_icon()
-	set_light(0)
-
-/obj/item/device/powersink/Destroy()
-	if(mode == 2)
-		STOP_PROCESSING_POWER_OBJECT(src)
-	. = ..()
-
-/obj/item/device/powersink/attackby(var/obj/item/I, var/mob/user)
-	if(isScrewdriver(I))
-		if(mode == DISCONNECTED)
-			var/turf/T = loc
-			if(isturf(T) && !!T.is_plating())
-				attached = locate() in T
-				if(!attached)
-					to_chat(user, "<span class='warning'>This device must be placed over an exposed, powered cable node!</span>")
+	attackby(obj/item/I, mob/user)
+		if(istype(I, /obj/item/weapon/screwdriver))
+			if(mode == 0)
+				var/turf/T = loc
+				if(isturf(T) && !T.intact)
+					attached = locate() in T
+					if(!attached)
+						to_chat(user, "No exposed cable here to attach to.")
+						return
+					else
+						anchored = 1
+						mode = 1
+						to_chat(user, "You attach the device to the cable.")
+						for(var/mob/M in viewers(user))
+							if(M == user) continue
+							to_chat(M, "[user] attaches the power sink to the cable.")
+						return
 				else
-					set_mode(CLAMPED_OFF)
-					user.visible_message( \
-						"[user] attaches \the [src] to the cable.", \
-						"<span class='notice'>You attach \the [src] to the cable.</span>",
-						"<span class='italics'>You hear some wires being connected to something.</span>")
+					to_chat(user, "Device must be placed over an exposed cable to attach to it.")
+					return
 			else
-				to_chat(user, "<span class='warning'>This device must be placed over an exposed, powered cable node!</span>")
+				if (mode == 2)
+					STOP_PROCESSING(SSobj, src) // Now the power sink actually stops draining the station's power if you unhook it. --NeoFite
+				anchored = 0
+				mode = 0
+				to_chat(user, "You detach	the device from the cable.")
+				for(var/mob/M in viewers(user))
+					if(M == user) continue
+					to_chat(M, "[user] detaches the power sink from the cable.")
+				set_light(0)
+				icon_state = "powersink0"
+
+				return
 		else
-			set_mode(DISCONNECTED)
-			user.visible_message( \
-				"[user] detaches \the [src] from the cable.", \
-				"<span class='notice'>You detach \the [src] from the cable.</span>",
-				"<span class='italics'>You hear some wires being disconnected from something.</span>")
-	else
-		return ..()
-
-/obj/item/device/powersink/attack_ai()
-	return
-
-/obj/item/device/powersink/attack_hand(var/mob/user)
-	. = ..()
-	if(.)
-		return
-	switch(mode)
-		if(DISCONNECTED)
 			..()
 
-		if(CLAMPED_OFF)
-			user.visible_message( \
-				"[user] activates \the [src]!", \
-				"<span class='notice'>You activate \the [src].</span>",
-				"<span class='italics'>You hear a click.</span>")
-			message_admins("Power sink activated by [key_name_admin(user)] at (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[src.x];Y=[src.y];Z=[src.z]'>JMP</a>)")
-			log_game("Power sink activated by [key_name(user)] at [get_area_name(src)]")
-			set_mode(OPERATING)
 
-		if(OPERATING)
-			user.visible_message( \
-				"[user] deactivates \the [src]!", \
-				"<span class='notice'>You deactivate \the [src].</span>",
-				"<span class='italics'>You hear a click.</span>")
-			set_mode(CLAMPED_OFF)
 
-/obj/item/device/powersink/pwr_drain()
-	if(!attached)
-		set_mode(DISCONNECTED)
+	attack_paw()
 		return
 
-	var/datum/powernet/PN = attached.powernet
-	var/drained = 0
-	if(PN)
-		set_light(0.5, 0.1, 12)
-		PN.trigger_warning()
-		// found a powernet, so drain up to max power from it
-		drained = PN.draw_power(drain_rate)
-		// if tried to drain more than available on powernet
-		// now look for APCs and drain their cells
-		if(drained < drain_rate)
-			for(var/obj/machinery/power/terminal/T in PN.nodes)
-				// Enough power drained this tick, no need to torture more APCs
-				if(drained >= drain_rate)
-					break
-				var/obj/machinery/power/apc/A = T.master_machine()
-				if(istype(A))
-					drained += A.drain_power(amount = drain_rate)
-		power_drained += drained
+	attack_ai()
+		return
 
-	if(power_drained > max_power * 0.95)
-		playsound(src, 'sound/effects/screech.ogg', 100, 1, 1)
-	if(power_drained >= max_power)
-		STOP_PROCESSING_POWER_OBJECT(src)
-		explosion(src.loc, 3,6,9,12)
-		qdel(src)
+	attack_hand(mob/user)
+		switch(mode)
+			if(0)
+				..()
+
+			if(1)
+				to_chat(user, "You activate the device!")
+				for(var/mob/M in viewers(user))
+					if(M == user) continue
+					to_chat(M, "[user] activates the power sink!")
+				mode = 2
+				icon_state = "powersink1"
+				START_PROCESSING(SSobj, src)
+
+			if(2)  //This switch option wasn't originally included. It exists now. --NeoFite
+				to_chat(user, "You deactivate the device!")
+				for(var/mob/M in viewers(user))
+					if(M == user) continue
+					to_chat(M, "[user] deactivates the power sink!")
+				mode = 1
+				set_light(0)
+				icon_state = "powersink0"
+				STOP_PROCESSING(SSobj, src)
+
+	process()
+		if(attached)
+			var/datum/powernet/PN = attached.get_powernet()
+			if(PN)
+				set_light(12)
+
+				// found a powernet, so drain up to max power from it
+
+				var/drained = min ( drain_rate, PN.avail )
+				PN.newload += drained
+				power_drained += drained
+
+				// if tried to drain more than available on powernet
+				// now look for APCs and drain their cells
+				if(drained < drain_rate)
+					for(var/obj/machinery/power/terminal/T in PN.nodes)
+						if(istype(T.master, /obj/machinery/power/apc))
+							var/obj/machinery/power/apc/A = T.master
+							if(A.operating && A.cell)
+								A.cell.charge = max(0, A.cell.charge - 50)
+								power_drained += 50
+
+
+			if(power_drained > max_power * 0.95)
+				playsound(src, 'sound/effects/screech.ogg', 100, 1, 1)
+			if(power_drained >= max_power)
+				STOP_PROCESSING(SSobj, src)
+				explosion(src.loc, 3,6,9,12)
+				qdel(src)

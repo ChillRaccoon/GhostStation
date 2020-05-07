@@ -9,7 +9,7 @@
 
 /obj/machinery/computer/telecomms/monitor
 	name = "Telecommunications Monitor"
-	icon_screen = "comm_monitor"
+	icon_state = "comm_monitor"
 
 	var/screen = 0				// the screen number:
 	var/list/machinelist = list()	// the machines located by the computer
@@ -18,13 +18,16 @@
 	var/network = "NULL"		// the network to probe
 
 	var/temp = ""				// temporary feedback messages
+	circuit = /obj/item/weapon/circuitboard/comm_monitor
 
-	attack_hand(mob/user as mob)
-		if(stat & (BROKEN|NOPOWER))
+	light_color = "#50AB00"
+
+	attack_hand(mob/user)
+		return
+/*		if(..())
 			return
 		user.set_machine(src)
-		var/list/dat = list()
-		dat += "<TITLE>Telecommunications Monitor</TITLE><center><b>Telecommunications Monitor</b></center>"
+		var/dat = "<TITLE>Telecommunications Monitor</TITLE><center><b>Telecommunications Monitor</b></center>"
 
 		switch(screen)
 
@@ -58,19 +61,18 @@
 				dat += "</ol>"
 
 
-		var/datum/browser/popup = new(user, "comm_monitor", "Autholathe", 575, 400)
-		popup.set_content(JOINTEXT(dat))
-		popup.open()
+
+		user << browse(entity_ja(dat), "window=comm_monitor;size=575x400")
+		onclose(user, "server_control")
 
 		temp = ""
 		return
 
 
 	Topic(href, href_list)
-		if(..())
+		. = ..()
+		if(!.)
 			return
-
-		usr.set_machine(src)
 
 		if(href_list["viewmachine"])
 			screen = 1
@@ -91,7 +93,7 @@
 
 				if("probe")
 					if(machinelist.len > 0)
-						temp = "<font color = #d70b00>- FAILED: CANNOT PROBE WHEN BUFFER FULL -</font>"
+						temp = "<font color = #D70B00>- FAILED: CANNOT PROBE WHEN BUFFER FULL -</font color>"
 
 					else
 						for(var/obj/machinery/telecomms/T in range(25, src))
@@ -99,9 +101,9 @@
 								machinelist.Add(T)
 
 						if(!machinelist.len)
-							temp = "<font color = #d70b00>- FAILED: UNABLE TO LOCATE NETWORK ENTITIES IN \[[network]\] -</font>"
+							temp = "<font color = #D70B00>- FAILED: UNABLE TO LOCATE NETWORK ENTITIES IN \[[network]\] -</font color>"
 						else
-							temp = "<font color = #336699>- [machinelist.len] ENTITIES LOCATED & BUFFERED -</font>"
+							temp = "<font color = #336699>- [machinelist.len] ENTITIES LOCATED & BUFFERED -</font color>"
 
 						screen = 0
 
@@ -111,22 +113,23 @@
 			var/newnet = input(usr, "Which network do you want to view?", "Comm Monitor", network) as null|text
 			if(newnet && ((usr in range(1, src) || issilicon(usr))))
 				if(length(newnet) > 15)
-					temp = "<font color = #d70b00>- FAILED: NETWORK TAG STRING TOO LENGHTLY -</font>"
+					temp = "<font color = #D70B00>- FAILED: NETWORK TAG STRING TOO LENGHTLY -</font color>"
 
 				else
 					network = newnet
 					screen = 0
 					machinelist = list()
-					temp = "<font color = #336699>- NEW NETWORK TAG SET IN ADDRESS \[[network]\] -</font>"
+					temp = "<font color = #336699>- NEW NETWORK TAG SET IN ADDRESS \[[network]\] -</font color>"
 
 		updateUsrDialog()
-		return
+		return*/
 
-/obj/machinery/computer/telecomms/monitor/emag_act(var/remaining_charges, var/mob/user)
-	if(!emagged)
-		playsound(src.loc, 'sound/effects/sparks4.ogg', 75, 1)
-		emagged = 1
-		req_access.Cut()
-		to_chat(user, "<span class='notice'>You you disable the security protocols</span>")
+	attackby(obj/item/weapon/D, mob/user)
+		if(istype(D, /obj/item/weapon/card/emag) && !emagged)
+			playsound(src.loc, 'sound/effects/sparks4.ogg', 75, 1)
+			emagged = 1
+			to_chat(user, "\blue You disable the security protocols")
+		else
+			..()
 		src.updateUsrDialog()
-		return 1
+		return

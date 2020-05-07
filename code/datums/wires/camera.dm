@@ -1,38 +1,28 @@
-// Wires for cameras.
-
-/datum/wires/camera
-	random = 1
-	holder_type = /obj/machinery/camera
-	wire_count = 6
-	descriptions = list(
-		new /datum/wire_description(CAMERA_WIRE_FOCUS, "This wire runs to the camera's lens adjustment motors."),
-		new /datum/wire_description(CAMERA_WIRE_POWER, "This wire seems to be carrying a heavy current."),
-		new /datum/wire_description(CAMERA_WIRE_LIGHT, "This wire seems connected to the built-in light.", SKILL_EXPERT),
-		new /datum/wire_description(CAMERA_WIRE_ALARM, "This wire is connected to a remote signaling device of some sort.")
-	)
-
-/datum/wires/camera/GetInteractWindow(mob/user)
-
-	. = ..()
-	var/obj/machinery/camera/C = holder
-	. += "<br>\n[(C.view_range == initial(C.view_range) ? "The focus light is on." : "The focus light is off.")]"
-	. += "<br>\n[(C.can_use() ? "The power link light is on." : "The power link light is off.")]"
-	. += "<br>\n[(C.light_disabled ? "The camera light is off." : "The camera light is on.")]"
-	. += "<br>\n[(C.alarm_on ? "The alarm light is on." : "The alarm light is off.")]"
-	return .
-
-/datum/wires/camera/CanUse(var/mob/living/L)
-	var/obj/machinery/camera/C = holder
-	return C.panel_open
-
-var/const/CAMERA_WIRE_FOCUS = 1
-var/const/CAMERA_WIRE_POWER = 2
-var/const/CAMERA_WIRE_LIGHT = 4
-var/const/CAMERA_WIRE_ALARM = 8
+var/const/CAMERA_WIRE_FOCUS    = 1
+var/const/CAMERA_WIRE_POWER    = 2
+var/const/CAMERA_WIRE_LIGHT    = 4
+var/const/CAMERA_WIRE_ALARM    = 8
 var/const/CAMERA_WIRE_NOTHING1 = 16
 var/const/CAMERA_WIRE_NOTHING2 = 32
 
-/datum/wires/camera/UpdateCut(var/index, var/mended)
+/datum/wires/camera
+	random = TRUE
+	holder_type = /obj/machinery/camera
+	wire_count = 6
+
+/datum/wires/camera/get_interact_window()
+	var/obj/machinery/camera/C = holder
+	. = ..()
+	. += "<br>[(C.view_range == initial(C.view_range) ? "The focus light is on." : "The focus light is off.")]"
+	. += "<br>[(C.can_use() ? "The power link light is on." : "The power link light is off.")]"
+	. += "<br>[(C.light_disabled ? "The camera light is off." : "The camera light is on.")]"
+	. += "<br>[(C.alarm_on ? "The alarm light is on." : "The alarm light is off.")]"
+
+/datum/wires/camera/can_use()
+	var/obj/machinery/camera/C = holder
+	return C.panel_open
+
+/datum/wires/camera/update_cut(index, mended)
 	var/obj/machinery/camera/C = holder
 
 	switch(index)
@@ -41,8 +31,7 @@ var/const/CAMERA_WIRE_NOTHING2 = 32
 			C.setViewRange(range)
 
 		if(CAMERA_WIRE_POWER)
-			if(C.status && !mended || !C.status && mended)
-				C.deactivate(usr, 1)
+			C.toggle_cam(TRUE, usr)
 
 		if(CAMERA_WIRE_LIGHT)
 			C.light_disabled = !mended
@@ -52,26 +41,23 @@ var/const/CAMERA_WIRE_NOTHING2 = 32
 				C.triggerCameraAlarm()
 			else
 				C.cancelCameraAlarm()
-	return
 
-/datum/wires/camera/UpdatePulsed(var/index)
+/datum/wires/camera/update_pulsed(index)
 	var/obj/machinery/camera/C = holder
-	if(IsIndexCut(index))
-		return
+
 	switch(index)
 		if(CAMERA_WIRE_FOCUS)
 			var/new_range = (C.view_range == initial(C.view_range) ? C.short_range : initial(C.view_range))
 			C.setViewRange(new_range)
 
+		if(CAMERA_WIRE_POWER)
+			C.disconnect_viewers()
+
 		if(CAMERA_WIRE_LIGHT)
 			C.light_disabled = !C.light_disabled
 
 		if(CAMERA_WIRE_ALARM)
-			C.visible_message("\icon[C] *beep*", "\icon[C] *beep*")
-	return
+			C.audible_message("[bicon(C)] *beep*")
 
-/datum/wires/camera/proc/CanDeconstruct()
-	if(IsIndexCut(CAMERA_WIRE_POWER) && IsIndexCut(CAMERA_WIRE_FOCUS) && IsIndexCut(CAMERA_WIRE_LIGHT) && IsIndexCut(CAMERA_WIRE_NOTHING1) && IsIndexCut(CAMERA_WIRE_NOTHING2))
-		return 1
-	else
-		return 0
+/datum/wires/camera/proc/is_deconstructable()
+	return is_index_cut(CAMERA_WIRE_POWER) && is_index_cut(CAMERA_WIRE_FOCUS) && is_index_cut(CAMERA_WIRE_LIGHT) && is_index_cut(CAMERA_WIRE_NOTHING1) && is_index_cut(CAMERA_WIRE_NOTHING2)

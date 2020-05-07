@@ -1,186 +1,164 @@
 /obj/structure
 	icon = 'icons/obj/structures.dmi'
-	w_class = ITEM_SIZE_NO_CONTAINER
-	layer = STRUCTURE_LAYER
+	var/climbable
+	var/list/climbers = list()
 
-	var/breakable
-	var/parts
-	var/list/connections = list("0", "0", "0", "0")
-	var/list/other_connections = list("0", "0", "0", "0")
-	var/list/blend_objects = newlist() // Objects which to blend with
-	var/list/noblend_objects = newlist() //Objects to avoid blending with (such as children of listed blend objects.
-	var/material/material = null
-	var/footstep_type
-	var/mob_offset = 0 //used for on_structure_offset mob animation
-
-/obj/structure/attack_generic(var/mob/user, var/damage, var/attack_verb, var/wallbreaker)
-	if(wallbreaker && damage && breakable)
-		visible_message("<span class='danger'>\The [user] smashes the \[src] to pieces!</span>")
-		attack_animation(user)
+/obj/structure/blob_act()
+	if(prob(50))
 		qdel(src)
-		return 1
-	visible_message("<span class='danger'>\The [user] [attack_verb] \the [src]!</span>")
-	attack_animation(user)
-	take_damage(damage)
-	return 1
-
-/obj/structure/proc/mob_breakout(var/mob/living/escapee)
-	set waitfor = FALSE
-	return FALSE
-
-/obj/structure/proc/take_damage(var/damage)
-	return
-
-/obj/structure/Destroy()
-	reset_mobs_offset()
-	var/turf/T = get_turf(src)
-	if(T && parts)
-		new parts(T)
-	. = ..()
-	if(istype(T))
-		T.fluid_update()
-
-/obj/structure/Crossed(mob/living/M)
-	if(istype(M))
-		M.on_structure_offset(mob_offset)
-	..()
-
-/obj/structure/proc/reset_mobs_offset()
-	for(var/mob/living/M in loc)
-		M.on_structure_offset(0)
-
-/obj/structure/Initialize()
-	. = ..()
-	if(!CanFluidPass())
-		fluid_update()
-
-/obj/structure/Move()
-	. = ..()
-	if(. && !CanFluidPass())
-		fluid_update()
-
-
-/obj/structure/attack_hand(mob/user)
-	..()
-	if(breakable)
-		if(MUTATION_HULK in user.mutations)
-			user.say(pick(";RAAAAAAAARGH!", ";HNNNNNNNNNGGGGGGH!", ";GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", ";AAAAAAARRRGH!" ))
-			attack_generic(user,1,"smashes")
-		else if(istype(user,/mob/living/carbon/human))
-			var/mob/living/carbon/human/H = user
-			if(H.species.can_shred(user))
-				attack_generic(user,1,"slices")
-	return ..()
-
-/obj/structure/grab_attack(var/obj/item/grab/G)
-	if (!G.force_danger())
-		to_chat(G.assailant, "<span class='danger'>You need a better grip to do that!</span>")
-		return TRUE
-	if (G.assailant.a_intent == I_HURT)
-		// Slam their face against the table.
-		var/blocked = G.affecting.get_blocked_ratio(BP_HEAD, BRUTE, damage = 8)
-		if (prob(30 * (1 - blocked)))
-			G.affecting.Weaken(5)
-		G.affecting.apply_damage(8, BRUTE, BP_HEAD)
-		visible_message("<span class='danger'>[G.assailant] slams [G.affecting]'s face against \the [src]!</span>")
-		if (material)
-			playsound(loc, material.tableslam_noise, 50, 1)
-		else
-			playsound(loc, 'sound/weapons/tablehit1.ogg', 50, 1)
-		var/list/L = take_damage(rand(1,5))
-		for(var/obj/item/weapon/material/shard/S in L)
-			if(S.sharp && prob(50))
-				G.affecting.visible_message("<span class='danger'>\The [S] slices into [G.affecting]'s face!</span>", "<span class='danger'>\The [S] slices into your face!</span>")
-				G.affecting.standard_weapon_hit_effects(S, G.assailant, S.force*2, BP_HEAD)
-		qdel(G)
-	else if(atom_flags & ATOM_FLAG_CLIMBABLE)
-		var/obj/occupied = turf_is_crowded()
-		if (occupied)
-			to_chat(G.assailant, "<span class='danger'>There's \a [occupied] in the way.</span>")
-			return TRUE
-		G.affecting.forceMove(src.loc)
-		G.affecting.Weaken(rand(2,5))
-		visible_message("<span class='danger'>[G.assailant] puts [G.affecting] on \the [src].</span>")
-		qdel(G)
-		return TRUE
 
 /obj/structure/ex_act(severity)
 	switch(severity)
 		if(1.0)
+			for(var/atom/movable/AM in contents)
+				AM.forceMove(loc)
+				AM.ex_act(severity++)
 			qdel(src)
 			return
 		if(2.0)
 			if(prob(50))
+				for(var/atom/movable/AM in contents)
+					AM.forceMove(loc)
+					AM.ex_act(severity++)
 				qdel(src)
 				return
 		if(3.0)
 			return
 
-/obj/structure/proc/can_visually_connect()
-	return anchored
+/obj/structure/meteorhit(obj/O)
+	qdel(src)
 
-/obj/structure/proc/can_visually_connect_to(var/obj/structure/S)
-	return istype(S, src)
+/obj/structure/atom_init()
+	. = ..()
+	if(climbable)
+		verbs += /obj/structure/proc/climb_on
 
-/obj/structure/proc/refresh_neighbors()
-	for(var/thing in RANGE_TURFS(src, 1))
-		var/turf/T = thing
-		T.update_icon()
+/obj/structure/proc/climb_on()
 
-/obj/structure/proc/update_connections(propagate = 0)
-	var/list/dirs = list()
-	var/list/other_dirs = list()
+	set name = "Climb structure"
+	set desc = "Climbs onto a structure."
+	set category = "Object"
+	set src in oview(1)
 
-	for(var/obj/structure/S in orange(src, 1))
-		if(can_visually_connect_to(S))
-			if(S.can_visually_connect())
-				if(propagate)
-					S.update_connections()
-					S.update_icon()
-				dirs += get_dir(src, S)
+	do_climb(usr)
 
-	if(!can_visually_connect())
-		connections = list("0", "0", "0", "0")
-		other_connections = list("0", "0", "0", "0")
-		return FALSE
+/obj/structure/MouseDrop_T(mob/target, mob/user)
+	if(isessence(user))
+		return
+	var/mob/living/H = user
+	if(can_climb(H) && target == user)
+		do_climb(target)
+	else
+		return ..()
 
-	for(var/direction in GLOB.cardinal)
-		var/turf/T = get_step(src, direction)
-		var/success = 0
-		for(var/b_type in blend_objects)
-			if(istype(T, b_type))
-				success = 1
-				if(propagate)
-					var/turf/simulated/wall/W = T
-					if(istype(W))
-						W.update_connections(1)
-				if(success)
-					break
-			if(success)
-				break
-		if(!success)
-			for(var/obj/O in T)
-				for(var/b_type in blend_objects)
-					if(istype(O, b_type))
-						success = 1
-						for(var/obj/structure/S in T)
-							if(istype(S, src))
-								success = 0
-						for(var/nb_type in noblend_objects)
-							if(istype(O, nb_type))
-								success = 0
+/obj/structure/proc/can_climb(mob/living/user, post_climb_check=0)
+	if (!can_touch(user) || !climbable || (!post_climb_check && (user in climbers)))
+		return 0
 
-					if(success)
-						break
-				if(success)
-					break
+	if (!user.Adjacent(src))
+		to_chat(user, "<span class='danger'>You can't climb there, the way is blocked.</span>")
+		return 0
 
-		if(success)
-			dirs += get_dir(src, T)
-			other_dirs += get_dir(src, T)
+	if(user.is_busy())
+		return 0
 
-	refresh_neighbors()
+	var/obj/occupied = turf_is_crowded()
+	if(occupied)
+		to_chat(user, "<span class='danger'>There's \a [occupied] in the way.</span>")
+		return 0
+	return 1
 
-	connections = dirs_to_corner_states(dirs)
-	other_connections = dirs_to_corner_states(other_dirs)
-	return TRUE
+/obj/structure/proc/turf_is_crowded()
+	var/turf/T = get_turf(src)
+	if(!T || !istype(T))
+		return 0
+	for(var/obj/O in T.contents)
+		if(istype(O,/obj/structure))
+			var/obj/structure/S = O
+			if(S.climbable) continue
+		if(O && O.density)
+			return O
+	return 0
+
+/obj/structure/proc/do_climb(mob/living/user)
+	if (!can_climb(user))
+		return
+	usr.visible_message("<span class='warning'>[user] starts climbing onto \the [src]!</span>")
+	climbers |= user
+
+	if(!do_after(user,50,target = user))
+		climbers -= user
+		return
+
+	if (!can_climb(user, post_climb_check=1))
+		climbers -= user
+		return
+
+	on_climb(user)
+	climbers -= user
+
+/obj/structure/proc/on_climb(mob/living/user)
+	usr.forceMove(get_turf(src))
+
+	if (get_turf(user) == get_turf(src))
+		usr.visible_message("<span class='warning'>[user] climbs onto \the [src]!</span>")
+
+/obj/structure/proc/structure_shaken()
+	for(var/mob/living/M in climbers)
+		M.Weaken(2)
+		to_chat(M, "<span class='danger'>You topple as you are shaken off \the [src]!</span>")
+		climbers.Cut(1,2)
+
+	for(var/mob/living/M in get_turf(src))
+		if(M.lying) return //No spamming this on people.
+		M.Weaken(5)
+		to_chat(M, "<span class='red'>You topple as \the [src] moves under you!</span>")
+
+		if(prob(25))
+
+			var/damage = rand(15,30)
+			var/mob/living/carbon/human/H = M
+			if(!istype(M))
+				to_chat(H, "<span class='red'>You land heavily!</span>")
+				M.adjustBruteLoss(damage)
+				return
+
+			var/obj/item/organ/external/BP
+
+			switch(pick(list("knee","head","elbow")))
+				if("knee")
+					BP = H.bodyparts_by_name[pick(BP_L_LEG , BP_R_LEG)]
+				if("elbow")
+					BP = H.bodyparts_by_name[pick(BP_L_ARM , BP_R_ARM)]
+				if("head")
+					BP = H.bodyparts_by_name[BP_HEAD]
+
+			if(BP)
+				to_chat(M, "<span class='red'>You land heavily on your [BP.name]!</span>")
+				BP.take_damage(damage, 0)
+				if(BP.parent)
+					BP.parent.add_autopsy_data("Misadventure", damage)
+			else
+				to_chat(H, "<span class='red'>You land heavily!</span>")
+				H.adjustBruteLoss(damage)
+
+			H.updatehealth()
+	return
+
+/obj/structure/proc/can_touch(mob/user)
+	if(!user)
+		return 0
+	if(!Adjacent(user))
+		return 0
+	if(user.restrained() || user.buckled)
+		to_chat(user, "<span class='notice'>You need your hands and legs free for this.</span>")
+		return 0
+	if(user.stat || user.paralysis || user.sleeping || user.lying || user.weakened)
+		return 0
+	if(issilicon(user))
+		to_chat(user, "<span class='notice'>You need hands for this.</span>")
+		return 0
+	for(var/obj/O in src.loc)
+		if((O.density && O.opacity) > 0)
+			return 0
+	return 1

@@ -3,37 +3,43 @@
 	desc = "A device used to project your voice. Loudly."
 	icon_state = "megaphone"
 	item_state = "radio"
-	w_class = ITEM_SIZE_SMALL
-	obj_flags = OBJ_FLAG_CONDUCTIBLE
+	w_class = 2.0
+	flags = CONDUCT
+
+	actions_types = /datum/action/item_action/attack_self
 
 	var/spamcheck = 0
 	var/emagged = 0
 	var/insults = 0
 	var/list/insultmsg = list("FUCK EVERYONE!", "I'M A TATER!", "ALL SECURITY TO SHOOT ME ON SIGHT!", "I HAVE A BOMB!", "CAPTAIN IS A COMDOM!", "FOR THE SYNDICATE!")
 
-/obj/item/device/megaphone/attack_self(mob/living/user as mob)
+/obj/item/device/megaphone/attack_self(mob/living/user)
 	if (user.client)
 		if(user.client.prefs.muted & MUTE_IC)
-			to_chat(src, "<span class='warning'>You cannot speak in IC (muted).</span>")
+			to_chat(src, "\red You cannot speak in IC (muted).")
 			return
-	if(user.silent)
+	if(!ishuman(user))
+		to_chat(user, "\red You don't know how to use this!")
+		return
+	if(user.silent || isabductor(user))
 		return
 	if(spamcheck)
-		to_chat(user, "<span class='warning'>\The [src] needs to recharge!</span>")
+		to_chat(user, "\red \The [src] needs to recharge!")
 		return
 
+	playsound(src, 'sound/items/megaphone.ogg', 100, 1, 1)
 	var/message = sanitize(input(user, "Shout a message?", "Megaphone", null)  as text)
 	if(!message)
 		return
-	message = capitalize(message)
-	if ((src.loc == user && usr.stat == 0))
+	message = (capitalize(message))
+	if ((src.loc == user && usr.stat == CONSCIOUS))
 		if(emagged)
 			if(insults)
 				for(var/mob/O in (viewers(user)))
 					O.show_message("<B>[user]</B> broadcasts, <FONT size=3>\"[pick(insultmsg)]\"</FONT>",2) // 2 stands for hearable message
 				insults--
 			else
-				to_chat(user, "<span class='warning'>*BZZZZzzzzzt*</span>")
+				to_chat(user, "\red *BZZZZzzzzzt*")
 		else
 			for(var/mob/O in (viewers(user)))
 				O.show_message("<B>[user]</B> broadcasts, <FONT size=3>\"[message]\"</FONT>",2) // 2 stands for hearable message
@@ -43,9 +49,10 @@
 			spamcheck = 0
 		return
 
-/obj/item/device/megaphone/emag_act(var/remaining_charges, var/mob/user)
-	if(!emagged)
-		to_chat(user, "<span class='warning'>You overload \the [src]'s voice synthesizer.</span>")
+/obj/item/device/megaphone/attackby(obj/item/I, mob/user)
+	if(istype(I, /obj/item/weapon/card/emag) && !emagged)
+		to_chat(user, "\red You overload \the [src]'s voice synthesizer.")
 		emagged = 1
 		insults = rand(1, 3)//to prevent dickflooding
-		return 1
+		return
+	return

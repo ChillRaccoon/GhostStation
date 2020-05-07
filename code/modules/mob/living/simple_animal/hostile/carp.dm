@@ -1,63 +1,44 @@
+
+
 /mob/living/simple_animal/hostile/carp
 	name = "space carp"
 	desc = "A ferocious, fang-bearing creature that resembles a fish."
-	icon = 'icons/mob/simple_animal/carp.dmi'
-	icon_state = "carp" //for mapping purposes
+	icon_state = "carp"
+	icon_living = "carp"
+	icon_dead = "carp_dead"
 	icon_gib = "carp_gib"
 	speak_chance = 0
-	turns_per_move = 3
+	turns_per_move = 5
+	butcher_results = list(/obj/item/weapon/reagent_containers/food/snacks/carpmeat = 2)
 	response_help = "pets the"
 	response_disarm = "gently pushes aside the"
 	response_harm = "hits the"
-	speed = 2
-	maxHealth = 50
-	health = 50
+	speed = 4
+	maxHealth = 25
+	health = 25
 
 	harm_intent_damage = 8
-	melee_damage_lower = 10
-	melee_damage_upper = 20
-	attacktext = "bitten"
+	melee_damage_lower = 15
+	melee_damage_upper = 15
+	attack_message = list("bites")
 	attack_sound = 'sound/weapons/bite.ogg'
-	pry_time = 10 SECONDS
-	melee_damage_flags = DAM_SHARP
-	pry_desc = "biting"
 
 	//Space carp aren't affected by atmos.
-	min_gas = null
-	max_gas = null
+	min_oxy = 0
+	max_oxy = 0
+	min_tox = 0
+	max_tox = 0
+	min_co2 = 0
+	max_co2 = 0
+	min_n2 = 0
+	max_n2 = 0
 	minbodytemp = 0
 
-	break_stuff_probability = 25
+	environment_smash = 1
+
 	faction = "carp"
-	bleed_colour = "#5d0d71"
-	pass_flags = PASS_FLAG_TABLE
 
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/fish/poison
-	skin_material = MATERIAL_SKIN_FISH_PURPLE
-	bone_material = MATERIAL_BONE_CARTILAGE
-
-	var/carp_color = "carp" //holder for icon set
-	var/list/icon_sets = list("carp", "blue", "yellow", "grape", "rust", "teal")
-
-/mob/living/simple_animal/hostile/carp/Initialize()
-	. = ..()
-	carp_randomify()
-	update_icon()
-
-/mob/living/simple_animal/hostile/carp/proc/carp_randomify()
-	melee_damage_lower = rand(0.8 * initial(melee_damage_lower), initial(melee_damage_lower))
-	melee_damage_upper = rand(initial(melee_damage_upper), (1.2 * initial(melee_damage_upper)))
-	maxHealth = rand(initial(maxHealth), (1.5 * initial(maxHealth)))
-	health = maxHealth
-	if(prob(1))
-		carp_color = pick("white", "black")
-	else
-		carp_color = pick(icon_sets)
-	icon_state = "[carp_color]"
-	icon_living = "[carp_color]"
-	icon_dead = "[carp_color]_dead"
-
-/mob/living/simple_animal/hostile/carp/Allow_Spacemove(var/check_drift = 0)
+/mob/living/simple_animal/hostile/carp/Process_Spacemove(movement_dir = 0)
 	return 1	//No drifting in space for space carp!	//original comments do not steal
 
 /mob/living/simple_animal/hostile/carp/FindTarget()
@@ -72,3 +53,53 @@
 		if(prob(15))
 			L.Weaken(3)
 			L.visible_message("<span class='danger'>\the [src] knocks down \the [L]!</span>")
+
+/mob/living/simple_animal/hostile/carp/megacarp
+	icon = 'icons/mob/megacarp.dmi'
+	name = "Mega Space Carp"
+	desc = "A ferocious, fang bearing creature that resembles a shark. This one seems especially ticked off."
+	icon_state = "megacarp"
+	icon_living = "megacarp"
+	icon_dead = "megacarp_dead"
+	icon_gib = "megacarp_gib"
+	maxHealth = 65
+	health = 65
+	pixel_x = -16
+
+	melee_damage_lower = 20
+	melee_damage_upper = 20
+
+/mob/living/simple_animal/hostile/carp/dog
+	name = "REX"
+	desc = "That's a cute little doge... WAIT, WHAT???!!"
+	icon = 'icons/mob/doge.dmi'
+	icon_state = "shepherd"
+	maxHealth = 9001
+	health = 9001
+	a_intent = "harm"
+
+	turns_per_move = 5
+	speed = -15
+	move_to_delay = -15
+
+	melee_damage_lower = 400
+	melee_damage_upper = 400
+
+	attack_message = list("licks")
+
+	var/idle_snd_chance = 5
+
+	attack_sound = 'sound/weapons/polkan_atk.ogg'
+
+/mob/living/simple_animal/hostile/carp/dog/polkan
+	name = "POLKAN"
+	icon_state = "husky"
+
+/mob/living/simple_animal/hostile/carp/dog/Life()
+	. = ..()
+	if(!.)
+		return 0
+
+	if(rand(0,100) < idle_snd_chance)
+		var/list/idle_snd = list('sound/voice/polkan/idle1.ogg','sound/voice/polkan/idle2.ogg')
+		playsound(src, pick(idle_snd), 50, 1, -3)

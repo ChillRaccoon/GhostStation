@@ -7,7 +7,7 @@ FLOOR SAFES
 //SAFES
 /obj/structure/safe
 	name = "safe"
-	desc = "A huge chunk of metal with a dial embedded in it. Fine print on the dial reads \"Scarborough Arms - 2 tumbler safe, guaranteed thermite resistant, explosion resistant, and assistant resistant.\"."
+	desc = "A huge chunk of metal with a dial embedded in it. Fine print on the dial reads \"Scarborough Arms - 2 tumbler safe, guaranteed thermite resistant, explosion resistant, and assistant resistant.\""
 	icon = 'icons/obj/structures.dmi'
 	icon_state = "safe"
 	anchored = 1
@@ -21,13 +21,8 @@ FLOOR SAFES
 	var/space = 0		//the combined w_class of everything in the safe
 	var/maxspace = 24	//the maximum combined w_class of stuff in the safe
 
-/obj/structure/safe/Initialize()
-	for(var/obj/item/I in loc)
-		if(space >= maxspace)
-			return
-		if(I.w_class + space <= maxspace) //todo replace with internal storage or something
-			space += I.w_class
-			I.forceMove(src)
+
+/obj/structure/safe/atom_init()
 	. = ..()
 	tumbler_1_pos = rand(0, 72)
 	tumbler_1_open = rand(0, 72)
@@ -35,7 +30,18 @@ FLOOR SAFES
 	tumbler_2_pos = rand(0, 72)
 	tumbler_2_open = rand(0, 72)
 
-/obj/structure/safe/proc/check_unlocked(mob/user as mob, canhear)
+
+/obj/structure/safe/atom_init()
+	. = ..()
+	for(var/obj/item/I in loc)
+		if(space >= maxspace)
+			return
+		if(I.w_class + space <= maxspace)
+			space += I.w_class
+			I.loc = src
+
+
+/obj/structure/safe/proc/check_unlocked(mob/user, canhear)
 	if(user && canhear)
 		if(tumbler_1_pos == tumbler_1_open)
 			to_chat(user, "<span class='notice'>You hear a [pick("tonk", "krunk", "plunk")] from [src].</span>")
@@ -61,14 +67,14 @@ FLOOR SAFES
 	return num
 
 
-/obj/structure/safe/on_update_icon()
+/obj/structure/safe/update_icon()
 	if(open)
 		icon_state = "[initial(icon_state)]-open"
 	else
 		icon_state = initial(icon_state)
 
 
-/obj/structure/safe/attack_hand(mob/user as mob)
+/obj/structure/safe/attack_hand(mob/user)
 	user.set_machine(src)
 	var/dat = "<center>"
 	dat += "<a href='?src=\ref[src];open=1'>[open ? "Close" : "Open"] [src]</a> | <a href='?src=\ref[src];decrement=1'>-</a> [dial * 5] <a href='?src=\ref[src];increment=1'>+</a>"
@@ -78,7 +84,7 @@ FLOOR SAFES
 			var/obj/item/P = contents[i]
 			dat += "<tr><td><a href='?src=\ref[src];retrieve=\ref[P]'>[P.name]</a></td></tr>"
 		dat += "</table></center>"
-	show_browser(user, "<html><head><title>[name]</title></head><body>[dat]</body></html>", "window=safe;size=350x300")
+	user << browse("<html><head><title>[name]</title></head><body>[entity_ja(dat)]</body></html>", "window=safe;size=350x300")
 
 
 /obj/structure/safe/Topic(href, href_list)
@@ -129,7 +135,7 @@ FLOOR SAFES
 		return
 
 	if(href_list["retrieve"])
-		show_browser(user, "", "window=safe") // Close the menu
+		user << browse("", "window=safe") // Close the menu
 
 		var/obj/item/P = locate(href_list["retrieve"]) in src
 		if(open)
@@ -138,26 +144,34 @@ FLOOR SAFES
 				updateUsrDialog()
 
 
-/obj/structure/safe/attackby(obj/item/I as obj, mob/user as mob)
+/obj/structure/safe/attackby(obj/item/I, mob/user)
+	user.SetNextMove(CLICK_CD_INTERACT)
+	add_fingerprint(user)
 	if(open)
 		if(I.w_class + space <= maxspace)
-			if(!user.unEquip(I, src))
-				return
 			space += I.w_class
+			user.drop_item()
+			I.loc = src
 			to_chat(user, "<span class='notice'>You put [I] in [src].</span>")
 			updateUsrDialog()
-			return
 		else
 			to_chat(user, "<span class='notice'>[I] won't fit in [src].</span>")
-			return
 	else
 		if(istype(I, /obj/item/clothing/accessory/stethoscope))
 			to_chat(user, "Hold [I] in one of your hands while you manipulate the dial.")
-			return
+
+
+obj/structure/safe/blob_act()
+	return
 
 
 obj/structure/safe/ex_act(severity)
 	return
+
+
+obj/structure/safe/meteorhit(obj/O)
+	return
+
 
 //FLOOR SAFES
 /obj/structure/safe/floor
@@ -165,17 +179,14 @@ obj/structure/safe/ex_act(severity)
 	icon_state = "floorsafe"
 	density = 0
 	level = 1	//underfloor
-	layer = BELOW_OBJ_LAYER
+	layer = 2.5
 
-/obj/structure/safe/floor/Initialize()
+
+/obj/structure/safe/floor/atom_init()
 	. = ..()
 	var/turf/T = loc
-	if(istype(T) && !T.is_plating())
-		hide(1)
-	update_icon()
+	hide(T.intact)
 
-/obj/structure/safe/floor/hide(var/intact)
-	set_invisibility(intact ? 101 : 0)
 
-/obj/structure/safe/floor/hides_under_flooring()
-	return 1
+/obj/structure/safe/floor/hide(intact)
+	invisibility = intact ? 101 : 0

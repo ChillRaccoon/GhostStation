@@ -1,22 +1,11 @@
-{{if data.failTime}}
-<div class='notice'>
-	<b><h3>SYSTEM FAILURE</h3></b>
-	<i>I/O regulators malfunction detected! Waiting for system reboot...</i><br>
-	Automatic reboot in {{:data.failTime}} seconds...
-	{{:helper.link('Reboot Now', 'refresh', {'reboot' : 1})}}<br><br><br>
-</div>
-{{else}}
 <div class="item">
 	<div class="itemLabel">
-		Stored Charge:
+		Stored Capacity:
 	</div>
 	<div class="itemContent">
 		{{:helper.displayBar(data.storedCapacity, 0, 100, data.charging ? 'good' : 'average')}}
 		<div class="statusValue">
 			{{:helper.round(data.storedCapacity)}}%
-		</div><br>
-		<div class="statusValue">
-			{{:data.storedCapacityAbs}} kWh / {{:data.storedCapacityMax}} kWh
 		</div>
 	</div>
 </div>
@@ -29,10 +18,8 @@
 	<div class="itemContent">
 		{{:helper.link('Auto', 'refresh', {'cmode' : 1}, data.chargeMode ? 'selected' : null)}}{{:helper.link('Off', 'close', {'cmode' : 1}, data.chargeMode ? null : 'selected')}}
 		&nbsp;
-		{{if data.charging == 2}}
+		{{if data.charging}}
 			[<span class='good'>Charging</span>]
-		{{else data.charging == 1}}
-			[<span class='average'>Partially Charging</span>]
 		{{else}}
 			[<span class='bad'>Not Charging</span>]
 		{{/if}}
@@ -49,19 +36,7 @@
 			{{:helper.link('MIN', null, {'input' : 'min'}, (data.chargeLevel > 0) ? null : 'disabled')}}
 			{{:helper.link('SET', null, {'input' : 'set'}, null)}}			
 			{{:helper.link('MAX', null, {'input' : 'max'}, (data.chargeLevel < data.chargeMax) ? null : 'disabled')}}
-			<div style="float: left; width: 100px; text-align: center;">&nbsp;{{:data.chargeLevel}} kW&nbsp;</div>
-		</div>
-	</div>
-</div>
-
-<div class="item">
-	<div class="itemLabel">
-		Input Draw:
-	</div>
-	<div class="itemContent">
-		{{:helper.displayBar(data.chargeLoad, 0, data.chargeMax, (data.chargeLoad < data.chargeLevel) ? 'good' : 'average')}}
-		<div class="statusValue">
-			{{:data.chargeLoad}} kW
+			<div style="float: left; width: 100px; text-align: center;">&nbsp;{{:data.chargeLevel}} W&nbsp;</div>
 		</div>
 	</div>
 </div>
@@ -73,14 +48,6 @@
 	</div>
 	<div class="itemContent">
 		{{:helper.link('Online', 'power', {'online' : 1}, data.outputOnline ? 'selected' : null)}}{{:helper.link('Offline', 'close', {'online' : 1}, data.outputOnline ? null : 'selected')}}
-		&nbsp;
-		{{if data.outputting == 2}}
-			[<span class='good'>Outputting</span>]
-		{{else data.outputting == 1}}
-			[<span class='average'>Disconnected or No Charge</span>]
-		{{else}}
-			[<span class='bad'>Not Outputting</span>]
-		{{/if}}
 	</div>
 </div>
 
@@ -94,7 +61,7 @@
 			{{:helper.link('MIN', null, {'output' : 'min'}, (data.outputLevel > 0) ? null : 'disabled')}}
 			{{:helper.link('SET', null, {'output' : 'set'}, null)}}			
 			{{:helper.link('MAX', null, {'output' : 'max'}, (data.outputLevel < data.outputMax) ? null : 'disabled')}}
-			<div style="float: left; width: 100px; text-align: center;">&nbsp;{{:data.outputLevel}} kW&nbsp;</div>			
+			<div style="float: left; width: 100px; text-align: center;">&nbsp;{{:data.outputLevel}} W&nbsp;</div>			
 		</div>
 	</div>
 </div>
@@ -106,8 +73,7 @@
 	<div class="itemContent">
 		{{:helper.displayBar(data.outputLoad, 0, data.outputMax, (data.outputLoad < data.outputLevel) ? 'good' : 'average')}}
 		<div class="statusValue">
-			{{:data.outputLoad}} kW
+			{{:data.outputLoad}} W
 		</div>
 	</div>
 </div>
-{{/if}}

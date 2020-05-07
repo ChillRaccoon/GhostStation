@@ -6,23 +6,30 @@
 	icon_dead = "piratemelee_dead"
 	speak_chance = 0
 	turns_per_move = 5
-	response_help = "pushes"
+	response_help = "pushes the"
 	response_disarm = "shoves"
-	response_harm = "hits"
+	response_harm = "hits the"
 	speed = 4
 	stop_automated_movement_when_pulled = 0
 	maxHealth = 100
 	health = 100
-	can_escape = TRUE
 
 	harm_intent_damage = 5
 	melee_damage_lower = 30
 	melee_damage_upper = 30
-	attacktext = "slashed"
+	attack_message = list("slashes")
 	attack_sound = 'sound/weapons/bladeslice.ogg'
 
-	unsuitable_atmos_damage = 15
-	var/corpse = /obj/effect/landmark/corpse/pirate
+	min_oxy = 5
+	max_oxy = 0
+	min_tox = 0
+	max_tox = 1
+	min_co2 = 0
+	max_co2 = 5
+	min_n2 = 0
+	max_n2 = 0
+	unsuitable_atoms_damage = 15
+	var/corpse = /obj/effect/landmark/mobcorpse/pirate
 	var/weapon1 = /obj/item/weapon/melee/energy/sword/pirate
 
 	faction = "pirate"
@@ -35,13 +42,15 @@
 	projectilesound = 'sound/weapons/laser.ogg'
 	ranged = 1
 	rapid = 1
+	retreat_distance = 5
+	minimum_distance = 5
 	projectiletype = /obj/item/projectile/beam
-	corpse = /obj/effect/landmark/corpse/pirate/ranged
+	corpse = /obj/effect/landmark/mobcorpse/pirate/ranged
 	weapon1 = /obj/item/weapon/gun/energy/laser
 
 
-/mob/living/simple_animal/hostile/pirate/death(gibbed, deathmessage, show_dead_message)
-	..(gibbed, deathmessage, show_dead_message)
+/mob/living/simple_animal/hostile/pirate/death()
+	..()
 	if(corpse)
 		new corpse (src.loc)
 	if(weapon1)

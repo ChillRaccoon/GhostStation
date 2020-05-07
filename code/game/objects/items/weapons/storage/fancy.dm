@@ -1,37 +1,58 @@
 /*
- * The 'fancy' path is for objects like candle boxes that show how many items are in the storage item on the sprite itself
+ * The 'fancy' path is for objects like donut boxes that show how many items are in the storage item on the sprite itself
  * .. Sorry for the shitty path name, I couldnt think of a better one.
  *
+ * WARNING: var/icon_type is used for both examine text and sprite name. Please look at the procs below and adjust your sprite names accordingly
+ *		TODO: Cigarette boxes should be ported to this standard
  *
  * Contains:
+ *		Donut Box
  *		Egg Box
+ *		Candle Box
  *		Crayon Box
+ *		Glowsticks Box
  *		Cigarette Box
  */
 
-/obj/item/weapon/storage/fancy
-	item_state = "syringe_kit" //placeholder, many of these don't have inhands
-	opened = 0 //if an item has been removed from this container
-	var/obj/item/key_type //path of the key item that this "fancy" container is meant to store
+/obj/item/weapon/storage/fancy/
+	icon = 'icons/obj/food.dmi'
+	icon_state = "donutbox6"
+	name = "donut box"
+	var/icon_type = "donut"
 
-/obj/item/weapon/storage/fancy/on_update_icon()
-	if(!opened)
-		src.icon_state = initial(icon_state)
-	else
-		var/key_count = count_by_type(contents, key_type)
-		src.icon_state = "[initial(icon_state)][key_count]"
+/obj/item/weapon/storage/fancy/update_icon(itemremoved = 0)
+	var/total_contents = src.contents.len - itemremoved
+	src.icon_state = "[src.icon_type]box[total_contents]"
+	return
 
-/obj/item/weapon/storage/fancy/examine(mob/user, distance)
+/obj/item/weapon/storage/fancy/examine(mob/user)
+	..()
+	if(src in view(1, user))
+		if(contents.len <= 0)
+			to_chat(user, "There are no [src.icon_type]s left in the box.")
+		else if(contents.len == 1)
+			to_chat(user, "There is one [src.icon_type] left in the box.")
+		else
+			to_chat(user, "There are [src.contents.len] [src.icon_type]s in the box.")
+
+
+/*
+ * Donut Box
+ */
+
+/obj/item/weapon/storage/fancy/donut_box
+	icon = 'icons/obj/food.dmi'
+	icon_state = "donutbox6"
+	icon_type = "donut"
+	name = "donut box"
+	storage_slots = 6
+	can_hold = list("/obj/item/weapon/reagent_containers/food/snacks/donut")
+
+
+/obj/item/weapon/storage/fancy/donut_box/atom_init()
 	. = ..()
-	if(distance > 1)
-		return
-
-	var/key_name = initial(key_type.name)
-	if(!contents.len)
-		to_chat(user, "There are no [key_name]s left in the box.")
-	else
-		var/key_count = count_by_type(contents, key_type)
-		to_chat(user, "There [key_count == 1? "is" : "are"] [key_count] [key_name]\s in the box.")
+	for (var/i in 1 to storage_slots)
+		new /obj/item/weapon/reagent_containers/food/snacks/donut/normal(src)
 
 /*
  * Egg Box
@@ -40,37 +61,99 @@
 /obj/item/weapon/storage/fancy/egg_box
 	icon = 'icons/obj/food.dmi'
 	icon_state = "eggbox"
+	icon_type = "egg"
 	name = "egg box"
 	storage_slots = 12
-	max_w_class = ITEM_SIZE_SMALL
-	w_class = ITEM_SIZE_NORMAL
+	can_hold = list("/obj/item/weapon/reagent_containers/food/snacks/egg")
 
-	key_type = /obj/item/weapon/reagent_containers/food/snacks/egg
-	can_hold = list(
-		/obj/item/weapon/reagent_containers/food/snacks/egg,
-		/obj/item/weapon/reagent_containers/food/snacks/boiledegg
-		)
-
-	startswith = list(/obj/item/weapon/reagent_containers/food/snacks/egg = 12)
-
-/obj/item/weapon/storage/fancy/egg_box/empty
-	startswith = null
+/obj/item/weapon/storage/fancy/egg_box/atom_init()
+	. = ..()
+	for (var/i in 1 to storage_slots)
+		new /obj/item/weapon/reagent_containers/food/snacks/egg(src)
 
 /*
- * Cracker Packet
+ * Candle Box
  */
 
-/obj/item/weapon/storage/fancy/crackers
-	name = "\improper Getmore Crackers"
-	icon = 'icons/obj/food.dmi'
-	icon_state = "crackerbag"
-	storage_slots = 6
-	max_w_class = ITEM_SIZE_TINY
-	w_class = ITEM_SIZE_SMALL
-	key_type = /obj/item/weapon/reagent_containers/food/snacks/cracker
-	can_hold = list(/obj/item/weapon/reagent_containers/food/snacks/cracker)
-	startswith = list(/obj/item/weapon/reagent_containers/food/snacks/cracker = 6)
+/obj/item/weapon/storage/fancy/candle_box
+	name = "candle pack"
+	desc = "A pack of red candles."
+	icon = 'icons/obj/candle.dmi'
+	icon_state = "candlebox5"
+	icon_type = "candle"
+	item_state = "candlebox5"
+	storage_slots = 5
+	throwforce = 2
+	slot_flags = SLOT_BELT
 
+
+/obj/item/weapon/storage/fancy/candle_box/atom_init()
+	. = ..()
+	for (var/i in 1 to storage_slots)
+		new /obj/item/candle(src)
+
+/obj/item/weapon/storage/fancy/black_candle_box
+	name = "candle pack"
+	desc = "A pack of black candles."
+	icon = 'icons/obj/candle.dmi'
+	icon_state = "gcandlebox5"
+	icon_type = "gcandle"
+	item_state = "gcandlebox5"
+	storage_slots = 5
+	throwforce = 2
+	slot_flags = SLOT_BELT
+	var/cooldown = 0
+	var/teleporter_delay = 0
+
+/obj/item/weapon/storage/fancy/black_candle_box/atom_init()
+	. = ..()
+	for (var/i in 1 to storage_slots)
+		new /obj/item/candle/ghost(src)
+	START_PROCESSING(SSobj, src)
+
+/obj/item/weapon/storage/fancy/black_candle_box/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	return ..()
+
+/obj/item/weapon/storage/fancy/black_candle_box/process()
+	if(cooldown > 0)
+		cooldown--
+	else
+		cooldown = 30
+
+		if(contents.len >= storage_slots)
+			return
+
+		for(var/mob/living/M in viewers(7, loc))
+			return
+
+		for(var/obj/item/candle/ghost/CG in range(1, get_turf(src)))
+			loc.visible_message("<span class='warning'>[src] is nomming on [CG]... This looks oddly creepy.</span>")
+			CG.forceMove(src)
+			update_icon()
+			break
+
+		teleporter_delay--
+		if(teleporter_delay <= 0)
+			for(var/obj/item/candle/ghost/target in ghost_candles)
+				if(istype(target.loc, /turf))
+					loc.visible_message("<span class='warning'>You hear a loud pop, as [src] poofs out of existence.</span>")
+					playsound(loc, 'sound/effects/bubble_pop.ogg', 50, 1)
+					forceMove(get_turf(target))
+					visible_message("<span class='warning'>You hear a loud pop, as [src] poofs into existence.</span>")
+					playsound(loc, 'sound/effects/bubble_pop.ogg', 50, 1)
+					for(var/mob/living/A in viewers(3, loc))
+						A.confused += 10
+						A.make_jittery(150)
+					break
+			teleporter_delay += rand(5,10) // teleporter_delay-- is ran only once half a minute. This seems reasonable.
+
+/obj/item/weapon/storage/fancy/black_candle_box/attackby(obj/item/W, mob/user)
+	..()
+	if(istype(W, /obj/item/device/occult_scanner))
+		var/obj/item/device/occult_scanner/OS = W
+		OS.scanned_type = src.type
+		to_chat(user, "<span class='notice'>[src] has been succesfully scanned by [OS]</span>")
 /*
  * Crayon Box
  */
@@ -80,215 +163,160 @@
 	desc = "A box of crayons for all your rune drawing needs."
 	icon = 'icons/obj/crayons.dmi'
 	icon_state = "crayonbox"
-	w_class = ITEM_SIZE_SMALL
-	max_w_class = ITEM_SIZE_TINY
-	max_storage_space = 6
+	w_class = 2.0
+	storage_slots = 6
+	icon_type = "crayon"
+	can_hold = list(
+		"/obj/item/toy/crayon"
+	)
 
-	key_type = /obj/item/weapon/pen/crayon
-	startswith = list(
-		/obj/item/weapon/pen/crayon/red,
-		/obj/item/weapon/pen/crayon/orange,
-		/obj/item/weapon/pen/crayon/yellow,
-		/obj/item/weapon/pen/crayon/green,
-		/obj/item/weapon/pen/crayon/blue,
-		/obj/item/weapon/pen/crayon/purple,
-		)
+/obj/item/weapon/storage/fancy/crayons/atom_init()
+	. = ..()
+	new /obj/item/toy/crayon/red(src)
+	new /obj/item/toy/crayon/orange(src)
+	new /obj/item/toy/crayon/yellow(src)
+	new /obj/item/toy/crayon/green(src)
+	new /obj/item/toy/crayon/blue(src)
+	new /obj/item/toy/crayon/purple(src)
+	update_icon()
 
-/obj/item/weapon/storage/fancy/crayons/on_update_icon()
+/obj/item/weapon/storage/fancy/crayons/update_icon()
 	overlays = list() //resets list
 	overlays += image('icons/obj/crayons.dmi',"crayonbox")
-	for(var/obj/item/weapon/pen/crayon/crayon in contents)
+	for(var/obj/item/toy/crayon/crayon in contents)
 		overlays += image('icons/obj/crayons.dmi',crayon.colourName)
 
+/obj/item/weapon/storage/fancy/crayons/attackby(obj/item/toy/crayon/W, mob/user)
+	if(istype(W))
+		switch(W.colourName)
+			if("mime")
+				to_chat(user, "This crayon is too sad to be contained in this box.")
+				return
+			if("rainbow")
+				to_chat(user, "This crayon is too powerful to be contained in this box.")
+				return
+	..()
+
 /*
- * Pencil Case
+ * Glowsticks Box
  */
 
-/obj/item/weapon/storage/fancy/pencilcase
-	name = "pencil case"
-	desc = "A pencil case for all those schoolboys to carry."
-	icon = 'icons/obj/storage.dmi'
-	icon_state = "pencil_case"
-	w_class = ITEM_SIZE_SMALL
-	max_w_class = ITEM_SIZE_TINY
-	max_storage_space = 6 * ITEM_SIZE_TINY
-	key_type = /obj/item/weapon/pen
-	startswith = list(
-		/obj/item/weapon/pen,
-		/obj/item/weapon/pen/blue,
-		/obj/item/weapon/pen/red,
-		/obj/item/weapon/pen/green,
-		/obj/item/weapon/pen/crayon/yellow,
-		/obj/item/weapon/pen/crayon/purple,
-		)
+/obj/item/weapon/storage/fancy/glowsticks
+	name = "box of glowsticks"
+	desc = "A box of glowsticks (Do not eat)."
+	icon = 'icons/obj/glowsticks.dmi'
+	icon_state = "sticksbox"
+	w_class = 2.0
+	storage_slots = 5
+	icon_type = "glowstick"
+	can_hold = list(
+		"/obj/item/weapon/reagent_containers/food/snacks/glowstick"
+	)
+
+/obj/item/weapon/storage/fancy/glowsticks/atom_init()
+	. = ..()
+	add_stick()
+	update_icon()
+
+/obj/item/weapon/storage/fancy/glowsticks/proc/add_stick()
+	new /obj/item/weapon/reagent_containers/food/snacks/glowstick/green(src)
+	new /obj/item/weapon/reagent_containers/food/snacks/glowstick/red(src)
+	new /obj/item/weapon/reagent_containers/food/snacks/glowstick/blue(src)
+	new /obj/item/weapon/reagent_containers/food/snacks/glowstick/yellow(src)
+	new /obj/item/weapon/reagent_containers/food/snacks/glowstick/orange(src)
+
+/obj/item/weapon/storage/fancy/glowsticks/update_icon()
+	overlays = list() //resets list
+	overlays += image('icons/obj/glowsticks.dmi',"sticksbox")
+	for(var/obj/item/weapon/reagent_containers/food/snacks/glowstick/glowstick in contents)
+		overlays += image('icons/obj/glowsticks.dmi',glowstick.colourName)
+
+/obj/item/weapon/storage/fancy/glowsticks/adv
+	name = "box of advanced glowsticks"
+
+/obj/item/weapon/storage/fancy/glowsticks/adv/add_stick()
+	new /obj/item/weapon/reagent_containers/food/snacks/glowstick/power/green(src)
+	new /obj/item/weapon/reagent_containers/food/snacks/glowstick/power/red(src)
+	new /obj/item/weapon/reagent_containers/food/snacks/glowstick/power/blue(src)
+	new /obj/item/weapon/reagent_containers/food/snacks/glowstick/power/yellow(src)
+	new /obj/item/weapon/reagent_containers/food/snacks/glowstick/power/orange(src)
 
 ////////////
 //CIG PACK//
 ////////////
 /obj/item/weapon/storage/fancy/cigarettes
-	name = "pack of Trans-Stellar Duty-frees"
-	desc = "A ubiquitous brand of cigarettes, found in the facilities of every major spacefaring corporation in the universe. As mild and flavorless as it gets."
 	icon = 'icons/obj/cigarettes.dmi'
-	icon_state = "cigpacket"
 	item_state = "cigpacket"
-	w_class = ITEM_SIZE_SMALL
-	max_w_class = ITEM_SIZE_TINY
-	max_storage_space = 6
+	w_class = 1
 	throwforce = 2
 	slot_flags = SLOT_BELT
+	storage_slots = 6
+	can_hold = list("/obj/item/clothing/mask/cigarette","/obj/item/weapon/lighter")
+	icon_type = "cigarette"
 
-	key_type = /obj/item/clothing/mask/smokable/cigarette
-	startswith = list(/obj/item/clothing/mask/smokable/cigarette = 6)
+/obj/item/weapon/storage/fancy/cigarettes/atom_init()
+	. = ..()
+	flags |= NOREACT
+	for(var/i = 1 to storage_slots)
+		new /obj/item/clothing/mask/cigarette(src)
+	create_reagents(15 * storage_slots)//so people can inject cigarettes without opening a packet, now with being able to inject the whole one
 
-/obj/item/weapon/storage/fancy/cigarettes/New()
+/obj/item/weapon/storage/fancy/cigarettes/update_icon()
+	icon_state = "[initial(icon_state)][contents.len]"
+	return
+
+/obj/item/weapon/storage/fancy/cigarettes/remove_from_storage(obj/item/W, atom/new_location)
+	if(istype(W, /obj/item/clothing/mask/cigarette))
+		if(reagents)
+			reagents.trans_to(W, (reagents.total_volume/contents.len))
 	..()
-	atom_flags |= ATOM_FLAG_NO_REACT|ATOM_FLAG_OPEN_CONTAINER
-	create_reagents(5 * max_storage_space)//so people can inject cigarettes without opening a packet, now with being able to inject the whole one
 
-/obj/item/weapon/storage/fancy/cigarettes/remove_from_storage(obj/item/W as obj, atom/new_location)
-	// Don't try to transfer reagents to lighters
-	if(istype(W, /obj/item/clothing/mask/smokable/cigarette))
-		var/obj/item/clothing/mask/smokable/cigarette/C = W
-		reagents.trans_to_obj(C, (reagents.total_volume/contents.len))
-	..()
-
-/obj/item/weapon/storage/fancy/cigarettes/attack(mob/living/carbon/M as mob, mob/living/carbon/user as mob)
-	if(!istype(M, /mob))
+/obj/item/weapon/storage/fancy/cigarettes/attack(mob/living/carbon/M, mob/living/carbon/user, def_zone)
+	if(!istype(M))
 		return
 
-	if(M == user && user.zone_sel.selecting == BP_MOUTH && contents.len > 0 && !user.wear_mask)
-		// Find ourselves a cig. Note that we could be full of lighters.
-		var/obj/item/clothing/mask/smokable/cigarette/cig = null
-		for(var/obj/item/clothing/mask/smokable/cigarette/C in contents)
-			cig = C
-			break
-
-		if(cig == null)
-			to_chat(user, "<span class='notice'>Looks like the packet is out of cigarettes.</span>")
-			return
-
-		// Instead of running equip_to_slot_if_possible() we check here first,
-		// to avoid dousing cig with reagents if we're not going to equip it
-		if(!cig.mob_can_equip(user, slot_wear_mask))
-			return
-
-		// We call remove_from_storage first to manage the reagent transfer and
-		// UI updates.
-		remove_from_storage(cig, null)
-		user.equip_to_slot(cig, slot_wear_mask)
-
-		reagents.maximum_volume = 5 * contents.len
-		to_chat(user, "<span class='notice'>You take a cigarette out of the pack.</span>")
-		update_icon()
+	if(M == user && def_zone == O_MOUTH && contents.len > 0 && !user.wear_mask)
+		var/has_cigarette = 0
+		for(var/obj/item/I in contents)
+			if(istype(I, /obj/item/clothing/mask/cigarette))
+				var/obj/item/clothing/mask/cigarette/C = I
+				has_cigarette = 1
+				contents.Remove(C)
+				user.equip_to_slot_if_possible(C, slot_wear_mask)
+				to_chat(user, "<span class='notice'>You take a cigarette out of the pack.</span>")
+				update_icon()
+				break
+		if(!has_cigarette)
+			to_chat(user, "<span class='notice'>You tried to get any cigarette, but they ran out.</span>")
 	else
 		..()
 
-/obj/item/weapon/storage/fancy/cigarettes/dromedaryco
-	name = "pack of Dromedary Co. cigarettes"
-	desc = "A packet of six imported Dromedary Company cancer sticks. A label on the packaging reads, \"Wouldn't a slow death make a change?\"."
-	icon_state = "Dpacket"
-	startswith = list(/obj/item/clothing/mask/smokable/cigarette/dromedaryco = 6)
+/obj/item/weapon/storage/fancy/cigarettes/odetoviceroy_blue
+	name = "Ode to Viceroy Blue"
+	desc = "A lot of people assume that its a really nice cigarette, but its really just the shittiest one you can buy in Space, pretty much."
+	icon_state = "odetoviceroy_blue"
 
-/obj/item/weapon/storage/fancy/cigarettes/killthroat
-	name = "pack of Acme Co. cigarettes"
-	desc = "A packet of six Acme Company cigarettes. For those who somehow want to obtain the record for the most amount of cancerous tumors."
-	icon_state = "Bpacket"
-	startswith = list(/obj/item/clothing/mask/smokable/cigarette/killthroat = 6)
+/obj/item/weapon/storage/fancy/cigarettes/odetoviceroy_green
+	name = "Ode to Viceroy Menthol"
+	desc = "They just bought the copyright to the name, the licensing for the brand, and slapped it on the shittiest stuff. Those are menthol ones."
+	icon_state = "odetoviceroy_green"
 
-/obj/item/weapon/storage/fancy/cigarettes/killthroat/New()
-	..()
-	fill_cigarre_package(src,list(/datum/reagent/fuel = 4))
-
-// New exciting ways to kill your lungs! - Earthcrusher //
-
-/obj/item/weapon/storage/fancy/cigarettes/luckystars
-	name = "pack of Lucky Stars"
-	desc = "A mellow blend made from synthetic, pod-grown tobacco. The commercial jingle is guaranteed to get stuck in your head."
-	icon_state = "LSpacket"
-	item_state = "Dpacket" //I actually don't mind cig packs not showing up in the hand. whotf doesn't just keep them in their pockets/coats //
-	startswith = list(/obj/item/clothing/mask/smokable/cigarette/luckystars = 6)
-
-/obj/item/weapon/storage/fancy/cigarettes/jerichos
-	name = "pack of Jerichos"
-	desc = "Typically seen dangling from the lips of Martian soldiers and border world hustlers. Tastes like hickory smoke, feels like warm liquid death down your lungs."
-	icon_state = "Jpacket"
-	item_state = "Dpacket"
-	startswith = list(/obj/item/clothing/mask/smokable/cigarette/jerichos = 6)
-
-/obj/item/weapon/storage/fancy/cigarettes/menthols
-	name = "pack of Temperamento Menthols"
-	desc = "With a sharp and natural organic menthol flavor, these Temperamentos are a favorite of NDV crews. Hardly anyone knows they make 'em in non-menthol!"
-	icon_state = "TMpacket"
+/obj/item/weapon/storage/fancy/cigarettes/odetoviceroy_red
+	name = "Ode to Viceroy Red"
+	desc = "Red colour implies that these are strong."
+	icon_state = "odetoviceroy_red"
 	item_state = "Dpacket"
 
-	key_type = /obj/item/clothing/mask/smokable/cigarette/menthol
-	startswith = list(/obj/item/clothing/mask/smokable/cigarette/menthol = 6)
-
-/obj/item/weapon/storage/fancy/cigarettes/carcinomas
-	name = "pack of Carcinoma Angels"
-	desc = "This unknown brand was slated for the chopping block, until they were publicly endorsed by an old Earthling gonzo journalist. The rest is history. They sell a variety for cats, too. Yes, actual cats."
-	icon_state = "CApacket"
+/obj/item/weapon/storage/fancy/cigarettes/cigpack_syndicate
+	name = "Syndie Smokes"
+	desc = "An obscure brand of cigarettes."
+	icon_state = "syndie"
 	item_state = "Dpacket"
-	startswith = list(/obj/item/clothing/mask/smokable/cigarette/carcinomas = 6)
 
-/obj/item/weapon/storage/fancy/cigarettes/professionals
-	name = "pack of Professional 120s"
-	desc = "Let's face it - if you're smoking these, you're either trying to look upper-class or you're 80 years old. That's the only excuse. They taste disgusting, too."
-	icon_state = "P100packet"
-	item_state = "Dpacket"
-	startswith = list(/obj/item/clothing/mask/smokable/cigarette/professionals = 6)
-
-//cigarellos
-/obj/item/weapon/storage/fancy/cigarettes/cigarello
-	name = "pack of Trident Original cigars"
-	desc = "The Trident brand's wood tipped little cigar, favored by the Sol corps diplomatique for their pleasant aroma. Machine made on Mars for over 100 years."
-	icon_state = "CRpacket"
-	item_state = "Dpacket"
-	max_storage_space = 5
-	key_type = /obj/item/clothing/mask/smokable/cigarette/trident
-	startswith = list(/obj/item/clothing/mask/smokable/cigarette/trident = 5)
-
-/obj/item/weapon/storage/fancy/cigarettes/cigarello/variety
-	name = "pack of Trident Fruit cigars"
-	desc = "The Trident brand's wood tipped little cigar, favored by the Sol corps diplomatique for their pleasant aroma. Machine made on Mars for over 100 years. This is a fruit variety pack."
-	icon_state = "CRFpacket"
-	startswith = list(	/obj/item/clothing/mask/smokable/cigarette/trident/watermelon,
-						/obj/item/clothing/mask/smokable/cigarette/trident/orange,
-						/obj/item/clothing/mask/smokable/cigarette/trident/grape,
-						/obj/item/clothing/mask/smokable/cigarette/trident/cherry,
-						/obj/item/clothing/mask/smokable/cigarette/trident/berry)
-
-/obj/item/weapon/storage/fancy/cigarettes/cigarello/mint
-	name = "pack of Trident Menthol cigars"
-	desc = "The Trident brand's wood tipped little cigar, favored by the Sol corps diplomatique for their pleasant aroma. Machine made on Mars for over 100 years. These are the menthol variety."
-	icon_state = "CRMpacket"
-	startswith = list(/obj/item/clothing/mask/smokable/cigarette/trident/mint = 5)
-
-/obj/item/weapon/storage/fancy/cigar
-	name = "cigar case"
-	desc = "A case for holding your cigars when you are not smoking them."
-	icon_state = "cigarcase"
-	item_state = "cigpacket"
-	icon = 'icons/obj/cigarettes.dmi'
-	w_class = ITEM_SIZE_SMALL
-	max_w_class = ITEM_SIZE_TINY
-	throwforce = 2
-	slot_flags = SLOT_BELT
-	storage_slots = 7
-
-	key_type = /obj/item/clothing/mask/smokable/cigarette/cigar
-	startswith = list(/obj/item/clothing/mask/smokable/cigarette/cigar = 6)
-
-/obj/item/weapon/storage/fancy/cigar/New()
-	..()
-	atom_flags |= ATOM_FLAG_NO_REACT
-	create_reagents(10 * storage_slots)
-
-/obj/item/weapon/storage/fancy/cigar/remove_from_storage(obj/item/W as obj, atom/new_location)
-	var/obj/item/clothing/mask/smokable/cigarette/cigar/C = W
-	if(!istype(C)) return
-	reagents.trans_to_obj(C, (reagents.total_volume/contents.len))
-	..()
+/obj/item/weapon/storage/fancy/cigarettes/cigpack_syndicate/atom_init()
+	. = ..()
+	for (var/i in 1 to storage_slots)
+		reagents.add_reagent("tricordrazine",15)
 
 /*
  * Vial Box
@@ -296,41 +324,36 @@
 
 /obj/item/weapon/storage/fancy/vials
 	icon = 'icons/obj/vialbox.dmi'
-	icon_state = "vialbox"
+	icon_state = "vialbox6"
+	icon_type = "vial"
 	name = "vial storage box"
-	w_class = ITEM_SIZE_NORMAL
-	max_w_class = ITEM_SIZE_TINY
-	storage_slots = 12
+	storage_slots = 6
+	can_hold = list("/obj/item/weapon/reagent_containers/glass/beaker/vial")
 
-	key_type = /obj/item/weapon/reagent_containers/glass/beaker/vial
-	startswith = list(/obj/item/weapon/reagent_containers/glass/beaker/vial = 12)
 
-/obj/item/weapon/storage/fancy/vials/on_update_icon()
-	var/key_count = count_by_type(contents, key_type)
-	src.icon_state = "[initial(icon_state)][Floor(key_count/2)]"
+/obj/item/weapon/storage/fancy/vials/atom_init()
+	. = ..()
+	for (var/i in 1 to storage_slots)
+		new /obj/item/weapon/reagent_containers/glass/beaker/vial(src)
 
-/*
- * Not actually a "fancy" storage...
- */
 /obj/item/weapon/storage/lockbox/vials
 	name = "secure vial storage box"
 	desc = "A locked box for keeping things away from children."
 	icon = 'icons/obj/vialbox.dmi'
 	icon_state = "vialbox0"
 	item_state = "syringe_kit"
-	w_class = ITEM_SIZE_NORMAL
-	max_w_class = ITEM_SIZE_TINY
-	max_storage_space = null
-	storage_slots = 12
+	max_w_class = 3
+	can_hold = list("/obj/item/weapon/reagent_containers/glass/beaker/vial")
+	storage_slots = 6
 	req_access = list(access_virology)
 
-/obj/item/weapon/storage/lockbox/vials/New()
-	..()
+/obj/item/weapon/storage/lockbox/vials/atom_init()
+	. = ..()
 	update_icon()
 
-/obj/item/weapon/storage/lockbox/vials/on_update_icon()
-	var/total_contents = count_by_type(contents, /obj/item/weapon/reagent_containers/glass/beaker/vial)
-	src.icon_state = "vialbox[Floor(total_contents/2)]"
+/obj/item/weapon/storage/lockbox/vials/update_icon(itemremoved = 0)
+	var/total_contents = src.contents.len - itemremoved
+	src.icon_state = "vialbox[total_contents]"
 	src.overlays.Cut()
 	if (!broken)
 		overlays += image(icon, src, "led[locked]")
@@ -340,6 +363,25 @@
 		overlays += image(icon, src, "ledb")
 	return
 
-/obj/item/weapon/storage/lockbox/vials/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	. = ..()
+/obj/item/weapon/storage/lockbox/vials/attackby(obj/item/weapon/W, mob/user)
+	..()
 	update_icon()
+
+/*
+ * Cracker Packet
+ */
+
+/obj/item/weapon/storage/fancy/crackers
+	name = "\improper Getmore Crackers"
+	icon = 'icons/obj/food.dmi'
+	icon_state = "crackerbox"
+	icon_type = "cracker"
+	storage_slots = 6
+	max_w_class = ITEM_SIZE_TINY
+	w_class = ITEM_SIZE_SMALL
+	can_hold = list(/obj/item/weapon/reagent_containers/food/snacks/cracker)
+
+/obj/item/weapon/storage/fancy/crackers/atom_init()
+	. = ..()
+	for (var/i in 1 to storage_slots)
+		new /obj/item/weapon/reagent_containers/food/snacks/cracker(src)

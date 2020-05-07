@@ -11,8 +11,8 @@ var/list/obj/effect/bump_teleporter/BUMP_TELEPORTERS = list()
 	density = 1
 	opacity = 0
 
-/obj/effect/bump_teleporter/New()
-	..()
+/obj/effect/bump_teleporter/atom_init()
+	. = ..()
 	BUMP_TELEPORTERS += src
 
 /obj/effect/bump_teleporter/Destroy()
@@ -30,5 +30,5 @@ var/list/obj/effect/bump_teleporter/BUMP_TELEPORTERS = list()
 
 	for(var/obj/effect/bump_teleporter/BT in BUMP_TELEPORTERS)
 		if(BT.id == src.id_target)
-			usr.forceMove(BT.loc)	//Teleport to location with correct id.
+			usr.loc = BT.loc	//Teleport to location with correct id.
 			return

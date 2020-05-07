@@ -1,248 +1,222 @@
+/obj/item/weapon/banhammer
+	desc = "A banhammer."
+	name = "banhammer"
+	icon = 'icons/obj/items.dmi'
+	icon_state = "toyhammer"
+	slot_flags = SLOT_BELT
+	throwforce = 0
+	w_class = 2.0
+	throw_speed = 7
+	throw_range = 15
+	attack_verb = list("banned")
+
+	suicide_act(mob/user)
+		to_chat(viewers(user), "\red <b>[user] is hitting \himself with the [src.name]! It looks like \he's trying to ban \himself from life.</b>")
+		return (BRUTELOSS|FIRELOSS|TOXLOSS|OXYLOSS)
+
 /obj/item/weapon/nullrod
-	name = "null sceptre"
-	desc = "A sceptre of pure black obsidian capped at both ends with silver ferrules. Some religious groups claim it disrupts and dampens the powers of paranormal phenomenae."
+	name = "null rod"
+	desc = "A rod of pure obsidian, its very presence disrupts and dampens the powers of paranormal phenomenae."
 	icon_state = "nullrod"
 	item_state = "nullrod"
 	slot_flags = SLOT_BELT
-	force = 10
+	force = 15
 	throw_speed = 1
 	throw_range = 4
-	throwforce = 7
-	w_class = ITEM_SIZE_NORMAL
+	throwforce = 10
+	light_color = "#4c4cff"
+	light_power = 3
+	w_class = 2
+	var/last_process = 0
+	var/datum/cult/reveal/power
+	var/static/list/scum
 
-/obj/item/weapon/nullrod/disrupts_psionics()
-	return src
+/obj/item/weapon/nullrod/suicide_act(mob/user)
+	user.visible_message("<span class='userdanger'>[user] is impaling himself with the [name]! It looks like \he's trying to commit suicide.</span>")
+	return (BRUTELOSS|FIRELOSS)
 
-/obj/item/weapon/nullrod/attack(mob/M as mob, mob/living/user as mob) //Paste from old-code to decult with a null rod.
-	admin_attack_log(user, M, "Attacked using \a [src]", "Was attacked with \a [src]", "used \a [src] to attack")
+/obj/item/weapon/nullrod/atom_init()
+	. = ..()
+	if(!scum)
+		scum = typecacheof(list(/mob/living/simple_animal/construct, /obj/structure/cult, /obj/effect/rune, /mob/dead/observer))
+	power = new(src)
 
-	user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-	user.do_attack_animation(M)
-	//if(user != M)
-	if(M.mind && LAZYLEN(M.mind.learned_spells))
-		M.silence_spells(300) //30 seconds
-		to_chat(M, "<span class='danger'>You've been silenced!</span>")
+/obj/item/weapon/nullrod/equipped(mob/user, slot)
+	if(user.mind && user.mind.assigned_role == "Chaplain")
+		START_PROCESSING(SSobj, src)
+	..()
+
+/obj/item/weapon/nullrod/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	QDEL_NULL(power)
+	return ..()
+
+/obj/item/weapon/nullrod/dropped(mob/user)
+	if(isprocessing)
+		STOP_PROCESSING(SSobj, src)
+	..()
+
+/obj/item/weapon/nullrod/process()
+	if(last_process + 60 >= world.time)
+		return
+	last_process = world.time
+	var/turf/turf = get_turf(loc)
+	for(var/A in range(6, turf))
+		if(iscultist(A) || is_type_in_typecache(A, scum))
+			set_light(3)
+			addtimer(CALLBACK(src, .atom/proc/set_light, 0), 20)
+			return
+
+/obj/item/weapon/nullrod/attack(mob/M, mob/living/user) //Paste from old-code to decult with a null rod.
+	if (!(ishuman(user) || ticker) && ticker.mode.name != "monkey")
+		to_chat(user, "<span class='danger'> You don't have the dexterity to do this!</span>")
 		return
 
-	if (!user.IsAdvancedToolUser())
-		to_chat(user, "<span class='danger'>You don't have the dexterity to do this!</span>")
-		return
+	M.attack_log += text("\[[time_stamp()]\] <font color='orange'>Has had the [name] used on him by [user.name] ([user.ckey])</font>")
+	user.attack_log += text("\[[time_stamp()]\] <font color='red'>Used [name] on [M.name] ([M.ckey])</font>")
+	msg_admin_attack("[user.name] ([user.ckey]) used [name] on [M.name] ([M.ckey]) ([ADMIN_JMP(user)]) ([ADMIN_FLW(user)])")
 
-	if ((MUTATION_CLUMSY in user.mutations) && prob(50))
+	if ((CLUMSY in user.mutations) && prob(50))
 		to_chat(user, "<span class='danger'>The rod slips out of your hand and hits your head.</span>")
-		user.take_organ_damage(10)
+		user.adjustBruteLoss(10)
 		user.Paralyse(20)
 		return
 
-	if(GLOB.cult && iscultist(M))
-		M.visible_message("<span class='notice'>\The [user] waves \the [src] over \the [M]'s head.</span>")
-		GLOB.cult.offer_uncult(M)
-		return
+	if (M.stat != DEAD)
+		if((M.mind in ticker.mode.cult) && user.mind && user.mind.assigned_role == "Chaplain" && prob(33))
+			to_chat(M, "<span class='danger'>The power of [src] clears your mind of the cult's influence!</span>")
+			to_chat(user, "<span class='danger'>You wave [src] over [M]'s head and see their eyes become clear, their mind returning to normal.</span>")
+			ticker.mode.remove_cultist(M.mind)
+		else
+			to_chat(user, "<span class='danger'>The rod appears to do nothing.</span>")
+		M.visible_message("<span class='danger'>[user] waves [src] over [M.name]'s head</span>")
 
-	..()
+/obj/item/weapon/nullrod/afterattack(atom/target, mob/user, proximity_flag, click_parameters)
+	if (proximity_flag && istype(target, /turf/simulated/floor) && user.mind && user.mind.assigned_role == "Chaplain")
+		to_chat(user, "<span class='notice'>You hit the floor with the [src].</span>")
+		power.action(user, 1)
 
-/obj/item/weapon/nullrod/afterattack(var/atom/A, var/mob/user, var/proximity)
-	if(!proximity)
-		return
-
-	if(istype(A, /obj/structure/deity/altar))
-		var/obj/structure/deity/altar/altar = A
-		if(!altar.linked_god.silenced) //Don't want them to infinity spam it.
-			altar.linked_god.silence(10)
-			new /obj/effect/temporary(get_turf(altar),'icons/effects/effects.dmi',"purple_electricity_constant", 10)
-			altar.visible_message("<span class='notice'>\The [altar] groans in protest as reality settles around \the [src].</span>")
-
-	if(istype(A, /turf/simulated/wall/cult))
-		var/turf/simulated/wall/cult/W = A
-		user.visible_message("<span class='notice'>\The [user] touches \the [A] with \the [src], and the enchantment affecting it fizzles away.</span>", "<span class='notice'>You touch \the [A] with \the [src], and the enchantment affecting it fizzles away.</span>")
-		W.ChangeTurf(/turf/simulated/wall)
-
-	if(istype(A, /turf/simulated/floor/cult))
-		var/turf/simulated/floor/cult/F = A
-		user.visible_message("<span class='notice'>\The [user] touches \the [A] with \the [src], and the enchantment affecting it fizzles away.</span>", "<span class='notice'>You touch \the [A] with \the [src], and the enchantment affecting it fizzles away.</span>")
-		F.ChangeTurf(/turf/simulated/floor)
-
-
-/obj/item/weapon/energy_net
-	name = "energy net"
-	desc = "It's a net made of green energy."
-	icon = 'icons/effects/effects.dmi'
-	icon_state = "energynet"
-	throwforce = 0
-	force = 0
-	var/net_type = /obj/effect/energy_net
-
-/obj/item/weapon/energy_net/safari
-	name = "animal net"
-	desc = "An energized net meant to subdue animals."
-	net_type = /obj/effect/energy_net/safari
-
-/obj/item/weapon/energy_net/dropped()
-	..()
-	spawn(10)
-		if(src) qdel(src)
-
-/obj/item/weapon/energy_net/throw_impact(atom/hit_atom)
-	..()
-	try_capture_mob(hit_atom)
-
-// This will validate the hit_atom, then spawn an energy_net effect and qdel itself
-/obj/item/weapon/energy_net/proc/try_capture_mob(mob/living/M)
-
-	if(!istype(M) || locate(/obj/effect/energy_net) in M.loc)
-		qdel(src)
-		return FALSE
-
-	var/turf/T = get_turf(M)
-	if(T)
-		var/obj/effect/energy_net/net_effect = new net_type(T)
-		net_effect.capture_mob(M)
-		qdel(src)
-
-	// If we miss or hit an obstacle, we still want to delete the net.
-	spawn(10)
-		if(src) qdel(src)
-
-/obj/effect/energy_net
-	name = "energy net"
-	desc = "It's a net made of green energy."
-	icon = 'icons/effects/effects.dmi'
-	icon_state = "energynet"
-
-	density = 1
-	opacity = 0
-	mouse_opacity = 1
-	anchored = 1
-	can_buckle = 0 //no manual buckling or unbuckling
-
-	var/health = 25
-	var/countdown = 15
-	var/temporary = 1
-	var/mob/living/carbon/captured = null
-	var/min_free_time = 50
-	var/max_free_time = 85
-
-/obj/effect/energy_net/safari
-	name = "animal net"
-	desc = "An energized net meant to subdue animals."
-
-	anchored = 0
-	health = 5
-	temporary = 0
-	min_free_time = 5
-	max_free_time = 10
-
-/obj/effect/energy_net/teleport
-	countdown = 60
-
-/obj/effect/energy_net/Initialize()
-	. = ..()
-	START_PROCESSING(SSobj, src)
-
-/obj/effect/energy_net/Destroy()
-	if(istype(captured, /mob/living/carbon))
-		if(captured.handcuffed == src)
-			captured.handcuffed = null
-	if(captured)
-		unbuckle_mob()
-	STOP_PROCESSING(SSobj, src)
-	captured = null
+/obj/item/weapon/sord/attack(mob/living/carbon/M, mob/living/carbon/user)
+	playsound(loc, 'sound/weapons/bladeslice.ogg', 50, 1, -1)
 	return ..()
 
-/obj/effect/energy_net/Process()
-	if(temporary)
-		countdown--
-	if(captured.buckled != src)
-		health = 0
-	if(get_turf(src) != get_turf(captured))  //just in case they somehow teleport around or
-		countdown = 0
-	if(countdown <= 0)
-		health = 0
-	healthcheck()
+/obj/item/weapon/claymore
+	name = "claymore"
+	desc = "What are you standing around staring at this for? Get to killing!"
+	icon_state = "claymore"
+	item_state = "claymore"
+	flags = CONDUCT
+	slot_flags = SLOT_BELT
+	force = 40
+	throwforce = 10
+	sharp = 1
+	edge = 1
+	w_class = 3
+	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
 
-/obj/effect/energy_net/Move()
-	..()
+	Get_shield_chance()
+		return 50
 
-	if(buckled_mob)
-		buckled_mob.forceMove(src.loc)
+	suicide_act(mob/user)
+		to_chat(viewers(user), "\red <b>[user] is falling on the [src.name]! It looks like \he's trying to commit suicide.</b>")
+		return(BRUTELOSS)
+
+/obj/item/weapon/claymore/light
+	force = 20
+	can_embed = 0
+
+/obj/item/weapon/claymore/attack(mob/living/carbon/M, mob/living/carbon/user)
+	playsound(loc, 'sound/weapons/bladeslice.ogg', 50, 1, -1)
+	return ..()
+
+/obj/item/weapon/katana
+	name = "katana"
+	desc = "Woefully underpowered in D20."
+	icon_state = "katana"
+	item_state = "katana"
+	flags = CONDUCT
+	slot_flags = SLOT_BELT | SLOT_BACK
+	force = 40
+	throwforce = 10
+	sharp = 1
+	edge = 1
+	w_class = 3
+	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
+
+	suicide_act(mob/user)
+		to_chat(viewers(user), "\red <b>[user] is slitting \his stomach open with the [src.name]! It looks like \he's trying to commit seppuku.</b>")
+		return(BRUTELOSS)
+
+/obj/item/weapon/katana/Get_shield_chance()
+		return 50
+
+/obj/item/weapon/katana/attack(mob/living/carbon/M, mob/living/carbon/user)
+	playsound(loc, 'sound/weapons/bladeslice.ogg', 50, 1, -1)
+	return ..()
+
+/obj/item/weapon/harpoon
+	name = "harpoon"
+	sharp = 1
+	edge = 0
+	desc = "Tharr she blows!"
+	icon_state = "harpoon"
+	item_state = "harpoon"
+	force = 20
+	throwforce = 15
+	w_class = 3
+	attack_verb = list("jabbed","stabbed","ripped")
+
+/obj/item/weapon/switchblade
+	name = "switchblade"
+	icon_state = "switchblade"
+	desc = "A sharp, concealable, spring-loaded knife."
+	flags = CONDUCT
+	force = 20
+	w_class = 2
+	throwforce = 15
+	throw_speed = 3
+	throw_range = 6
+	m_amt = 12000
+	origin_tech = "materials=1"
+	hitsound = 'sound/weapons/Genhit.ogg'
+	attack_verb = list("stubbed", "poked")
+	var/extended
+
+/obj/item/weapon/switchblade/extended
+	extended = TRUE
+	force = 13
+	w_class = 3
+	throwforce = 15
+	icon_state = "switchblade_ext"
+	item_state = "switchblade_ext"
+	attack_verb = list("slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
+	hitsound = 'sound/weapons/bladeslice.ogg'
+
+/obj/item/weapon/switchblade/attack_self(mob/user)
+	extended = !extended
+	playsound(src.loc, 'sound/weapons/batonextend.ogg', 50, 1)
+	if(extended)
+		force = 13
+		w_class = 3
+		throwforce = 15
+		icon_state = "switchblade_ext"
+		attack_verb = list("slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
+		hitsound = 'sound/weapons/bladeslice.ogg'
 	else
-		countdown = 0
+		force = 1
+		w_class = 2
+		throwforce = 5
+		icon_state = "switchblade"
+		attack_verb = list("stubbed", "poked")
+		hitsound = 'sound/weapons/Genhit.ogg'
 
+/obj/item/weapon/switchblade/suicide_act(mob/user)
+	user.visible_message("<span class='suicide'>[user] is slitting \his own throat with the [src.name]! It looks like \he's trying to commit suicide.</span>")
+	return (BRUTELOSS)
 
-/obj/effect/energy_net/proc/capture_mob(mob/living/M)
-	captured = M
-	if(M.buckled)
-		M.buckled.unbuckle_mob()
-	buckle_mob(M)
-	if(istype(M, /mob/living/carbon))
-		var/mob/living/carbon/C = M
-		if(!C.handcuffed)
-			C.handcuffed = src
-	return 1
-
-/obj/effect/energy_net/post_buckle_mob(mob/living/M)
-	if(buckled_mob)
-		layer = ABOVE_HUMAN_LAYER
-		visible_message("\The [M] was caught in [src]!")
-	else
-		to_chat(M,"<span class='warning'>You are free of the net!</span>")
-		reset_plane_and_layer()
-
-/obj/effect/energy_net/proc/healthcheck()
-	if(health <=0)
-		set_density(0)
-		if(countdown <= 0)
-			visible_message("<span class='warning'>\The [src] fades away!</span>")
-		else
-			visible_message("<span class='danger'>\The [src] is torn apart!</span>")
-		qdel(src)
-
-/obj/effect/energy_net/bullet_act(var/obj/item/projectile/Proj)
-	health -= Proj.get_structure_damage()
-	healthcheck()
-	return 0
-
-/obj/effect/energy_net/ex_act()
-	health = 0
-	healthcheck()
-
-/obj/effect/energy_net/attack_hand(var/mob/user)
-
-	var/mob/living/carbon/human/H = user
-	if(istype(H))
-		if(H.species.can_shred(H))
-			playsound(src.loc, 'sound/weapons/slash.ogg', 80, 1)
-			health -= rand(10, 20)
-		else
-			health -= rand(1,3)
-
-	else if (MUTATION_HULK in user.mutations)
-		health = 0
-	else
-		health -= rand(5,8)
-
-	to_chat(H,"<span class='danger'>You claw at the energy net.</span>")
-
-	healthcheck()
-	return
-
-/obj/effect/energy_net/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	health -= W.force
-	healthcheck()
-	..()
-
-obj/effect/energy_net/user_unbuckle_mob(mob/user)
-	return escape_net(user)
-
-
-/obj/effect/energy_net/proc/escape_net(mob/user as mob)
-	visible_message(
-		"<span class='warning'>\The [user] attempts to free themselves from \the [src]!</span>",
-		"<span class='warning'>You attempt to free yourself from \the [src]!</span>"
-		)
-	if(do_after(user, rand(min_free_time, max_free_time), src, incapacitation_flags = INCAPACITATION_DISABLED))
-		health = 0
-		healthcheck()
-		return 1
-	else
-		return 0
+/obj/item/weapon/hatchet/tomahawk
+	name = "makeshift tomahawk"
+	desc = "A makeshift handaxe with a crude blade of broken glass."
+	icon_state = "tomahawk"
+	item_state = "tomahawk"
+	force = 8

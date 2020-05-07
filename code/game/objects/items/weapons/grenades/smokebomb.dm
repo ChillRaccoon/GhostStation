@@ -7,28 +7,27 @@
 	item_state = "flashbang"
 	slot_flags = SLOT_BELT
 	var/datum/effect/effect/system/smoke_spread/bad/smoke
-	var/smoke_times = 4
 
-/obj/item/weapon/grenade/smokebomb/Destroy()
-	QDEL_NULL(smoke)
-	STOP_PROCESSING(SSobj, src)
-	return ..()
-
-/obj/item/weapon/grenade/smokebomb/detonate()
-	playsound(src.loc, 'sound/effects/smoke.ogg', 50, 1, -3)
-	smoke = new /datum/effect/effect/system/smoke_spread/bad
+/obj/item/weapon/grenade/smokebomb/atom_init()
+	. = ..()
+	smoke = new /datum/effect/effect/system/smoke_spread/bad()
 	smoke.attach(src)
-	smoke.set_up(10, 0, get_turf(src))
-	START_PROCESSING(SSobj, src)
+
+/obj/item/weapon/grenade/smokebomb/prime()
+	playsound(src, 'sound/effects/smoke.ogg', 50, 1, -3)
+	smoke.set_up(10, 0, usr.loc)
+	spawn(0)
+		smoke.start()
+		sleep(10)
+		smoke.start()
+		sleep(10)
+		smoke.start()
+		sleep(10)
+		smoke.start()
+
 	for(var/obj/effect/blob/B in view(8,src))
 		var/damage = round(30/(get_dist(B,src)+1))
 		B.health -= damage
 		B.update_icon()
-	QDEL_IN(src, 8 SECONDS)
-
-/obj/item/weapon/grenade/smokebomb/Process()
-	if(!QDELETED(smoke) && (smoke_times > 0))
-		smoke_times--
-		smoke.start()
-		return
-	return PROCESS_KILL
+	sleep(80)
+	qdel(src)

@@ -8,10 +8,10 @@
 //   right here:
 
 #ifdef DEBUG
-GLOBAL_DATUM_INIT(error_cache, /datum/error_viewer/error_cache, new)
+/var/datum/error_viewer/error_cache/error_cache = new()
 #else
 // If debugging is disabled, there's nothing useful to log, so don't bother.
-GLOBAL_DATUM(error_cache, /datum/error_viewer/error_cache)
+/var/datum/error_viewer/error_cache/error_cache = null
 #endif
 
 // - error_source datums exist for each line (of code) that generates an error,
@@ -24,18 +24,6 @@ GLOBAL_DATUM(error_cache, /datum/error_viewer/error_cache)
 /datum/error_viewer
 	var/name = ""
 
-/datum/error_viewer/Topic(href, href_list)
-	if(href_list["viewruntime"])
-		var/datum/error_viewer/error_viewer = locate(href_list["viewruntime"])
-		if(!istype(error_viewer))
-			to_chat(usr, "<span class='warning'>That runtime viewer no longer exists.</span>")
-			return
-
-		if(href_list["viewruntime_backto"])
-			error_viewer.show_to(usr.client, locate(href_list["viewruntime_backto"]), href_list["viewruntime_linear"])
-		else
-			error_viewer.show_to(usr.client, null, href_list["viewruntime_linear"])
-
 /datum/error_viewer/proc/browse_to(client/user, html)
 	var/datum/browser/browser = new(user.mob, "error_viewer", null, 600, 400)
 	browser.set_content(html)
@@ -47,7 +35,7 @@ GLOBAL_DATUM(error_cache, /datum/error_viewer/error_cache)
 		border: solid 1px #202020;
 		font-family: "Courier New";
 		padding-left: 10px;
-		color: #cccccc;
+		color: #CCCCCC;
 	}
 	.runtime_line
 	{
@@ -83,7 +71,7 @@ GLOBAL_DATUM(error_cache, /datum/error_viewer/error_cache)
 	if (linear)
 		back_to_param += ";viewruntime_linear=1"
 
-	return "<a href='?src=\ref[src];viewruntime=\ref[src][back_to_param]'>[linktext]</a>"
+	return "<a href='?_src_=holder;viewruntime=\ref[src][back_to_param]'>[linktext]</a>"
 
 /datum/error_viewer/error_cache
 	var/list/errors = list()
@@ -92,7 +80,7 @@ GLOBAL_DATUM(error_cache, /datum/error_viewer/error_cache)
 
 /datum/error_viewer/error_cache/show_to(user, datum/error_viewer/back_to, linear)
 	var/html = build_header()
-	html += "<b>[GLOB.total_runtimes]</b> runtimes, <b>[GLOB.total_runtimes_skipped]</b> skipped<br><br>"
+	html += "<b>[global.total_runtimes]</b> runtimes, <b>[global.total_runtimes_skipped]</b> skipped<br><br>"
 	if (!linear)
 		html += "organized | [make_link("linear", null, 1)]<hr>"
 		var/datum/error_viewer/error_source/error_source
@@ -111,7 +99,7 @@ GLOBAL_DATUM(error_cache, /datum/error_viewer/error_cache)
 	if (!istype(e))
 		return // Abnormal exception, don't even bother
 
-	var/erroruid = "[e.file],[e.line]"
+	var/erroruid = "[e.file][e.line]"
 	var/datum/error_viewer/error_source/error_source = error_sources[erroruid]
 	if (!error_source)
 		error_source = new(e)
@@ -129,12 +117,7 @@ GLOBAL_DATUM(error_cache, /datum/error_viewer/error_cache)
 	if (error_source.next_message_at <= world.time)
 		var/const/viewtext = "\[view]" // Nesting these in other brackets went poorly
 		//log_debug("Runtime in <b>[e.file]</b>, line <b>[e.line]</b>: <b>[html_encode(e.name)]</b> [error_entry.make_link(viewtext)]")
-		var/err_msg_delay
-		if(config)
-			err_msg_delay = config.error_msg_delay
-		else
-			err_msg_delay = initial(config.error_msg_delay)
-		error_source.next_message_at = world.time + err_msg_delay
+		error_source.next_message_at = world.time + 50 SECONDS
 
 /datum/error_viewer/error_source
 	var/list/errors = list()
@@ -149,7 +132,7 @@ GLOBAL_DATUM(error_cache, /datum/error_viewer/error_cache)
 
 /datum/error_viewer/error_source/show_to(user, datum/error_viewer/back_to, linear)
 	if (!istype(back_to))
-		back_to = GLOB.error_cache
+		back_to = error_cache
 
 	var/html = build_header(back_to)
 	for (var/datum/error_viewer/error_entry/error_entry in errors)
@@ -165,9 +148,6 @@ GLOBAL_DATUM(error_cache, /datum/error_viewer/error_cache)
 	var/turf/usr_loc
 	var/is_skip_count
 
-	var/info_name
-	var/info
-
 /datum/error_viewer/error_entry/New(exception/e, list/desclines, skip_count)
 	if (!istype(e))
 		name = "<b>\[[time_stamp()]]</b> Uncaught exception: <b>[html_encode(e.name)]</b>"
@@ -179,15 +159,11 @@ GLOBAL_DATUM(error_cache, /datum/error_viewer/error_cache)
 		return
 
 	name = "<b>\[[time_stamp()]]</b> Runtime in <b>[e.file]</b>, line <b>[e.line]</b>: <b>[html_encode(e.name)]</b>"
-	info_name = "Runtime in [e.file],[e.line]: [e]"
-	info = info_name
-
 	exc = e
 	if (istype(desclines))
 		for (var/line in desclines)
 			// There's probably a better way to do this than non-breaking spaces...
 			desc += "<span class='runtime_line'>[html_encode(line)]</span><br>"
-			info += "\n  " + line
 
 	if (usr)
 		usr_ref = "\ref[usr]"

@@ -1,11 +1,9 @@
 /*
 Asset cache quick users guide:
-
 Make a datum at the bottom of this file with your assets for your thing.
 The simple subsystem will most like be of use for most cases.
 Then call get_asset_datum() with the type of the datum you created and store the return
 Then call .send(client) on that stored return value.
-
 You can set verify to TRUE if you want send() to sleep until the client has the assets.
 */
 
@@ -17,6 +15,7 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 //When sending mutiple assets, how many before we give the client a quaint little sending resources message
 #define ASSET_CACHE_TELL_CLIENT_AMOUNT 8
 
+
 /client
 	var/list/cache = list() // List of all assets sent to this client by the asset cache.
 	var/list/completed_asset_jobs = list() // List of all completed jobs, awaiting acknowledgement.
@@ -25,24 +24,21 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 
 //This proc sends the asset to the client, but only if it needs it.
 //This proc blocks(sleeps) unless verify is set to false
-/proc/send_asset(var/client/client, var/asset_name, var/verify = TRUE, var/check_cache = TRUE)
+/proc/send_asset(var/client/client, var/asset_name, var/verify = TRUE)
 	if(!istype(client))
 		if(ismob(client))
 			var/mob/M = client
 			if(M.client)
 				client = M.client
-
 			else
 				return 0
-
 		else
 			return 0
 
-	if(check_cache && (client.cache.Find(asset_name) || client.sending.Find(asset_name)))
+	if(client.cache.Find(asset_name) || client.sending.Find(asset_name))
 		return 0
 
-	var/decl/asset_cache/asset_cache = decls_repository.get_decl(/decl/asset_cache)
-	send_rsc(client, asset_cache.cache[asset_name], asset_name)
+	client << browse_rsc(SSasset.cache[asset_name], asset_name)
 	if(!verify || !winexists(client, "asset_cache_browser")) // Can't access the asset cache browser, rip.
 		if (client)
 			client.cache += asset_name
@@ -79,22 +75,19 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 			var/mob/M = client
 			if(M.client)
 				client = M.client
-
 			else
 				return 0
-
 		else
 			return 0
 
 	var/list/unreceived = asset_list - (client.cache + client.sending)
 	if(!unreceived || !unreceived.len)
 		return 0
-	if (unreceived.len >= ASSET_CACHE_TELL_CLIENT_AMOUNT)
-		to_chat(client, "Sending Resources...")
-	var/decl/asset_cache/asset_cache = decls_repository.get_decl(/decl/asset_cache)
+	if(unreceived.len >= ASSET_CACHE_TELL_CLIENT_AMOUNT)
+		to_chat(client, "<span class='info'><b>Sending Resources, please wait...</b></span>")
 	for(var/asset in unreceived)
-		if (asset in asset_cache.cache)
-			send_rsc(client, asset_cache.cache[asset], asset)
+		if (asset in SSasset.cache)
+			client << browse_rsc(SSasset.cache[asset], asset)
 
 	if(!verify || !winexists(client, "asset_cache_browser")) // Can't access the asset cache browser, rip.
 		if (client)
@@ -138,8 +131,7 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 //This proc "registers" an asset, it adds it to the cache for further use, you cannot touch it from this point on or you'll fuck things up.
 //if it's an icon or something be careful, you'll have to copy it before further use.
 /proc/register_asset(var/asset_name, var/asset)
-	var/decl/asset_cache/asset_cache = decls_repository.get_decl(/decl/asset_cache)
-	asset_cache.cache[asset_name] = asset
+	SSasset.cache[asset_name] = asset
 
 //These datums are used to populate the asset cache, the proc "register()" does this.
 
@@ -172,22 +164,89 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 /datum/asset/simple/send(client)
 	send_asset_list(client,assets,verify)
 
+/datum/asset/simple/goonchat
+	assets = list(
+		"jquery.min.js" = 'code/modules/goonchat/browserassets/js/jquery.min.js',
+		"jquery.mark.min.js" = 'code/modules/goonchat/browserassets/js/jquery.mark.min.js',
+		"json2.min.js" = 'code/modules/goonchat/browserassets/js/json2.min.js',
+		"browserOutput.js" = 'code/modules/goonchat/browserassets/js/browserOutput.js',
+		"error_handler.js" = 'code/modules/error_handler_js/error_handler.js',
+		"fontawesome-webfont.eot" = 'code/modules/goonchat/browserassets/css/fonts/fontawesome-webfont.eot',
+		"fontawesome-webfont.svg" = 'code/modules/goonchat/browserassets/css/fonts/fontawesome-webfont.svg',
+		"fontawesome-webfont.ttf" = 'code/modules/goonchat/browserassets/css/fonts/fontawesome-webfont.ttf',
+		"fontawesome-webfont.woff" = 'code/modules/goonchat/browserassets/css/fonts/fontawesome-webfont.woff',
+		"horror_font.otf" = 'code/modules/goonchat/browserassets/css/fonts/horror_font.otf',
+		"horror_font.eot" = 'code/modules/goonchat/browserassets/css/fonts/horror_font.eot',
+		"balanced_font.otf" = 'code/modules/goonchat/browserassets/css/fonts/balanced_font.ttf',
+		"balanced_font.eot" = 'code/modules/goonchat/browserassets/css/fonts/balanced_font.eot',
+		"font-awesome.css" = 'code/modules/goonchat/browserassets/css/font-awesome.css',
+		"emojib64.css" = 'code/modules/goonchat/browserassets/css/emojib64.css',
+		"browserOutput.css" = 'code/modules/goonchat/browserassets/css/browserOutput.css'
+	)
 
 //DEFINITIONS FOR ASSET DATUMS START HERE.
+/datum/asset/simple/spider_os
+	assets = list(
+		"sos_1.png" = 'icons/spideros_icons/sos_1.png',
+		"sos_2.png" = 'icons/spideros_icons/sos_2.png',
+		"sos_3.png" = 'icons/spideros_icons/sos_3.png',
+		"sos_4.png" = 'icons/spideros_icons/sos_4.png',
+		"sos_5.png" = 'icons/spideros_icons/sos_5.png',
+		"sos_6.png" = 'icons/spideros_icons/sos_6.png',
+		"sos_7.png" = 'icons/spideros_icons/sos_7.png',
+		"sos_8.png" = 'icons/spideros_icons/sos_8.png',
+		"sos_9.png" = 'icons/spideros_icons/sos_9.png',
+		"sos_10.png" = 'icons/spideros_icons/sos_10.png',
+		"sos_11.png" = 'icons/spideros_icons/sos_11.png',
+		"sos_12.png" = 'icons/spideros_icons/sos_12.png',
+		"sos_13.png" = 'icons/spideros_icons/sos_13.png',
+		"sos_14.png" = 'icons/spideros_icons/sos_14.png'
+	)
+
+/datum/asset/simple/paper
+	assets = list(
+		"paper_dickbutt.png" = 'icons/paper_icons/dickbutt.png'
+	)
+
+/datum/asset/simple/chess
+	assets = list(
+		"BR.png" = 'icons/obj/chess/board_BR.png',
+		"BN.png" = 'icons/obj/chess/board_BN.png',
+		"BI.png" = 'icons/obj/chess/board_BI.png',
+		"BQ.png" = 'icons/obj/chess/board_BQ.png',
+		"BK.png" = 'icons/obj/chess/board_BK.png',
+		"BP.png" = 'icons/obj/chess/board_BP.png',
+		"WR.png" = 'icons/obj/chess/board_WR.png',
+		"WN.png" = 'icons/obj/chess/board_WN.png',
+		"WI.png" = 'icons/obj/chess/board_WI.png',
+		"WQ.png" = 'icons/obj/chess/board_WQ.png',
+		"WK.png" = 'icons/obj/chess/board_WK.png',
+		"WP.png" = 'icons/obj/chess/board_WP.png',
+		"CB.png" = 'icons/obj/chess/board_CB.png',
+		"CR.png" = 'icons/obj/chess/board_CR.png',
+		"none.png" = 'icons/obj/chess/board_none.png'
+	)
+
+/datum/asset/simple/tgui
+	assets = list(
+		"tgui.css"	= 'tgui/assets/tgui.css',
+		"tgui.js"	= 'tgui/assets/tgui.js'
+	)
+
 /datum/asset/nanoui
 	var/list/common = list()
 
 	var/list/common_dirs = list(
 		"nano/css/",
+		"nano/js/",
 		"nano/images/",
-		"nano/images/status_icons/",
-		"nano/images/modular_computers/",
-		"nano/js/"
+		"nano/layouts/"
 	)
 	var/list/uncommon_dirs = list(
-		"nano/templates/",
-		"news_articles/images/"
+		"nano/templates/"
 	)
+
+
 
 /datum/asset/nanoui/register()
 	// Crawl the directories to find files.
@@ -205,37 +264,9 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 				if(fexists(path + filename))
 					register_asset(filename, fcopy_rsc(path + filename))
 
-	var/list/mapnames = list()
-	for(var/z in GLOB.using_map.map_levels)
-		mapnames += map_image_file_name(z)
-
-	var/list/filenames = flist(MAP_IMAGE_PATH)
-	for(var/filename in filenames)
-		if(copytext(filename, length(filename)) != "/") // Ignore directories.
-			var/file_path = MAP_IMAGE_PATH + filename
-			if((filename in mapnames) && fexists(file_path))
-				common[filename] = fcopy_rsc(file_path)
-				register_asset(filename, common[filename])
-
 /datum/asset/nanoui/send(client, uncommon)
 	if(!islist(uncommon))
 		uncommon = list(uncommon)
 
-	send_asset_list(client, uncommon, FALSE)
-	send_asset_list(client, common, TRUE)
-
-/*
-	Asset cache
-*/
-/decl/asset_cache
-	var/list/cache = list()
-
-/decl/asset_cache/proc/load()
-	for(var/type in typesof(/datum/asset) - list(/datum/asset, /datum/asset/simple))
-		var/datum/asset/A = new type()
-		A.register()
-
-	for(var/client/C in GLOB.clients) // This is also called in client/New, but as we haven't initialized the cache until now, and it's possible the client is already connected, we risk doing it twice.
-		// Doing this to a client too soon after they've connected can cause issues, also the proc we call sleeps.
-		spawn(10)
-			getFilesSlow(C, cache, FALSE)
+	send_asset_list(client, uncommon)
+	send_asset_list(client, common)

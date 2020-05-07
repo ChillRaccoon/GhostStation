@@ -4,166 +4,254 @@
 
 //To do: Allow corpses to appear mangled, bloody, etc. Allow customizing the bodies appearance (they're all bald and white right now).
 
-#define CORPSE_SPAWNER_RANDOM_NAME       0x0001
-#define CORPSE_SPAWNER_CUT_SURVIVAL      0x0002
-#define CORPSE_SPAWNER_CUT_ID_PDA        0x0003
-#define CORPSE_SPAWNER_PLAIN_HEADSET     0x0004
-
-#define CORPSE_SPAWNER_RANDOM_SKIN_TONE    0x0008
-#define CORPSE_SPAWNER_RANDOM_SKIN_COLOR   0x0010
-#define CORPSE_SPAWNER_RANDOM_HAIR_COLOR   0x0020
-#define CORPSE_SPAWNER_RANDOM_HAIR_STYLE   0x0040
-#define CORPSE_SPAWNER_RANDOM_FACIAL_STYLE 0x0080
-#define CORPSE_SPAWNER_RANDOM_EYE_COLOR    0x0100
-#define CORPSE_SPAWNER_RANDOM_GENDER       0x0200
-
-#define CORPSE_SPAWNER_NO_RANDOMIZATION ~(CORPSE_SPAWNER_RANDOM_NAME|CORPSE_SPAWNER_RANDOM_SKIN_TONE|CORPSE_SPAWNER_RANDOM_SKIN_COLOR|CORPSE_SPAWNER_RANDOM_HAIR_COLOR|CORPSE_SPAWNER_RANDOM_HAIR_STYLE|CORPSE_SPAWNER_RANDOM_FACIAL_STYLE|CORPSE_SPAWNER_RANDOM_EYE_COLOR)
-
-
 /obj/effect/landmark/corpse
 	name = "Unknown"
-	var/species = list(SPECIES_HUMAN)                 // List of species to pick from.
-	var/corpse_outfits = list(/decl/hierarchy/outfit) // List of outfits to pick from. Uses pickweight()
-	var/spawn_flags = (~0)
+	var/mobname = "Unknown"  //Unused now but it'd fuck up maps to remove it now
+	var/corpse_gender = "male"
+	var/corpseuniform = null //Set this to an object path to have the slot filled with said object on the corpse.
+	var/corpsesuit = null
+	var/corpseshoes = null
+	var/corpsegloves = null
+	var/corpseradio = null
+	var/corpseglasses = null
+	var/corpsemask = null
+	var/corpsehelmet = null
+	var/corpsebelt = null
+	var/corpsepocket1 = null
+	var/corpsepocket2 = null
+	var/corpseback = null
+	var/corpseid = 0     //Just set to 1 if you want them to have an ID
+	var/corpseidjob = null // Needs to be in quotes, such as "Clown" or "Chef." This just determines what the ID reads as, not their access
+	var/corpseidaccess = null //This is for access. See access.dm for which jobs give what access. Again, put in quotes. Use "Captain" if you want it to be all access.
+	var/corpseidicon = null //For setting it to be a gold, silver, centcomm etc ID
+	var/mutantrace = "human"
+	var/mob/living/carbon/human/human = /mob/living/carbon/human
+	var/hair_style
+	var/hair_color
+	var/face_style
 
-	var/skin_colors_per_species   = list() // Custom skin colors, per species -type-, if any. For example if you want dead Skrell to always have blue headtails, or similar
-	var/skin_tones_per_species    = list() // Custom skin tones, per species -type-, if any. See above as to why.
-	var/eye_colors_per_species    = list() // Custom eye colors, per species -type-, if any. See above as to why.
-	var/hair_colors_per_species   = list() // Custom hair colors, per species -type-, if any. See above as to why.
-	var/hair_styles_per_species   = list() // Custom hair styles, per species -type-, if any. For example if you want a punk gang with handlebars.
-	var/facial_styles_per_species = list() // Custom facial hair styles, per species -type-, if any. See above as to why
-	var/genders_per_species       = list() // For gender biases per species -type-
+/obj/effect/landmark/corpse/atom_init()
+	. = ..()
+	createCorpse()
 
-/obj/effect/landmark/corpse/Initialize()
-	..()
-	var/species_choice = pickweight(species)
-	new/mob/living/carbon/human/corpse (loc, species_choice, src)
-	return INITIALIZE_HINT_QDEL
+/obj/effect/landmark/corpse/proc/createCorpse() //Creates a mob and checks for gear in each slot before attempting to equip it.
+	human = new human(loc)
+	human.dna.mutantrace = mutantrace
+	human.real_name = name
+	human.gender = corpse_gender
+	human.death(1) //Kills the new mob
 
-#define HEX_COLOR_TO_RGB_ARGS(X) arglist(GetHexColors(X))
-/obj/effect/landmark/corpse/proc/randomize_appearance(var/mob/living/carbon/human/M, species_choice)
-	if((spawn_flags & CORPSE_SPAWNER_RANDOM_GENDER))
-		if(species_choice in genders_per_species)
-			M.change_gender(pick(genders_per_species[species_choice]))
-		else
-			M.randomize_gender()
+//	for(var/obj/item/organ/external/E in M.bodyparts)
+//		E.take_damage(75, 0, 0, used_weapon = "claws")
 
-	if((spawn_flags & CORPSE_SPAWNER_RANDOM_SKIN_TONE))
-		if(species_choice in skin_tones_per_species)
-			M.change_skin_tone(pick(skin_tones_per_species[species_choice]))
-		else
-			M.randomize_skin_tone()
+	human.adjustBruteLoss(60)
 
-	if((spawn_flags & CORPSE_SPAWNER_RANDOM_SKIN_COLOR))
-		if(species_choice in skin_colors_per_species)
-			M.change_skin_color(HEX_COLOR_TO_RGB_ARGS(pick(skin_colors_per_species[species_choice])))
-		else
-			M.s_tone = random_skin_tone(M.species)
 
-	if((spawn_flags & CORPSE_SPAWNER_RANDOM_HAIR_COLOR))
-		if(species_choice in hair_colors_per_species)
-			M.change_hair_color(HEX_COLOR_TO_RGB_ARGS(pick(hair_colors_per_species[species_choice])))
-		else
-			M.randomize_hair_color()
-		M.change_facial_hair_color(M.r_hair, M.g_hair, M.b_hair)
+	if(hair_style)
+		human.h_style = hair_style
+	if(face_style && human.gender == "male")
+		human.f_style = face_style
+	if(hair_color && hair_style)
+		human.r_hair = hex2num(copytext(hair_color, 2, 4))
+		human.g_hair = hex2num(copytext(hair_color, 4, 6))
+		human.b_hair = hex2num(copytext(hair_color, 6, 8))
 
-	if((spawn_flags & CORPSE_SPAWNER_RANDOM_HAIR_STYLE))
-		if(species_choice in hair_styles_per_species)
-			M.change_hair(pick(hair_styles_per_species[species_choice]))
-		else
-			M.randomize_hair_style()
+	if(corpseuniform)
+		human.equip_to_slot_or_del(new corpseuniform(human), slot_w_uniform)
+	if(corpsesuit)
+		human.equip_to_slot_or_del(new corpsesuit(human), slot_wear_suit)
+	if(corpseshoes)
+		human.equip_to_slot_or_del(new corpseshoes(human), slot_shoes)
+	if(corpsegloves)
+		human.equip_to_slot_or_del(new corpsegloves(human), slot_gloves)
+	if(corpseradio)
+		human.equip_to_slot_or_del(new corpseradio(human), slot_l_ear)
+	if(corpseglasses)
+		human.equip_to_slot_or_del(new corpseglasses(human), slot_glasses)
+	if(corpsemask)
+		human.equip_to_slot_or_del(new corpsemask(human), slot_wear_mask)
+	if(corpsehelmet)
+		human.equip_to_slot_or_del(new corpsehelmet(human), slot_head)
+	if(corpsebelt)
+		human.equip_to_slot_or_del(new corpsebelt(human), slot_belt)
+	if(corpsepocket1)
+		human.equip_to_slot_or_del(new corpsepocket1(human), slot_r_store)
+	if(corpsepocket2)
+		human.equip_to_slot_or_del(new corpsepocket2(human), slot_l_store)
+	if(corpseback)
+		human.equip_to_slot_or_del(new corpseback(human), slot_back)
+	if(corpseid == 1)
+		var/obj/item/weapon/card/id/W = new(human)
+		W.name = "[human.real_name]'s ID Card"
+		var/datum/job/jobdatum
+		for(var/jobtype in typesof(/datum/job))
+			var/datum/job/J = new jobtype
+			if(J.title == corpseidaccess)
+				jobdatum = J
+				break
+		if(corpseidicon)
+			W.icon_state = corpseidicon
+		if(corpseidaccess)
+			if(jobdatum)
+				W.access = jobdatum.get_access()
+			else
+				W.access = list()
+		if(corpseidjob)
+			W.assignment = corpseidjob
+		W.registered_name = human.real_name
+		human.equip_to_slot_or_del(W, slot_wear_id)
+	human.regenerate_icons()
+	qdel(src)
 
-	if((spawn_flags & CORPSE_SPAWNER_RANDOM_FACIAL_STYLE))
-		if(species_choice in facial_styles_per_species)
-			M.change_facial_hair(pick(facial_styles_per_species[species_choice]))
-		else
-			M.randomize_facial_hair_style()
 
-	if((spawn_flags & CORPSE_SPAWNER_RANDOM_EYE_COLOR))
-		if(species_choice in eye_colors_per_species)
-			M.change_eye_color(HEX_COLOR_TO_RGB_ARGS(pick(eye_colors_per_species[species_choice])))
-		else
-			M.randomize_eye_color()
 
-	var/decl/cultural_info/culture = M.get_cultural_value(TAG_CULTURE)
-	if(culture && CORPSE_SPAWNER_RANDOM_NAME & spawn_flags)
-		M.SetName(culture.get_random_name(M.gender))
-	else
-		M.SetName(name)
-	M.real_name = M.name
+// I'll work on making a list of corpses people request for maps, or that I think will be commonly used. Syndicate operatives for example.
 
-#undef HEX_COLOR_TO_RGB_ARGS
 
-/obj/effect/landmark/corpse/proc/equip_outfit(var/mob/living/carbon/human/M)
-	var/adjustments = 0
-	adjustments = (spawn_flags & CORPSE_SPAWNER_CUT_SURVIVAL)  ? (adjustments|OUTFIT_ADJUSTMENT_SKIP_SURVIVAL_GEAR) : adjustments
-	adjustments = (spawn_flags & CORPSE_SPAWNER_CUT_ID_PDA)    ? (adjustments|OUTFIT_ADJUSTMENT_SKIP_ID_PDA)        : adjustments
-	adjustments = (spawn_flags & CORPSE_SPAWNER_PLAIN_HEADSET) ? (adjustments|OUTFIT_ADJUSTMENT_PLAIN_HEADSET)      : adjustments
 
-	var/decl/hierarchy/outfit/corpse_outfit = outfit_by_type(pickweight(corpse_outfits))
-	corpse_outfit.equip(M, equip_adjustments = adjustments)
+
+
+/obj/effect/landmark/corpse/syndicatesoldier
+	name = "Syndicate Operative"
+	corpseuniform = /obj/item/clothing/under/syndicate
+	corpsesuit = /obj/item/clothing/suit/armor/vest
+	corpseshoes = /obj/item/clothing/shoes/swat
+	corpsegloves = /obj/item/clothing/gloves/swat
+	corpseradio = /obj/item/device/radio/headset
+	corpsemask = /obj/item/clothing/mask/gas/coloured
+	corpsehelmet = /obj/item/clothing/head/helmet/swat
+	corpseback = /obj/item/weapon/storage/backpack
+	corpseid = 1
+	corpseidjob = "Operative"
+	corpseidaccess = "Syndicate"
+
+
+
+/obj/effect/landmark/corpse/syndicatecommando
+	name = "Syndicate Commando"
+	corpseuniform = /obj/item/clothing/under/syndicate
+	corpsesuit = /obj/item/clothing/suit/space/rig/syndi
+	corpseshoes = /obj/item/clothing/shoes/swat
+	corpsegloves = /obj/item/clothing/gloves/swat
+	corpseradio = /obj/item/device/radio/headset
+	corpsemask = /obj/item/clothing/mask/gas/syndicate
+	corpsehelmet = /obj/item/clothing/head/helmet/space/rig/syndi
+	corpseback = /obj/item/weapon/tank/jetpack/oxygen
+	corpsepocket1 = /obj/item/weapon/tank/emergency_oxygen
+	corpseid = 1
+	corpseidjob = "Operative"
+	corpseidaccess = "Syndicate"
+
+
+
+///////////Civilians//////////////////////
 
 /obj/effect/landmark/corpse/chef
 	name = "Chef"
-	corpse_outfits = list(/decl/hierarchy/outfit/job/service/chef)
+	corpseuniform = /obj/item/clothing/under/rank/chef
+	corpsesuit = /obj/item/clothing/suit/chef/classic
+	corpseshoes = /obj/item/clothing/shoes/black
+	corpsehelmet = /obj/item/clothing/head/chefhat
+	corpseback = /obj/item/weapon/storage/backpack
+	corpseradio = /obj/item/device/radio/headset
+	corpseid = 1
+	corpseidjob = "Chef"
+	corpseidaccess = "Chef"
+
 
 /obj/effect/landmark/corpse/doctor
 	name = "Doctor"
-	corpse_outfits = list(/decl/hierarchy/outfit/job/medical/doctor)
+	corpseradio = /obj/item/device/radio/headset/headset_med
+	corpseuniform = /obj/item/clothing/under/rank/medical
+	corpsesuit = /obj/item/clothing/suit/storage/labcoat
+	corpseback = /obj/item/weapon/storage/backpack/medic
+	corpsepocket1 = /obj/item/device/flashlight/pen
+	corpseshoes = /obj/item/clothing/shoes/black
+	corpseid = 1
+	corpseidjob = "Medical Doctor"
+	corpseidaccess = "Medical Doctor"
 
 /obj/effect/landmark/corpse/engineer
 	name = "Engineer"
-	corpse_outfits = list(/decl/hierarchy/outfit/job/engineering/engineer)
-
-/obj/effect/landmark/corpse/scientist
-	name = "Scientist"
-	corpse_outfits = list(/decl/hierarchy/outfit/job/science/scientist)
+	corpseradio = /obj/item/device/radio/headset/headset_eng
+	corpseuniform = /obj/item/clothing/under/rank/engineer
+	corpseback = /obj/item/weapon/storage/backpack/industrial
+	corpseshoes = /obj/item/clothing/shoes/orange
+	corpsebelt = /obj/item/weapon/storage/belt/utility/full
+	corpsegloves = /obj/item/clothing/gloves/yellow
+	corpsehelmet = /obj/item/clothing/head/hardhat/yellow
+	corpseid = 1
+	corpseidjob = "Station Engineer"
+	corpseidaccess = "Station Engineer"
 
 /obj/effect/landmark/corpse/engineer/rig
-	corpse_outfits = list(/decl/hierarchy/outfit/job/engineering/engineer/void)
+	corpsesuit = /obj/item/clothing/suit/space/rig/engineering
+	corpsemask = /obj/item/clothing/mask/breath
+	corpsehelmet = /obj/item/clothing/head/helmet/space/rig/engineering
 
 /obj/effect/landmark/corpse/clown
 	name = "Clown"
-	corpse_outfits = list(/decl/hierarchy/outfit/clown)
+	corpseuniform = /obj/item/clothing/under/rank/clown
+	corpseshoes = /obj/item/clothing/shoes/clown_shoes
+	corpseradio = /obj/item/device/radio/headset
+	corpsemask = /obj/item/clothing/mask/gas/clown_hat
+	corpsepocket1 = /obj/item/weapon/bikehorn
+	corpseback = /obj/item/weapon/storage/backpack/clown
+	corpseid = 1
+	corpseidjob = "Clown"
+	corpseidaccess = "Clown"
+
+/obj/effect/landmark/corpse/scientist
+	name = "Scientist"
+	corpseradio = /obj/item/device/radio/headset/headset_sci
+	corpseuniform = /obj/item/clothing/under/rank/scientist
+	corpsesuit = /obj/item/clothing/suit/storage/labcoat/science
+	corpseback = /obj/item/weapon/storage/backpack
+	corpseshoes = /obj/item/clothing/shoes/white
+	corpseid = 1
+	corpseidjob = "Scientist"
+	corpseidaccess = "Scientist"
 
 /obj/effect/landmark/corpse/miner
-	name = "Miner"
-	corpse_outfits = list(/decl/hierarchy/outfit/job/cargo/mining)
+	corpseradio = /obj/item/device/radio/headset/headset_cargo
+	corpseuniform = /obj/item/clothing/under/rank/miner
+	corpsegloves = /obj/item/clothing/gloves/black
+	corpseback = /obj/item/weapon/storage/backpack/industrial
+	corpseshoes = /obj/item/clothing/shoes/black
+	corpseid = 1
+	corpseidjob = "Shaft Miner"
+	corpseidaccess = "Shaft Miner"
 
 /obj/effect/landmark/corpse/miner/rig
-	corpse_outfits = list(/decl/hierarchy/outfit/job/cargo/mining/void)
+	corpsesuit = /obj/item/clothing/suit/space/rig/mining
+	corpsemask = /obj/item/clothing/mask/breath
+	corpsehelmet = /obj/item/clothing/head/helmet/space/rig/mining
 
+
+/////////////////Officers//////////////////////
 
 /obj/effect/landmark/corpse/bridgeofficer
 	name = "Bridge Officer"
-	corpse_outfits = list(/decl/hierarchy/outfit/nanotrasen/officer)
+	corpseradio = /obj/item/device/radio/headset/heads/hop
+	corpseuniform = /obj/item/clothing/under/rank/centcom_officer
+	corpsesuit = /obj/item/clothing/suit/armor/bulletproof
+	corpseshoes = /obj/item/clothing/shoes/black
+	corpseglasses = /obj/item/clothing/glasses/sunglasses
+	corpseid = 1
+	corpseidjob = "Bridge Officer"
+	corpseidaccess = "Captain"
 
 /obj/effect/landmark/corpse/commander
 	name = "Commander"
-	corpse_outfits = list(/decl/hierarchy/outfit/nanotrasen/commander)
-
-/obj/effect/landmark/corpse/pirate
-	name = "Pirate"
-	corpse_outfits = list(/decl/hierarchy/outfit/pirate/norm)
-	spawn_flags = CORPSE_SPAWNER_NO_RANDOMIZATION
-
-/obj/effect/landmark/corpse/pirate/ranged
-	name = "Pirate Gunner"
-	corpse_outfits = list(/decl/hierarchy/outfit/pirate/space)
-
-/obj/effect/landmark/corpse/russian
-	name = "Russian"
-	corpse_outfits = list(/decl/hierarchy/outfit/soviet_soldier)
-	spawn_flags = CORPSE_SPAWNER_NO_RANDOMIZATION
-
-/obj/effect/landmark/corpse/russian/ranged
-	corpse_outfits = list(/decl/hierarchy/outfit/soviet_soldier)
-
-/obj/effect/landmark/corpse/syndicate
-	name = "Syndicate Operative"
-	corpse_outfits = list(/decl/hierarchy/outfit/mercenary/syndicate)
-	spawn_flags = CORPSE_SPAWNER_NO_RANDOMIZATION
-
-/obj/effect/landmark/corpse/syndicate/commando
-	name = "Syndicate Commando"
-	corpse_outfits = list(/decl/hierarchy/outfit/mercenary/syndicate/commando)
+	corpseuniform = /obj/item/clothing/under/rank/centcom_commander
+	corpsesuit = /obj/item/clothing/suit/armor/bulletproof
+	corpseradio = /obj/item/device/radio/headset/heads/captain
+	corpseglasses = /obj/item/clothing/glasses/eyepatch
+	corpsemask = /obj/item/clothing/mask/cigarette/cigar/cohiba
+	corpsehelmet = /obj/item/clothing/head/centhat
+	corpsegloves = /obj/item/clothing/gloves/swat
+	corpseshoes = /obj/item/clothing/shoes/swat
+	corpsepocket1 = /obj/item/weapon/lighter/zippo
+	corpseid = 1
+	corpseidjob = "Commander"
+	corpseidaccess = "Captain"

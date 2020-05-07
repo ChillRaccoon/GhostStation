@@ -1,5 +1,4 @@
 //NEVER USE THIS IT SUX	-PETETHEGOAT
-//THE GOAT WAS RIGHT - RKF
 
 var/global/list/cached_icons = list()
 
@@ -7,69 +6,171 @@ var/global/list/cached_icons = list()
 	desc = "It's a paint bucket."
 	name = "paint bucket"
 	icon = 'icons/obj/items.dmi'
-	icon_state = "paintbucket"
+	icon_state = "paint_neutral"
 	item_state = "paintcan"
-	matter = list(MATERIAL_ALUMINIUM = 200)
-	w_class = ITEM_SIZE_NORMAL
+	m_amt = 200
+	g_amt = 0
+	w_class = 3.0
 	amount_per_transfer_from_this = 10
-	possible_transfer_amounts = "10;20;30;60"
-	volume = 60
-	unacidable = 0
-	atom_flags = ATOM_FLAG_OPEN_CONTAINER
-	var/paint_hex = "#fe191a"
+	possible_transfer_amounts = list(10,20,30,50,70)
+	volume = 70
+	flags = OPENCONTAINER
+	var/paint_type = ""
 
 /obj/item/weapon/reagent_containers/glass/paint/afterattack(turf/simulated/target, mob/user, proximity)
-	if(!proximity) return
+	if(!proximity)
+		return
 	if(istype(target) && reagents.total_volume > 5)
-		user.visible_message("<span class='warning'>\The [target] has been splashed with something by [user]!</span>")
-		reagents.trans_to_turf(target, 5)
+		for(var/mob/O in viewers(user))
+			O.show_message("\red \The [target] has been splashed with something by [user]!", 1)
+		spawn(5)
+			reagents.reaction(target, TOUCH)
+			reagents.remove_any(5)
 	else
 		return ..()
 
-/obj/item/weapon/reagent_containers/glass/paint/Initialize()
+/obj/item/weapon/reagent_containers/glass/paint/atom_init()
+	if(paint_type == "remover")
+		name = "paint remover bucket"
+	else if(paint_type && length(paint_type) > 0)
+		name = paint_type + " " + name
 	. = ..()
-	if(paint_hex && length(paint_hex) > 0)
-		reagents.add_reagent(/datum/reagent/paint, volume, paint_hex)
-		update_icon()
+	reagents.add_reagent("paint_[paint_type]", volume)
 
-/obj/item/weapon/reagent_containers/glass/paint/on_update_icon()
-	overlays.Cut()
-	if(reagents.total_volume)
-		var/image/filling = image('icons/obj/reagentfillings.dmi', src, "paintbucket")
-		filling.color = reagents.get_color()
-		overlays += filling
+/obj/item/weapon/reagent_containers/glass/paint/on_reagent_change() //Until we have a generic "paint", this will give new colours to all paints in the can
+	var/mixedcolor = mix_color_from_reagents(reagents.reagent_list)
+	for(var/datum/reagent/paint/P in reagents.reagent_list)
+		P.color = mixedcolor
 
 /obj/item/weapon/reagent_containers/glass/paint/red
-	name = "red paint bucket"
-	paint_hex = "#fe191a"
-
-/obj/item/weapon/reagent_containers/glass/paint/yellow
-	name = "yellow paint bucket"
-	paint_hex = "#fdfe7d"
+	icon_state = "paint_red"
+	paint_type = "red"
 
 /obj/item/weapon/reagent_containers/glass/paint/green
-	name = "green paint bucket"
-	paint_hex = "#18a31a"
+	icon_state = "paint_green"
+	paint_type = "green"
 
 /obj/item/weapon/reagent_containers/glass/paint/blue
-	name = "blue paint bucket"
-	paint_hex = "#247cff"
+	icon_state = "paint_blue"
+	paint_type = "blue"
 
-/obj/item/weapon/reagent_containers/glass/paint/purple
-	name = "purple paint bucket"
-	paint_hex = "#cc0099"
+/obj/item/weapon/reagent_containers/glass/paint/yellow
+	icon_state = "paint_yellow"
+	paint_type = "yellow"
+
+/obj/item/weapon/reagent_containers/glass/paint/violet
+	icon_state = "paint_violet"
+	paint_type = "violet"
 
 /obj/item/weapon/reagent_containers/glass/paint/black
-	name = "black paint bucket"
-	paint_hex = "#333333"
+	icon_state = "paint_black"
+	paint_type = "black"
 
 /obj/item/weapon/reagent_containers/glass/paint/white
-	name = "white paint bucket"
-	paint_hex = "#f0f8ff"
+	icon_state = "paint_white"
+	paint_type = "white"
 
-/obj/item/weapon/reagent_containers/glass/paint/random
-	name = "odd paint bucket"
+/obj/item/weapon/reagent_containers/glass/paint/remover
+	paint_type = "remover"
 
-/obj/item/weapon/reagent_containers/glass/paint/random/New()
-	paint_hex = rgb(rand(1,255),rand(1,255),rand(1,255))
-	..()
+/*
+/obj/item/weapon/paint
+	gender= PLURAL
+	name = "paint"
+	desc = "Used to recolor floors and walls. Can not be removed by the janitor."
+	icon = 'icons/obj/items.dmi'
+	icon_state = "paint_neutral"
+	color = "FFFFFF"
+	item_state = "paintcan"
+	w_class = 3.0
+
+/obj/item/weapon/paint/red
+	name = "red paint"
+	color = "FF0000"
+	icon_state = "paint_red"
+
+/obj/item/weapon/paint/green
+	name = "green paint"
+	color = "00FF00"
+	icon_state = "paint_green"
+
+/obj/item/weapon/paint/blue
+	name = "blue paint"
+	color = "0000FF"
+	icon_state = "paint_blue"
+
+/obj/item/weapon/paint/yellow
+	name = "yellow paint"
+	color = "FFFF00"
+	icon_state = "paint_yellow"
+
+/obj/item/weapon/paint/violet
+	name = "violet paint"
+	color = "FF00FF"
+	icon_state = "paint_violet"
+
+/obj/item/weapon/paint/black
+	name = "black paint"
+	color = "333333"
+	icon_state = "paint_black"
+
+/obj/item/weapon/paint/white
+	name = "white paint"
+	color = "FFFFFF"
+	icon_state = "paint_white"
+
+
+/obj/item/weapon/paint/anycolor
+	gender= PLURAL
+	name = "any color"
+	icon_state = "paint_neutral"
+
+	attack_self(mob/user)
+		var/t1 = input(user, "Please select a color:", "Locking Computer", null) in list( "red", "blue", "green", "yellow", "black", "white")
+		if ((user.get_active_hand() != src || user.stat || user.restrained()))
+			return
+		switch(t1)
+			if("red")
+				color = "FF0000"
+			if("blue")
+				color = "0000FF"
+			if("green")
+				color = "00FF00"
+			if("yellow")
+				color = "FFFF00"
+			if("violet")
+				color = "FF00FF"
+			if("white")
+				color = "FFFFFF"
+			if("black")
+				color = "333333"
+		icon_state = "paint_[t1]"
+		add_fingerprint(user)
+		return
+
+
+/obj/item/weapon/paint/afterattack(turf/target, mob/user, proximity)
+	if(!proximity) return
+	if(!istype(target) || istype(target, /turf/space))
+		return
+	var/ind = "[initial(target.icon)][color]"
+	if(!cached_icons[ind])
+		var/icon/overlay = new/icon(initial(target.icon))
+		overlay.Blend("#[color]",ICON_MULTIPLY)
+		overlay.SetIntensity(1.4)
+		target.icon = overlay
+		cached_icons[ind] = target.icon
+	else
+		target.icon = cached_icons[ind]
+	return
+
+/obj/item/weapon/paint/paint_remover
+	gender =  PLURAL
+	name = "paint remover"
+	icon_state = "paint_neutral"
+
+	afterattack(turf/target, mob/user)
+		if(istype(target) && target.icon != initial(target.icon))
+			target.icon = initial(target.icon)
+		return
+*/

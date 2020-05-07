@@ -1,57 +1,53 @@
 /datum/event/prison_break
-	startWhen		= 5
-	announceWhen	= 75
+	announceWhen	= 50
+	oneShot			= 1
 
-	var/releaseWhen = 60
-	var/list/area/areas = list()		//List of areas to affect. Filled by start()
+	var/releaseWhen = 25
+	var/list/area/prisonAreas = list()
 
-	var/eventDept = "Security"			//Department name in announcement
-	var/list/areaName = list("Brig")	//Names of areas mentioned in AI and Engineering announcements
-	var/list/areaType = list(/area/security/prison, /area/security/brig)	//Area types to include.
-	var/list/areaNotType = list()		//Area types to specifically exclude.
 
 /datum/event/prison_break/setup()
-	announceWhen = rand(75, 105)
-	releaseWhen = rand(60, 90)
+	announceWhen = rand(50, 60)
+	releaseWhen = rand(20, 30)
 
-	src.endWhen = src.releaseWhen+2
+	src.startWhen = src.releaseWhen-1
+	src.endWhen = src.releaseWhen+1
 
 
 /datum/event/prison_break/announce()
-	if(areas && areas.len > 0)
-		command_announcement.Announce("[pick("Gr3yT1d3 virus","Malignant trojan",)] detected in [location_name()] [(eventDept == "Security")? "imprisonment":"containment"] subroutines. Secure any compromised areas immediately. [location_name()] AI involvement is recommended.", "[location_name()] Anti-Virus Alert", zlevels = affecting_z)
-
-
-/datum/event/prison_break/start()
-	for(var/area/A in world)
-		if(is_type_in_list(A,areaType) && !is_type_in_list(A,areaNotType))
-			areas += A
-
-	if(areas && areas.len > 0)
-		var/my_department = "[location_name()] Firewall Subroutines"
-		var/rc_message = "An unknown malicious program has been detected in the [english_list(areaName)] lighting and airlock control systems at [stationtime2text()]. Systems will be fully compromised within approximately three minutes. Direct intervention is required immediately.<br>"
-		var/obj/machinery/message_server/MS = get_message_server()
-		if(MS)
-			MS.send_rc_message("Engineering", my_department, rc_message, "", "", 2)
-		for(var/mob/living/silicon/ai/A in GLOB.player_list)
-			to_chat(A, "<span class='danger'>Malicious program detected in the [english_list(areaName)] lighting and airlock control systems by [my_department].</span>")
-
+	if(prisonAreas && prisonAreas.len > 0)
+		command_alert("[pick("Gr3y.T1d3 virus","Malignant trojan")] detected in [station_name()] imprisonment subroutines. Recommend station AI involvement.", "Security Alert")
 	else
-		to_world_log("ERROR: Could not initate grey-tide. Unable to find suitable containment area.")
+		world.log << "ERROR: Could not initate grey-tide. Unable find prison or brig area."
 		kill()
 
 
+/datum/event/prison_break/start()
+	for(var/area/A in all_areas)
+		if(istype(A, /area/security/prison) || istype(A, /area/security/brig))
+			prisonAreas += A
+
+	if(prisonAreas && prisonAreas.len > 0)
+		for(var/area/A in prisonAreas)
+			for(var/obj/machinery/light/L in A)
+				L.flicker(10)
+
 /datum/event/prison_break/tick()
 	if(activeFor == releaseWhen)
-		if(areas && areas.len > 0)
-			var/obj/machinery/power/apc/theAPC = null
-			for(var/area/A in areas)
-				theAPC = A.get_apc()
-				if(theAPC && theAPC.operating)	//If the apc's off, it's a little hard to overload the lights.
-					for(var/obj/machinery/light/L in A)
-						L.flicker(10)
+		if(prisonAreas && prisonAreas.len > 0)
+			for(var/area/A in prisonAreas)
+				for(var/obj/machinery/power/apc/temp_apc in A)
+					temp_apc.overload_lighting()
 
+				for(var/obj/structure/closet/secure_closet/brig/temp_closet in A)
+					temp_closet.locked = 0
+					temp_closet.icon_state = temp_closet.icon_closed
 
-/datum/event/prison_break/end()
-	for(var/area/A in shuffle(areas))
-		A.prison_break()
+				for(var/obj/machinery/door/airlock/security/temp_airlock in A)
+					temp_airlock.prison_open()
+
+				for(var/obj/machinery/door/airlock/security/glass/temp_glassairlock in A)
+					temp_glassairlock.prison_open()
+
+				for(var/obj/machinery/door_timer/temp_timer in A)
+					temp_timer.releasetime = 1

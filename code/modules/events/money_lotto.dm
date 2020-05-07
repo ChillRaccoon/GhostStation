@@ -5,22 +5,36 @@
 
 /datum/event/money_lotto/start()
 	winner_sum = pick(5000, 10000, 50000, 100000, 500000, 1000000, 1500000)
-	if(prob(50))
-		if(all_money_accounts.len)
-			var/datum/money_account/D = pick(all_money_accounts)
-			winner_name = D.owner_name
+	if(SSeconomy.all_money_accounts.len)
+		var/datum/money_account/D = pick(SSeconomy.all_money_accounts)
+		winner_name = D.owner_name
+		if(!D.suspended)
+			D.money += winner_sum
 
-			deposit_success = D.deposit(winner_sum, "Nyx Daily Loan Lottery winner!", "Biesel TCD Terminal #[rand(111,333)]")
-	else
-		winner_name = random_name(pick(MALE,FEMALE), species = SPECIES_HUMAN)
-		deposit_success = pick(0,1)
+			var/datum/transaction/T = new()
+			T.target_name = "[system_name()] Daily Grand Slam -Stellar- Lottery"
+			T.purpose = "Winner!"
+			T.amount = winner_sum
+			T.date = SSeconomy.current_date_string
+			T.time = worldtime2text()
+			T.source_terminal = "Biesel TCD Terminal #[rand(111,333)]"
+			D.transaction_log.Add(T)
+
+			deposit_success = 1
 
 /datum/event/money_lotto/announce()
-	var/author = "[GLOB.using_map.company_name] Editor"
-	var/channel = "Nyx Daily"
+	var/datum/feed_message/newMsg = new /datum/feed_message
+	newMsg.author = "NanoTrasen Editor"
+	newMsg.is_admin_message = 1
 
-	var/body = "Nyx Daily wishes to congratulate <b>[winner_name]</b> for recieving the Nyx Stellar Slam Lottery, and receiving the out of this world sum of [winner_sum] [GLOB.using_map.local_currency_name]!"
+	newMsg.body = "TC Daily wishes to congratulate <b>[winner_name]</b> for recieving the [system_name()] Stellar Slam Lottery, and receiving the out of this world sum of [winner_sum] credits!"
 	if(!deposit_success)
-		body += "<br>Unfortunately, we were unable to verify the account details provided, so we were unable to transfer the money. In order to have your winnings re-sent, send a cheque containing a processing fee of 5000 [GLOB.using_map.local_currency_name] to the ND 'Stellar Slam' office on the Nyx gateway with your updated details."
+		newMsg.body += "<br>Unfortunately, we were unable to verify the account details provided, so we were unable to transfer the money. Send a cheque containing the sum of $500 to TCD 'Stellar Slam' office on Biesel Prime containing updated details, and your winnings'll be resent within the month."
 
-	news_network.SubmitArticle(body, author, channel, null, 1)
+	for(var/datum/feed_channel/FC in news_network.network_channels)
+		if(FC.channel_name == "[system_name()] Daily")
+			FC.messages += newMsg
+			break
+
+	for(var/obj/machinery/newscaster/NEWSCASTER in allCasters)
+		NEWSCASTER.newsAlert("[system_name()] Daily")

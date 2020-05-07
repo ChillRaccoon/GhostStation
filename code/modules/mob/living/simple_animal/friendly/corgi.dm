@@ -12,123 +12,38 @@
 	emote_see = list("shakes its head", "shivers")
 	speak_chance = 1
 	turns_per_move = 10
-	response_help  = "pets"
-	response_disarm = "bops"
-	response_harm   = "kicks"
+	butcher_results = list(/obj/item/weapon/reagent_containers/food/snacks/meat/corgi = 3)
+	response_help  = "pets the"
+	response_disarm = "bops the"
+	response_harm   = "kicks the"
 	see_in_dark = 5
-	mob_size = 8
-	possession_candidate = 1
-	holder_type = /obj/item/weapon/holder/corgi
-	pass_flags = PASS_FLAG_TABLE
-
-	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/corgi
-	meat_amount = 3
-	skin_material = MATERIAL_SKIN_FUR_ORANGE
-
-	var/obj/item/inventory_head
-	var/obj/item/inventory_back
-
-//IAN! SQUEEEEEEEEE~
-/mob/living/simple_animal/corgi/Ian
-	name = "Ian"
-	real_name = "Ian"	//Intended to hold the name without altering it.
-	gender = MALE
-	desc = "It's a corgi."
-	var/turns_since_scan = 0
-	var/obj/movement_target
-	response_help  = "pets"
-	response_disarm = "bops"
-	response_harm   = "kicks"
-
-/mob/living/simple_animal/corgi/Ian/Life()
-	. = ..()
-	if(!.)
-		return FALSE
-
-	//Feeding, chasing food, FOOOOODDDD
-	if(!resting && !buckled)
-		turns_since_scan++
-		if(turns_since_scan > 5)
-			turns_since_scan = 0
-			if((movement_target) && !(isturf(movement_target.loc) || ishuman(movement_target.loc) ))
-				movement_target = null
-				stop_automated_movement = 0
-			if( !movement_target || !(movement_target.loc in oview(src, 3)) )
-				movement_target = null
-				stop_automated_movement = 0
-				for(var/obj/item/weapon/reagent_containers/food/snacks/S in oview(src,3))
-					if(isturf(S.loc) || ishuman(S.loc))
-						movement_target = S
-						break
-			if(movement_target)
-				stop_automated_movement = 1
-				step_to(src,movement_target,1)
-				sleep(3)
-				step_to(src,movement_target,1)
-				sleep(3)
-				step_to(src,movement_target,1)
-
-				if(movement_target)		//Not redundant due to sleeps, Item can be gone in 6 decisecomds
-					if (movement_target.loc.x < src.x)
-						set_dir(WEST)
-					else if (movement_target.loc.x > src.x)
-						set_dir(EAST)
-					else if (movement_target.loc.y < src.y)
-						set_dir(SOUTH)
-					else if (movement_target.loc.y > src.y)
-						set_dir(NORTH)
-					else
-						set_dir(SOUTH)
-
-					if(isturf(movement_target.loc) )
-						UnarmedAttack(movement_target)
-					else if(ishuman(movement_target.loc) && prob(20))
-						visible_emote("stares at the [movement_target] that [movement_target.loc] has with sad puppy eyes.")
-
-		if(prob(1))
-			visible_emote(pick("dances around.","chases their tail."))
-			spawn(0)
-				for(var/i in list(1,2,4,8,4,2,1,2,4,8,4,2,1,2,4,8,4,2))
-					set_dir(i)
-					sleep(1)
+	var/facehugger
 
 /obj/item/weapon/reagent_containers/food/snacks/meat/corgi
 	name = "Corgi meat"
 	desc = "Tastes like... well you know..."
 
-/mob/living/simple_animal/corgi/attackby(var/obj/item/O as obj, var/mob/user as mob)  //Marker -Agouri
+/mob/living/simple_animal/corgi/regenerate_icons()
+	overlays.Cut()
+	if(facehugger)
+		if(istype(src, /mob/living/simple_animal/corgi/puppy))
+			overlays += image('icons/mob/mask.dmi',"facehugger_corgipuppy")
+		else
+			overlays += image('icons/mob/mask.dmi',"facehugger_corgi")
+
+/mob/living/simple_animal/corgi/attackby(obj/item/O, mob/user)
 	if(istype(O, /obj/item/weapon/newspaper))
+		user.SetNextMove(CLICK_CD_MELEE)
 		if(!stat)
 			for(var/mob/M in viewers(user, null))
 				if ((M.client && !( M.blinded )))
-					M.show_message("<span class='notice'>[user] baps [name] on the nose with the rolled up [O]</span>")
+					M.show_message("\blue [user] baps [name] on the nose with the rolled up [O]")
 			spawn(0)
 				for(var/i in list(1,2,4,8,4,2,1,2))
-					set_dir(i)
+					dir = i
 					sleep(1)
 	else
 		..()
-
-/mob/living/simple_animal/corgi/regenerate_icons()
-	overlays = list()
-
-	if(inventory_head)
-		var/head_icon_state = inventory_head.icon_state
-		if(health <= 0)
-			head_icon_state += "2"
-
-		var/icon/head_icon = image('icons/mob/simple_animal/corgi_head.dmi',head_icon_state)
-		if(head_icon)
-			overlays += head_icon
-
-	if(inventory_back)
-		var/back_icon_state = inventory_back.icon_state
-		if(health <= 0)
-			back_icon_state += "2"
-
-		var/icon/back_icon = image('icons/mob/simple_animal/corgi_back.dmi',back_icon_state)
-		if(back_icon)
-			overlays += back_icon
 
 /mob/living/simple_animal/corgi/puppy
 	name = "\improper corgi puppy"
@@ -137,16 +52,6 @@
 	icon_state = "puppy"
 	icon_living = "puppy"
 	icon_dead = "puppy_dead"
-	meat_amount = 1
-	skin_amount = 3
-	bone_amount = 3
-
-//pupplies cannot wear anything.
-/mob/living/simple_animal/corgi/puppy/OnTopic(mob/user, href_list)
-	if(href_list["remove_inv"] || href_list["add_inv"])
-		to_chat(user, "<span class='warning'>You can't fit this on [src]</span>")
-		return TOPIC_HANDLED
-	return ..()
 
 //LISA! SQUEEEEEEEEE~
 /mob/living/simple_animal/corgi/Lisa
@@ -163,26 +68,18 @@
 	var/turns_since_scan = 0
 	var/puppies = 0
 
-//Lisa already has a cute bow!
-/mob/living/simple_animal/corgi/Lisa/OnTopic(mob/user, href_list)
-	if(href_list["remove_inv"] || href_list["add_inv"])
-		to_chat(user, "<span class='warning'>[src] already has a cute bow!</span>")
-		return TOPIC_HANDLED
-	return ..()
-
 /mob/living/simple_animal/corgi/Lisa/Life()
-	. = ..()
-	if(!.)
-		return FALSE
+	..()
 
-	if(!resting && !buckled)
+	if(!stat && !resting && !buckled)
 		turns_since_scan++
 		if(turns_since_scan > 15)
 			turns_since_scan = 0
 			var/alone = 1
 			var/ian = 0
-			for(var/mob/M in oviewers(7, src))
-				if(istype(M, /mob/living/simple_animal/corgi/Ian))
+			//for(var/mob/M in oviewers(7, src))
+			for(var/mob/M in oview(src,7))
+				if(istype(M, /mob/living/carbon/ian))
 					if(M.client)
 						alone = 0
 						break
@@ -195,11 +92,87 @@
 				if(near_camera(src) || near_camera(ian))
 					return
 				new /mob/living/simple_animal/corgi/puppy(loc)
+				puppies++
 
 
 		if(prob(1))
-			visible_emote(pick("dances around","chases her tail"))
+			emote("me",1,pick("dances around","chases her tail"))
 			spawn(0)
 				for(var/i in list(1,2,4,8,4,2,1,2,4,8,4,2,1,2,4,8,4,2))
-					set_dir(i)
+					dir = i
 					sleep(1)
+
+/mob/living/simple_animal/corgi/borgi
+	name = "E-N"
+	real_name = "E-N"	//Intended to hold the name without altering it.
+	desc = "It's a borgi."
+	icon_state = "borgi"
+	icon_living = "borgi"
+	icon_dead = "borgi_dead"
+	butcher_results = list()
+	var/emagged = 0
+
+/mob/living/simple_animal/corgi/borgi/attackby(obj/item/weapon/W, mob/user)
+	if (istype(W, /obj/item/weapon/card/emag) && emagged < 2)
+		user.SetNextMove(CLICK_CD_MELEE)
+		Emag(user)
+	else
+		..()
+
+/mob/living/simple_animal/corgi/borgi/proc/Emag(user)
+	if(!emagged)
+		emagged = 1
+		visible_message("<span class='warning'>[user] swipes a card through [src].</span>", "<span class='notice'>You overload [src]s internal reactor.</span>")
+		spawn (1000)
+			src.explode()
+
+/mob/living/simple_animal/corgi/borgi/proc/explode()
+	for(var/mob/M in viewers(src, null))
+		if (M.client)
+			M.show_message("\red [src] makes an odd whining noise.")
+	sleep(10)
+	explosion(get_turf(src), 0, 1, 4, 7)
+	Die()
+
+/mob/living/simple_animal/corgi/borgi/proc/shootAt(atom/movable/target)
+	var/turf/T = get_turf(src)
+	var/turf/U = get_turf(target)
+	if (!T || !U)
+		return
+	var/obj/item/projectile/beam/A = new /obj/item/projectile/beam(loc)
+	A.icon = 'icons/effects/genetics.dmi'
+	A.icon_state = "eyelasers"
+	playsound(src.loc, 'sound/weapons/taser2.ogg', 75, 1)
+	A.original = target
+	A.current = T
+	A.starting = T
+	A.yo = U.y - T.y
+	A.xo = U.x - T.x
+	spawn( 0 )
+		A.process()
+	return
+
+/mob/living/simple_animal/corgi/borgi/Life()
+	..()
+	if(health <= 0) return
+	if(emagged && prob(25))
+		var/mob/living/carbon/target = locate() in view(10,src)
+		if (target)
+			shootAt(target)
+
+	//spark for no reason
+	if(prob(5))
+		var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
+		s.set_up(3, 1, src)
+		s.start()
+
+/mob/living/simple_animal/corgi/borgi/proc/Die()
+	..()
+	visible_message("<b>[src]</b> blows apart!")
+	new /obj/effect/decal/cleanable/blood/gibs/robot(src.loc)
+	var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
+	s.set_up(3, 1, src)
+	s.start()
+	//respawnable_list += src
+	qdel(src)
+	return

@@ -1,225 +1,100 @@
+/var/list/reagentfillings_icon_cache = list()
+
 /obj/item/weapon/reagent_containers
 	name = "Container"
 	desc = "..."
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = null
-	w_class = ITEM_SIZE_SMALL
+	w_class = 2
 	var/amount_per_transfer_from_this = 5
-	var/possible_transfer_amounts = "5;10;15;25;30"
+	var/possible_transfer_amounts = list(5,10,15,25,30)
 	var/volume = 30
-	var/label_text
 
-/obj/item/weapon/reagent_containers/proc/cannot_interact(mob/user)
-	if(!CanPhysicallyInteract(user))
-		to_chat(usr, "<span class='notice'>You're in no condition to do that!'</span>")
-		return TRUE
-	if(ismob(loc) && loc != user)
-		to_chat(usr, "<span class='notice'>You can't set transfer amounts while [src] is being held by someone else.</span>")
-		return TRUE
-	return FALSE
-
-/obj/item/weapon/reagent_containers/verb/set_amount_per_transfer_from_this()
+/obj/item/weapon/reagent_containers/verb/set_APTFT() //set amount_per_transfer_from_this
 	set name = "Set transfer amount"
 	set category = "Object"
-	set src in range(1)
-	if (cannot_interact(usr))
-		return
-	var/N = input("Amount per transfer from this:","[src]") as null|anything in cached_number_list_decode(possible_transfer_amounts)
-	if (cannot_interact(usr)) // because input takes time and the situation can change
-		return
-	if(N)
+	set src in range(0)
+	var/N = input("Amount per transfer from this:","[src]") as null|anything in possible_transfer_amounts
+	if (N)
 		amount_per_transfer_from_this = N
 
-/obj/item/weapon/reagent_containers/New()
-	create_reagents(volume)
-	..()
-	if(!possible_transfer_amounts)
-		src.verbs -= /obj/item/weapon/reagent_containers/verb/set_amount_per_transfer_from_this
-
-/obj/item/weapon/reagent_containers/attack_self(mob/user as mob)
-	return
-
-/obj/item/weapon/reagent_containers/afterattack(obj/target, mob/user, flag)
-	return
-
-/obj/item/weapon/reagent_containers/proc/reagentlist() // For attack logs
-	if(reagents)
-		return reagents.get_reagents()
-	return "No reagent holder"
-
-/obj/item/weapon/reagent_containers/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if(istype(W, /obj/item/weapon/pen) || istype(W, /obj/item/device/flashlight/pen))
-		var/tmp_label = sanitizeSafe(input(user, "Enter a label for [name]", "Label", label_text), MAX_NAME_LEN)
-		if(length(tmp_label) > 10)
-			to_chat(user, "<span class='notice'>The label can be at most 10 characters long.</span>")
-		else
-			to_chat(user, "<span class='notice'>You set the label to \"[tmp_label]\".</span>")
-			label_text = tmp_label
-			update_name_label()
-	else
-		return ..()
-
-/obj/item/weapon/reagent_containers/proc/update_name_label()
-	if(label_text == "")
-		SetName(initial(name))
-	else
-		SetName("[initial(name)] ([label_text])")
-
-/obj/item/weapon/reagent_containers/proc/standard_dispenser_refill(var/mob/user, var/obj/structure/reagent_dispensers/target) // This goes into afterattack
-	if(!istype(target))
-		return 0
-
-	if(!target.reagents || !target.reagents.total_volume)
-		to_chat(user, "<span class='notice'>[target] is empty.</span>")
-		return 1
-
-	if(reagents && !reagents.get_free_space())
-		to_chat(user, "<span class='notice'>[src] is full.</span>")
-		return 1
-
-	var/trans = target.reagents.trans_to_obj(src, target:amount_per_transfer_from_this)
-	to_chat(user, "<span class='notice'>You fill [src] with [trans] units of the contents of [target].</span>")
-	return 1
-
-/obj/item/weapon/reagent_containers/proc/standard_splash_mob(var/mob/user, var/mob/target) // This goes into afterattack
-	if(!istype(target))
-		return
-
-	if(user.a_intent == I_HELP)
-		to_chat(user, "<span class='notice'>You can't splash people on help intent.</span>")
-		return 1
-
-	if(!reagents || !reagents.total_volume)
-		to_chat(user, "<span class='notice'>[src] is empty.</span>")
-		return 1
-
-	if(target.reagents && !target.reagents.get_free_space())
-		to_chat(user, "<span class='notice'>[target] is full.</span>")
-		return 1
-
-	var/contained = reagentlist()
-	admin_attack_log(user, target, "Used \the [name] containing [contained] to splash the victim.", "Was splashed by \the [name] containing [contained].", "used \the [name] containing [contained] to splash")
-
-	user.visible_message("<span class='danger'>[target] has been splashed with something by [user]!</span>", "<span class = 'notice'>You splash the solution onto [target].</span>")
-	reagents.splash(target, reagents.total_volume)
-	return 1
-
-/obj/item/weapon/reagent_containers/proc/self_feed_message(var/mob/user)
-	to_chat(user, "<span class='notice'>You eat \the [src]</span>")
-
-/obj/item/weapon/reagent_containers/proc/other_feed_message_start(var/mob/user, var/mob/target)
-	user.visible_message("<span class='warning'>[user] is trying to feed [target] \the [src]!</span>")
-
-/obj/item/weapon/reagent_containers/proc/other_feed_message_finish(var/mob/user, var/mob/target)
-	user.visible_message("<span class='warning'>[user] has fed [target] \the [src]!</span>")
-
-/obj/item/weapon/reagent_containers/proc/feed_sound(var/mob/user)
-	return
-
-/obj/item/weapon/reagent_containers/proc/standard_feed_mob(var/mob/user, var/mob/target) // This goes into attack
-	if(!istype(target))
-		return 0
-
-	if(!reagents || !reagents.total_volume)
-		to_chat(user, "<span class='notice'>\The [src] is empty.</span>")
-		return 1
-
-	// only carbons can eat
-	if(istype(target, /mob/living/carbon))
-		if(target == user)
-			if(istype(user, /mob/living/carbon/human))
-				var/mob/living/carbon/human/H = user
-				if(!H.check_has_mouth())
-					to_chat(user, "Where do you intend to put \the [src]? You don't have a mouth!")
-					return
-				var/obj/item/blocked = H.check_mouth_coverage()
-				if(blocked)
-					to_chat(user, "<span class='warning'>\The [blocked] is in the way!</span>")
-					return
-
-			user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN) //puts a limit on how fast people can eat/drink things
-			self_feed_message(user)
-			reagents.trans_to_mob(user, issmall(user) ? ceil(amount_per_transfer_from_this/2) : amount_per_transfer_from_this, CHEM_INGEST)
-			feed_sound(user)
-			add_trace_DNA(user)
-			return 1
-
-
-		else
-			var/mob/living/carbon/H = target
-			if(!H.check_has_mouth())
-				to_chat(user, "Where do you intend to put \the [src]? \The [H] doesn't have a mouth!")
-				return
-			var/obj/item/blocked = H.check_mouth_coverage()
-			if(blocked)
-				to_chat(user, "<span class='warning'>\The [blocked] is in the way!</span>")
-				return
-
-			other_feed_message_start(user, target)
-
-			user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-			if(!do_mob(user, target))
-				return
-
-			other_feed_message_finish(user, target)
-
-			var/contained = reagentlist()
-			admin_attack_log(user, target, "Fed the victim with [name] (Reagents: [contained])", "Was fed [src] (Reagents: [contained])", "used [src] (Reagents: [contained]) to feed")
-
-			reagents.trans_to_mob(target, amount_per_transfer_from_this, CHEM_INGEST)
-			feed_sound(user)
-			add_trace_DNA(target)
-			return 1
-
-	return 0
-
-/obj/item/weapon/reagent_containers/proc/standard_pour_into(var/mob/user, var/atom/target) // This goes into afterattack and yes, it's atom-level
-	if(!target.reagents)
-		return 0
-
-	// Ensure we don't splash beakers and similar containers.
-	if(!target.is_open_container() && istype(target, /obj/item/weapon/reagent_containers))
-		to_chat(user, "<span class='notice'>\The [target] is closed.</span>")
-		return 1
-	// Otherwise don't care about splashing.
-	else if(!target.is_open_container())
-		return 0
-
-	if(!reagents || !reagents.total_volume)
-		to_chat(user, "<span class='notice'>[src] is empty.</span>")
-		return 1
-
-	if(!target.reagents.get_free_space())
-		to_chat(user, "<span class='notice'>[target] is full.</span>")
-		return 1
-
-	var/trans = reagents.trans_to(target, amount_per_transfer_from_this)
-	playsound(src, 'sound/effects/pour.ogg', 25, 1)
-	to_chat(user, "<span class='notice'>You transfer [trans] unit\s of the solution to \the [target].  \The [src] now contains [src.reagents.total_volume] units.</span>")
-	return 1
-
-/obj/item/weapon/reagent_containers/do_surgery(mob/living/carbon/M, mob/living/user)
-	if(user.zone_sel.selecting != BP_MOUTH) //in case it is ever used as a surgery tool
-		return ..()
-
-/obj/item/weapon/reagent_containers/AltClick(var/mob/user)
-	if(possible_transfer_amounts)
-		set_amount_per_transfer_from_this()
-	else
-		return ..()
-
-/obj/item/weapon/reagent_containers/examine(mob/user)
+/obj/item/weapon/reagent_containers/atom_init()
 	. = ..()
-	if(!reagents)
-		return
-	if(hasHUD(user, HUD_SCIENCE))
-		var/prec = user.skill_fail_chance(SKILL_CHEMISTRY, 10)
-		to_chat(user, "<span class='notice'>The [src] contains: [reagents.get_reagents(precision = prec)].</span>")
-	else if((loc == user) && user.skill_check(SKILL_CHEMISTRY, SKILL_EXPERT))
-		to_chat(user, "<span class='notice'>Using your chemistry knowledge, you identify the following reagents in \the [src]: [reagents.get_reagents(!user.skill_check(SKILL_CHEMISTRY, SKILL_PROF), 5)].</span>")
+	if (!possible_transfer_amounts)
+		src.verbs -= /obj/item/weapon/reagent_containers/verb/set_APTFT
+	var/datum/reagents/R = new/datum/reagents(volume)
+	reagents = R
+	R.my_atom = src
 
-/obj/item/weapon/reagent_containers/ex_act(severity)
-	if(reagents)
-		for(var/datum/reagent/R in reagents.reagent_list)
-			R.ex_act(src, severity)
-	..()
+/obj/item/weapon/reagent_containers/attack_self(mob/user)
+	return
+
+/obj/item/weapon/reagent_containers/attack(mob/M, mob/user, def_zone)
+	return
+
+// this prevented pills, food, and other things from being picked up by bags.
+// possibly intentional, but removing it allows us to not duplicate functionality.
+// -Sayu (storage conslidation)
+/*
+/obj/item/weapon/reagent_containers/attackby(obj/item/I, mob/user)
+	return
+*/
+/obj/item/weapon/reagent_containers/afterattack(obj/target, mob/user , flag)
+	return
+
+/obj/item/weapon/reagent_containers/proc/reagentlist(obj/item/weapon/reagent_containers/snack) //Attack logs for regents in pills
+	var/data
+	if(snack.reagents.reagent_list && snack.reagents.reagent_list.len) //find a reagent list if there is and check if it has entries
+		for (var/datum/reagent/R in snack.reagents.reagent_list) //no reagents will be left behind
+			data += "[R.id]([R.volume] units); " //Using IDs because SOME chemicals(I'm looking at you, chlorhydrate-beer) have the same names as other chemicals.
+		return data
+	else return "No reagents"
+
+/obj/item/weapon/reagent_containers/proc/show_filler_on_icon(filler_margin_y, filler_height, current_offset)
+/*
+	Show containers content on icon
+	filler_icon_y_position - Y-indent. Array in Byond start at 1.
+	filler_margin_y - height of a liquid column
+*/
+	if(reagents.total_volume == 0)
+		underlays.Cut()
+		return
+
+	var/offset = round((reagents.total_volume / volume) * filler_height) + filler_margin_y
+	if(offset == current_offset)	// If height of a liquid column isn't changed
+		return current_offset
+
+	if (offset == filler_margin_y)		// if content exist, but not it is enough to 1 pixel
+		offset++		// let it will be 1 pixel
+
+	var/icon/filler = get_filler(offset)	 // get height of a liquid column from cache or generate it
+
+	underlays.Cut()
+	underlays += filler
+
+	current_offset = offset
+	return current_offset
+
+/obj/item/weapon/reagent_containers/proc/get_filler(offset)
+/*
+	Get height of a liquid column from cache or generate it
+	We get 2 sprites for drawing : the transparent places of a container and pink square.
+	The pink square crop a liquid column using offset.
+*/
+	var/cached_icon_string = "[src.icon_state]||[offset]"
+	var/image/filler
+
+	if(cached_icon_string in reagentfillings_icon_cache)
+		filler = reagentfillings_icon_cache[cached_icon_string]
+	else
+		var/icon/I = new('icons/obj/reagentfillings.dmi',src.icon_state)		// transparent places sprite
+		var/icon/cut = new('icons/obj/reagentfillings.dmi', "cut")		//  pink square sprite
+
+		I.Blend(cut, ICON_OVERLAY, 1, offset)		// We superimpose a pink square offsetting it
+		I.SwapColor(rgb(255, 0, 220, 255), rgb(0, 0, 0, 0))		// delete pink
+		reagentfillings_icon_cache[cached_icon_string] = image(I, icon_state)		// Save to cache
+		filler = reagentfillings_icon_cache[cached_icon_string]
+
+	var/list/mc = ReadRGB(mix_color_from_reagents(reagents.reagent_list))
+	filler.color = RGB_CONTRAST(mc[1], mc[2], mc[3])		// paint in color of drink
+	return filler

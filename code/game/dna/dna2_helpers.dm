@@ -14,42 +14,34 @@
 
 // DNA Gene activation boundaries, see dna2.dm.
 // Returns a list object with 4 numbers.
-/proc/GetDNABounds(var/block)
+/proc/GetDNABounds(block)
 	var/list/BOUNDS=dna_activity_bounds[block]
 	if(!istype(BOUNDS))
 		return DNA_DEFAULT_BOUNDS
 	return BOUNDS
 
 // Give Random Bad Mutation to M
-/proc/randmutb(var/mob/living/M)
+/proc/randmutb(mob/living/M)
 	if(!M) return
-	if(ishuman(M))
-		var/mob/living/carbon/human/H = M
-		if(!H.should_have_organ(BP_HEART))
-			return
 	M.dna.check_integrity()
-	var/block = pick(GLOB.GLASSESBLOCK,GLOB.COUGHBLOCK,GLOB.FAKEBLOCK,GLOB.NERVOUSBLOCK,GLOB.CLUMSYBLOCK,GLOB.TWITCHBLOCK,GLOB.HEADACHEBLOCK,GLOB.BLINDBLOCK,GLOB.DEAFBLOCK,GLOB.HALLUCINATIONBLOCK)
+	var/block = pick(GLASSESBLOCK,COUGHBLOCK,FAKEBLOCK,NERVOUSBLOCK,CLUMSYBLOCK,TWITCHBLOCK,HEADACHEBLOCK,BLINDBLOCK,DEAFBLOCK,HALLUCINATIONBLOCK)
 	M.dna.SetSEState(block, 1)
 
 // Give Random Good Mutation to M
-/proc/randmutg(var/mob/living/M)
+/proc/randmutg(mob/living/M)
 	if(!M) return
-	if(ishuman(M))
-		var/mob/living/carbon/human/H = M
-		if(!H.should_have_organ(BP_HEART))
-			return
 	M.dna.check_integrity()
-	var/block = pick(GLOB.HULKBLOCK,GLOB.XRAYBLOCK,GLOB.FIREBLOCK,GLOB.TELEBLOCK,GLOB.NOBREATHBLOCK,GLOB.REMOTEVIEWBLOCK,GLOB.REGENERATEBLOCK,GLOB.INCREASERUNBLOCK,GLOB.REMOTETALKBLOCK,GLOB.MORPHBLOCK,GLOB.BLENDBLOCK,GLOB.NOPRINTSBLOCK,GLOB.SHOCKIMMUNITYBLOCK,GLOB.SMALLSIZEBLOCK)
+	var/block = pick(HULKBLOCK,XRAYBLOCK,FIREBLOCK,TELEBLOCK,NOBREATHBLOCK,REMOTEVIEWBLOCK,REGENERATEBLOCK,INCREASERUNBLOCK,REMOTETALKBLOCK,MORPHBLOCK,BLENDBLOCK,NOPRINTSBLOCK,SHOCKIMMUNITYBLOCK,SMALLSIZEBLOCK)
 	M.dna.SetSEState(block, 1)
 
 // Random Appearance Mutation
-/proc/randmuti(var/mob/living/M)
+/proc/randmuti(mob/living/M)
 	if(!M) return
 	M.dna.check_integrity()
 	M.dna.SetUIValue(rand(1,DNA_UI_LENGTH),rand(1,4095))
 
 // Scramble UI or SE.
-/proc/scramble(var/UI, var/mob/M, var/prob)
+/proc/scramble(UI, mob/M, prob)
 	if(!M)	return
 	M.dna.check_integrity()
 	if(UI)
@@ -132,7 +124,7 @@
 // Use mob.UpdateAppearance() instead.
 
 // Simpler. Don't specify UI in order for the mob to use its own.
-/mob/proc/UpdateAppearance(var/list/UI=null)
+/mob/proc/UpdateAppearance(list/UI=null)
 	if(istype(src, /mob/living/carbon/human))
 		if(UI!=null)
 			src.dna.UI=UI
@@ -154,40 +146,25 @@
 		H.r_eyes   = dna.GetUIValueRange(DNA_UI_EYES_R,    255)
 		H.g_eyes   = dna.GetUIValueRange(DNA_UI_EYES_G,    255)
 		H.b_eyes   = dna.GetUIValueRange(DNA_UI_EYES_B,    255)
-		H.update_eyes()
 
 		H.s_tone   = 35 - dna.GetUIValueRange(DNA_UI_SKIN_TONE, 220) // Value can be negative.
 
-		if(H.gender != NEUTER)
-			if (dna.GetUIState(DNA_UI_GENDER))
-				H.gender = FEMALE
-			else
-				H.gender = MALE
-
-		//Body markings
-		for(var/tag in dna.body_markings)
-			var/obj/item/organ/external/E = H.organs_by_name[tag]
-			if(E)
-				var/list/marklist = dna.body_markings[tag]
-				E.markings = marklist.Copy()
-
-		//Base skin and blend
-		for(var/obj/item/organ/external/E in H.organs)
-			E.set_dna(E.dna)
+		if (dna.GetUIState(DNA_UI_GENDER))
+			H.gender = FEMALE
+		else
+			H.gender = MALE
 
 		//Hair
-		var/hair = dna.GetUIValueRange(DNA_UI_HAIR_STYLE,GLOB.hair_styles_list.len)
-		if((0 < hair) && (hair <= GLOB.hair_styles_list.len))
-			H.h_style = GLOB.hair_styles_list[hair]
+		var/hair = dna.GetUIValueRange(DNA_UI_HAIR_STYLE,hair_styles_list.len)
+		if((0 < hair) && (hair <= hair_styles_list.len))
+			H.h_style = hair_styles_list[hair]
 
 		//Facial Hair
-		var/beard = dna.GetUIValueRange(DNA_UI_BEARD_STYLE,GLOB.facial_hair_styles_list.len)
-		if((0 < beard) && (beard <= GLOB.facial_hair_styles_list.len))
-			H.f_style = GLOB.facial_hair_styles_list[beard]
+		var/beard = dna.GetUIValueRange(DNA_UI_BEARD_STYLE,facial_hair_styles_list.len)
+		if((0 < beard) && (beard <= facial_hair_styles_list.len))
+			H.f_style = facial_hair_styles_list[beard]
 
-		H.force_update_limbs()
 		H.update_body()
-		H.update_eyes()
 		H.update_hair()
 
 		return 1
@@ -195,5 +172,5 @@
 		return 0
 
 // Used below, simple injection modifier.
-/proc/probinj(var/pr, var/inj)
+/proc/probinj(pr, inj)
 	return prob(pr+inj*pr)

@@ -2,42 +2,43 @@
 	name = "voice analyzer"
 	desc = "A small electronic device able to record a voice sample, and send a signal when that sample is repeated."
 	icon_state = "voice"
-	origin_tech = list(TECH_MAGNET = 1)
-	matter = list(MATERIAL_STEEL = 500, MATERIAL_GLASS = 50, MATERIAL_WASTE = 10)
+	materials = list(MAT_METAL=500, MAT_GLASS=50)
+	origin_tech = "magnets=1"
+	m_amt = 500
+	g_amt = 50
+
 	var/listening = 0
-	var/recorded	//the activation message
+	var/recorded = "" //the activation message
 
-/obj/item/device/assembly/voice/New()
-	..()
-	GLOB.listening_objects += src
 
-/obj/item/device/assembly/voice/Destroy()
-	GLOB.listening_objects -= src
-	return ..()
+/obj/item/device/assembly/voice/hear_talk(mob/living/M, msg)
 
-/obj/item/device/assembly/voice/hear_talk(mob/living/M as mob, msg)
+	msg = lowertext_(sanitize(msg))
+	
 	if(listening)
 		recorded = msg
 		listening = 0
-		var/turf/T = get_turf(src)	//otherwise it won't work in hand
-		T.visible_message("\icon[src] beeps, \"Activation message is '[recorded]'.\"")
+		for(var/mob/O in hearers(1, src.loc))
+			O.show_message(text("Activation message is '[recorded]'."),1)
 	else
 		if(findtext(msg, recorded))
-			pulse(0)
+			for(var/mob/O in hearers(1, src.loc))
+				O.show_message(text("Beeeep"),1)
+			spawn(10)
+				pulse(0)
 
 /obj/item/device/assembly/voice/activate()
 	if(secured)
 		if(!holder)
 			listening = !listening
-			var/turf/T = get_turf(src)
-			T.visible_message("\icon[src] beeps, \"[listening ? "Now" : "No longer"] recording input.\"")
-
+			for(var/mob/O in hearers(1, src.loc))
+				O.show_message(text("[listening ? "Now" : "No longer"] recording input."),1)
 
 /obj/item/device/assembly/voice/attack_self(mob/user)
-	if(!user)	return 0
+	if(!user)
+		return 0
 	activate()
 	return 1
-
 
 /obj/item/device/assembly/voice/toggle_secure()
 	. = ..()

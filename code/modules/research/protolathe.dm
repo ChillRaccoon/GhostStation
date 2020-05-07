@@ -1,170 +1,196 @@
+/*
+Protolathe
+
+Similar to an autolathe, you load glass and metal sheets (but not other objects) into it to be used as raw materials for the stuff
+it creates. All the menus and other manipulation commands are in the R&D console.
+
+Note: Must be placed west/left of and R&D console to function.
+
+*/
 /obj/machinery/r_n_d/protolathe
-	name = "protolathe"
-	desc = "Accessed by a connected core fabricator console, it produces items from various materials."
+	name = "Protolathe"
 	icon_state = "protolathe"
-	atom_flags = ATOM_FLAG_NO_TEMP_CHANGE | ATOM_FLAG_OPEN_CONTAINER
+	flags = OPENCONTAINER
 
-	idle_power_usage = 30
-	active_power_usage = 5000
-	base_type = /obj/machinery/r_n_d/protolathe
-	construct_state = /decl/machine_construction/default/panel_closed
+	var/max_material_storage = 100000 //All this could probably be done better with a list but meh.
+	var/m_amount = 0.0
+	var/g_amount = 0.0
+	var/gold_amount = 0.0
+	var/silver_amount = 0.0
+	var/phoron_amount = 0.0
+	var/uranium_amount = 0.0
+	var/diamond_amount = 0.0
+	var/clown_amount = 0.0
+	var/efficiency_coeff
+	reagents = new()
 
-	var/max_material_storage = 250000
 
-	var/list/datum/design/queue = list()
-	var/progress = 0
+/obj/machinery/r_n_d/protolathe/atom_init()
+	. = ..()
+	component_parts = list()
+	component_parts += new /obj/item/weapon/circuitboard/protolathe(src)
+	component_parts += new /obj/item/weapon/stock_parts/matter_bin(src)
+	component_parts += new /obj/item/weapon/stock_parts/matter_bin(src)
+	component_parts += new /obj/item/weapon/stock_parts/manipulator(src)
+	component_parts += new /obj/item/weapon/stock_parts/manipulator(src)
+	component_parts += new /obj/item/weapon/reagent_containers/glass/beaker(src)
+	component_parts += new /obj/item/weapon/reagent_containers/glass/beaker(src)
+	RefreshParts()
+	reagents.my_atom = src
 
-	var/mat_efficiency = 1
-	var/speed = 1
-
-/obj/machinery/r_n_d/protolathe/New()
-	materials = default_material_composition.Copy()
-	..()
-
-/obj/machinery/r_n_d/protolathe/Process()
-	..()
-	if(stat & (BROKEN | NOPOWER))
-		update_icon()
-		return
-	if(queue.len == 0)
-		busy = 0
-		update_icon()
-		return
-	var/datum/design/D = queue[1]
-	if(canBuild(D))
-		busy = 1
-		progress += speed
-		if(progress >= D.time)
-			build(D)
-			progress = 0
-			removeFromQueue(1)
-			if(linked_console)
-				linked_console.updateUsrDialog()
-		update_icon()
-	else
-		if(busy)
-			visible_message("<span class='notice'>\icon [src] flashes: insufficient materials: [getLackingMaterials(D)].</span>")
-			busy = 0
-			update_icon()
+/obj/machinery/r_n_d/protolathe/proc/TotalMaterials() //returns the total of all the stored materials. Makes code neater.
+	return m_amount + g_amount + gold_amount + silver_amount + phoron_amount + uranium_amount + diamond_amount + clown_amount
 
 /obj/machinery/r_n_d/protolathe/RefreshParts()
 	var/T = 0
-	var/obj/item/weapon/stock_parts/building_material/mat = get_component_of_type(/obj/item/weapon/stock_parts/building_material)
-	if(mat)
-		for(var/obj/item/weapon/reagent_containers/glass/G in mat.materials)
-			T += G.volume
-		if(!reagents)
-			create_reagents(T)
+	for(var/obj/item/weapon/reagent_containers/glass/G in component_parts)
+		G.reagents.trans_to(src, G.reagents.total_volume)
+	for(var/obj/item/weapon/stock_parts/matter_bin/M in component_parts)
+		T += M.rating
+	max_material_storage = T * 75000
+	T = 0
+	for(var/obj/item/weapon/stock_parts/manipulator/M in component_parts)
+		T += (M.rating/3)
+	efficiency_coeff = max(T, 1)
+
+/obj/machinery/r_n_d/protolathe/proc/check_mat(datum/design/being_built, M)
+	var/A = 0
+	switch(M)
+		if(MAT_METAL)
+			A = m_amount
+		if(MAT_GLASS)
+			A = g_amount
+		if(MAT_GOLD)
+			A = gold_amount
+		if(MAT_SILVER)
+			A = silver_amount
+		if(MAT_PHORON)
+			A = phoron_amount
+		if(MAT_URANIUM)
+			A = uranium_amount
+		if(MAT_DIAMOND)
+			A = diamond_amount
+		if("$clown")
+			A = clown_amount
 		else
-			reagents.maximum_volume = T
-
-	max_material_storage = 75000 * Clamp(total_component_rating_of_type(/obj/item/weapon/stock_parts/matter_bin), 0, 10)
-
-	T = Clamp(total_component_rating_of_type(/obj/item/weapon/stock_parts/manipulator), 0, 6)
-	mat_efficiency = 1 - (T - 2) / 8
-	speed = T / 2
-	..()
+			A = reagents.has_reagent(M, (being_built.materials[M]/efficiency_coeff))
+			//return reagents.has_reagent(M, (being_built.materials[M]/efficiency_coeff))
+	A = A / max(1 , (being_built.materials[M]/efficiency_coeff))
+	return A
 
 
-/obj/machinery/r_n_d/protolathe/on_update_icon()
-	if(panel_open)
-		icon_state = "protolathe_t"
-	else if(busy)
-		icon_state = "protolathe_n"
-	else
-		icon_state = "protolathe"
-
-/obj/machinery/r_n_d/protolathe/state_transition(var/decl/machine_construction/default/new_state)
-	. = ..()
-	if(istype(new_state) && linked_console)
-		linked_console.linked_lathe = null
-		linked_console = null
-
-/obj/machinery/r_n_d/protolathe/components_are_accessible(path)
-	return !busy && ..()
-
-/obj/machinery/r_n_d/protolathe/cannot_transition_to(state_path)
-	if(busy)
-		return SPAN_NOTICE("\The [src] is busy. Please wait for completion of previous operation.")
-	return ..()
-
-/obj/machinery/r_n_d/protolathe/attackby(var/obj/item/O as obj, var/mob/user as mob)
-	if(busy)
-		to_chat(user, "<span class='notice'>\The [src] is busy. Please wait for completion of previous operation.</span>")
+/obj/machinery/r_n_d/protolathe/attackby(obj/item/I, mob/user)
+	if (shocked)
+		shock(user,50)
+	if (I.is_open_container())
 		return 1
-	if(component_attackby(O, user))
-		return TRUE
-	if(O.is_open_container())
-		return 1
-	if(panel_open)
-		to_chat(user, "<span class='notice'>You can't load \the [src] while it's opened.</span>")
-		return 1
-	if(!linked_console)
-		to_chat(user, "<span class='notice'>\The [src] must be linked to an R&D console first!</span>")
-		return 1
-	if(is_robot_module(O))
-		return 0
-	if(!istype(O, /obj/item/stack/material))
-		to_chat(user, "<span class='notice'>You cannot insert this item into \the [src]!</span>")
-		return 0
-	if(stat & (BROKEN | NOPOWER))
-		return 1
-
-	if(TotalMaterials() + SHEET_MATERIAL_AMOUNT > max_material_storage)
-		to_chat(user, "<span class='notice'>\The [src]'s material bin is full. Please remove material before adding more.</span>")
-		return 1
-
-	var/obj/item/stack/material/stack = O
-
-	var/amount = min(stack.get_amount(), round((max_material_storage - TotalMaterials()) / SHEET_MATERIAL_AMOUNT))
-
-	var/image/I = image(icon, "protolathe_stack")
-	I.color = stack.material.icon_colour
-	overlays += I
-	spawn(10)
-		overlays -= I
-
-	busy = 1
-	use_power_oneoff(max(1000, (SHEET_MATERIAL_AMOUNT * amount / 10)))
-	if(do_after(user, 16,src))
-		if(stack.use(amount))
-			to_chat(user, "<span class='notice'>You add [amount] sheet\s to \the [src].</span>")
-			materials[stack.material.name] += amount * SHEET_MATERIAL_AMOUNT
-	busy = 0
-	updateUsrDialog()
-
-/obj/machinery/r_n_d/protolathe/proc/addToQueue(var/datum/design/D)
-	queue += D
-	return
-
-/obj/machinery/r_n_d/protolathe/proc/removeFromQueue(var/index)
-	if(!is_valid_index(index, queue))
+	if (default_deconstruction_screwdriver(user, "protolathe_t", "protolathe", I))
+		if(linked_console)
+			linked_console.linked_lathe = null
+			linked_console = null
 		return
-	queue.Cut(index, index + 1)
 
-/obj/machinery/r_n_d/protolathe/proc/canBuild(var/datum/design/D)
-	for(var/M in D.materials)
-		if(materials[M] < D.materials[M])
-			return 0
-	for(var/C in D.chemicals)
-		if(!reagents.has_reagent(C, D.chemicals[C]))
-			return 0
-	return 1
+	if(exchange_parts(user, I))
+		return
 
-/obj/machinery/r_n_d/protolathe/proc/build(var/datum/design/D)
-	var/power = active_power_usage
-	for(var/M in D.materials)
-		power += round(D.materials[M] / 5)
-	power = max(active_power_usage, power)
-	use_power_oneoff(power)
-	for(var/M in D.materials)
-		materials[M] = max(0, materials[M] - D.materials[M] * mat_efficiency)
-	for(var/C in D.chemicals)
-		reagents.remove_reagent(C, D.chemicals[C] * mat_efficiency)
+	if (panel_open)
+		if(istype(I, /obj/item/weapon/crowbar))
+			for(var/obj/item/weapon/reagent_containers/glass/G in component_parts)
+				reagents.trans_to(G, G.reagents.maximum_volume)
+			if(m_amount >= 3750)
+				var/obj/item/stack/sheet/metal/G = new (loc)
+				G.set_amount(round(m_amount / G.perunit))
+			if(g_amount >= 3750)
+				var/obj/item/stack/sheet/glass/G = new (loc)
+				G.set_amount(round(g_amount / G.perunit))
+			if(phoron_amount >= 2000)
+				var/obj/item/stack/sheet/mineral/phoron/G = new (loc)
+				G.set_amount(round(phoron_amount / G.perunit))
+			if(silver_amount >= 2000)
+				var/obj/item/stack/sheet/mineral/silver/G = new (loc)
+				G.set_amount(round(silver_amount / G.perunit))
+			if(gold_amount >= 2000)
+				var/obj/item/stack/sheet/mineral/gold/G = new (loc)
+				G.set_amount(round(gold_amount / G.perunit))
+			if(uranium_amount >= 2000)
+				var/obj/item/stack/sheet/mineral/uranium/G = new (loc)
+				G.set_amount(round(uranium_amount / G.perunit))
+			if(diamond_amount >= 2000)
+				var/obj/item/stack/sheet/mineral/diamond/G = new (loc)
+				G.set_amount(round(diamond_amount / G.perunit))
+			if(clown_amount >= 2000)
+				var/obj/item/stack/sheet/mineral/clown/G = new (loc)
+				G.set_amount(round(clown_amount / G.perunit))
+			default_deconstruction_crowbar(I)
+			return 1
+		else if (is_wire_tool(I) && wires.interact(user))
+			return 1
+		else
+			to_chat(user, "\red You can't load the [src.name] while it's opened.")
+			return 1
 
-	if(D.build_path)
-		var/obj/new_item = D.Fabricate(loc, src)
-		if(mat_efficiency != 1) // No matter out of nowhere
-			if(new_item.matter && new_item.matter.len > 0)
-				for(var/i in new_item.matter)
-					new_item.matter[i] = new_item.matter[i] * mat_efficiency
+	if (disabled)
+		return
+	if (!linked_console)
+		to_chat(user, "\The protolathe must be linked to an R&D console first!")
+		return 1
+	if (busy)
+		to_chat(user, "\red The protolathe is busy. Please wait for completion of previous operation.")
+		return 1
+	if (!istype(I, /obj/item/stack/sheet))
+		to_chat(user, "\red You cannot insert this item into the protolathe!")
+		return 1
+	if (stat)
+		return 1
+	if(istype(I,/obj/item/stack/sheet))
+		var/obj/item/stack/sheet/S = I
+		if (TotalMaterials() + S.perunit > max_material_storage)
+			to_chat(user, "\red The protolathe's material bin is full. Please remove material before adding more.")
+			return 1
+
+	var/obj/item/stack/sheet/stack = I
+	var/amount = round(input("How many sheets do you want to add?") as num)//No decimals
+	if(!I)
+		return
+	if(amount < 0)//No negative numbers
+		amount = 0
+	if(amount == 0)
+		return
+	if(amount > stack.get_amount())
+		amount = stack.get_amount()
+	if(max_material_storage - TotalMaterials() < (amount*stack.perunit))//Can't overfill
+		amount = min(stack.get_amount(), round((max_material_storage-TotalMaterials())/stack.perunit))
+
+	busy = TRUE
+
+	to_chat(user, "<span class='notice'>You add [amount] sheets to the [name].</span>")
+
+	overlays += "protolathe_[stack.name]"
+	sleep(10)
+	overlays -= "protolathe_[stack.name]"
+
+	use_power(max(1000, (3750 * amount / 10)))
+
+	if(stack.get_amount() >= amount)
+		switch(stack.type)
+			if(/obj/item/stack/sheet/metal)
+				m_amount += amount * 3750
+			if(/obj/item/stack/sheet/glass)
+				g_amount += amount * 3750
+			if(/obj/item/stack/sheet/mineral/gold)
+				gold_amount += amount * 2000
+			if(/obj/item/stack/sheet/mineral/silver)
+				silver_amount += amount * 2000
+			if(/obj/item/stack/sheet/mineral/phoron)
+				phoron_amount += amount * 2000
+			if(/obj/item/stack/sheet/mineral/uranium)
+				uranium_amount += amount * 2000
+			if(/obj/item/stack/sheet/mineral/diamond)
+				diamond_amount += amount * 2000
+			if(/obj/item/stack/sheet/mineral/clown)
+				clown_amount += amount * 2000
+
+		stack.use(amount)
+
+	busy = FALSE
+	updateUsrDialog()

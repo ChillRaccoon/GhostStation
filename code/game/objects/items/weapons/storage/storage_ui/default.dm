@@ -10,48 +10,57 @@
 	var/obj/screen/storage/stored_end
 	var/obj/screen/close/closer
 
+
 /datum/storage_ui/default/New(var/storage)
 	..()
 	boxes = new /obj/screen/storage(  )
-	boxes.SetName("storage")
+	boxes.name = "storage"
 	boxes.master = storage
 	boxes.icon_state = "block"
 	boxes.screen_loc = "7,7 to 10,8"
-	boxes.layer = HUD_BASE_LAYER
+	boxes.layer = HUD_LAYER
+	boxes.plane = HUD_PLANE
 
 	storage_start = new /obj/screen/storage(  )
-	storage_start.SetName("storage")
+	storage_start.name = "storage"
 	storage_start.master = storage
 	storage_start.icon_state = "storage_start"
 	storage_start.screen_loc = "7,7 to 10,8"
-	storage_start.layer = HUD_BASE_LAYER
+	storage_start.layer = HUD_LAYER
+	storage_start.plane = HUD_PLANE
 	storage_continue = new /obj/screen/storage(  )
-	storage_continue.SetName("storage")
+	storage_continue.name = "storage"
 	storage_continue.master = storage
 	storage_continue.icon_state = "storage_continue"
 	storage_continue.screen_loc = "7,7 to 10,8"
-	storage_continue.layer = HUD_BASE_LAYER
+	storage_continue.layer = HUD_LAYER
+	storage_continue.plane = HUD_PLANE
 	storage_end = new /obj/screen/storage(  )
-	storage_end.SetName("storage")
+	storage_end.name = "storage"
 	storage_end.master = storage
 	storage_end.icon_state = "storage_end"
 	storage_end.screen_loc = "7,7 to 10,8"
-	storage_end.layer = HUD_BASE_LAYER
+	storage_end.layer = HUD_LAYER
+	storage_end.plane = HUD_PLANE
 
 	stored_start = new /obj //we just need these to hold the icon
 	stored_start.icon_state = "stored_start"
-	stored_start.layer = HUD_BASE_LAYER
+	stored_start.layer = HUD_LAYER
+	stored_start.plane = HUD_PLANE
 	stored_continue = new /obj
 	stored_continue.icon_state = "stored_continue"
-	stored_continue.layer = HUD_BASE_LAYER
+	stored_continue.layer = HUD_LAYER
+	stored_continue.plane = HUD_PLANE
 	stored_end = new /obj
 	stored_end.icon_state = "stored_end"
-	stored_end.layer = HUD_BASE_LAYER
+	stored_end.layer = HUD_LAYER
+	stored_end.plane = HUD_PLANE
 
 	closer = new /obj/screen/close(  )
 	closer.master = storage
 	closer.icon_state = "x"
-	closer.layer = HUD_BASE_LAYER
+	closer.layer = HUD_LAYER
+	closer.plane = HUD_PLANE
 
 /datum/storage_ui/default/Destroy()
 	close_all()
@@ -73,14 +82,15 @@
 	user.s_active = null
 
 /datum/storage_ui/default/on_insertion(var/mob/user)
-	if(user.s_active)
-		user.s_active.show_to(user)
+	//if(user.s_active)
+	//	user.s_active.show_to(user)
+	for(var/mob/M in can_see_contents())
+		M.s_active.show_to(M)
 
 /datum/storage_ui/default/on_pre_remove(var/mob/user, var/obj/item/W)
-	for(var/mob/M in range(1, storage.loc))
-		if (M.s_active == storage)
-			if (M.client)
-				M.client.screen -= W
+	for(var/mob/M in can_see_contents())
+		if(M.client)
+			M.client.screen -= W
 
 /datum/storage_ui/default/on_post_remove(var/mob/user)
 	if(user.s_active)
@@ -158,7 +168,9 @@
 	boxes.screen_loc = "[tx]:,[ty] to [mx],[my]"
 	for(var/obj/O in storage.contents)
 		O.screen_loc = "[cx],[cy]"
-		O.hud_layerise()
+		//O.hud_layerise()
+		O.layer = ABOVE_HUD_LAYER
+		O.plane = ABOVE_HUD_PLANE
 		cx++
 		if (cx > mx)
 			cx = tx
@@ -169,28 +181,69 @@
 //This proc determins the size of the inventory to be displayed. Please touch it only if you know what you're doing.
 /datum/storage_ui/default/proc/slot_orient_objs()
 	var/adjusted_contents = storage.contents.len
+	click_border_start.Cut()
+	click_border_end.Cut()
+
+	//Numbered contents display
+	var/list/datum/numbered_display/numbered_contents
+	if(storage.display_contents_with_number)
+		numbered_contents = list()
+		adjusted_contents = 0
+		for(var/obj/item/I in storage.contents)
+			var/found = 0
+			for(var/datum/numbered_display/ND in numbered_contents)
+				if(ND.sample_object.type == I.type)
+					ND.number++
+					found = 1
+					break
+			if(!found)
+				adjusted_contents++
+				numbered_contents.Add( new/datum/numbered_display(I) )
+
 	var/row_num = 0
 	var/col_count = min(7,storage.storage_slots) -1
 	if (adjusted_contents > 7)
 		row_num = round((adjusted_contents-1) / 7) // 7 is the maximum allowed width.
-	arrange_item_slots(row_num, col_count)
+	arrange_item_slots(row_num, col_count, numbered_contents)
 
 //This proc draws out the inventory and places the items on it. It uses the standard position.
-/datum/storage_ui/default/proc/arrange_item_slots(var/rows, var/cols)
+/datum/storage_ui/default/proc/arrange_item_slots(var/rows, var/cols, list/obj/item/display_contents)
 	var/cx = 4
 	var/cy = 2+rows
 	boxes.screen_loc = "4:16,2:16 to [4+cols]:16,[2+rows]:16"
 
-	for(var/obj/O in storage.contents)
-		O.screen_loc = "[cx]:16,[cy]:16"
-		O.maptext = ""
-		O.hud_layerise()
-		cx++
-		if (cx > (4+cols))
-			cx = 4
-			cy--
+	if(storage.display_contents_with_number)
+		for(var/datum/numbered_display/ND in display_contents)
+			ND.sample_object.screen_loc = "[cx]:16,[cy]:16"
+			ND.sample_object.maptext = "<font color='white'>[(ND.number > 1)? "[ND.number]" : ""]</font>"
+			ND.sample_object.layer = ABOVE_HUD_LAYER
+			ND.sample_object.plane = ABOVE_HUD_PLANE
+			cx++
+			if (cx > (4+cols))
+				cx = 4
+				cy--
+	else
+		for(var/obj/O in storage.contents)
+			O.screen_loc = "[cx]:16,[cy]:16"
+			O.maptext = ""
+			O.layer = ABOVE_HUD_LAYER
+			O.plane = ABOVE_HUD_PLANE
+			cx++
+			if (cx > (4+cols))
+				cx = 4
+				cy--
 
 	closer.screen_loc = "[4+cols+1]:16,2:16"
+
+/datum/numbered_display
+	var/obj/item/sample_object
+	var/number
+
+/datum/numbered_display/New(obj/item/sample)
+	if(!istype(sample))
+		qdel(src)
+	sample_object = sample
+	number = 1
 
 /datum/storage_ui/default/proc/space_orient_objs()
 
@@ -199,6 +252,8 @@
 	var/stored_cap_width = 4 //length of sprite for start and end of the box representing the stored item
 	var/storage_width = min( round( 224 * storage.max_storage_space/baseline_max_storage_space ,1) ,284) //length of sprite for the box representing total storage space
 
+	click_border_start.Cut()
+	click_border_end.Cut()
 	storage_start.overlays.Cut()
 
 	var/matrix/M = matrix()
@@ -206,7 +261,7 @@
 	storage_continue.transform = M
 
 	storage_start.screen_loc = "4:16,2:16"
-	storage_continue.screen_loc = "4:[storage_cap_width+(storage_width-storage_cap_width*2)/2+2],2:16"
+	storage_continue.screen_loc = "4:[round(storage_cap_width+(storage_width-storage_cap_width*2)/2+2)],2:16"
 	storage_end.screen_loc = "4:[19+storage_width-storage_cap_width],2:16"
 
 	var/startpoint = 0
@@ -216,11 +271,14 @@
 		startpoint = endpoint + 1
 		endpoint += storage_width * O.get_storage_cost()/storage.max_storage_space
 
+		click_border_start.Add(startpoint)
+		click_border_end.Add(endpoint)
+
 		var/matrix/M_start = matrix()
 		var/matrix/M_continue = matrix()
 		var/matrix/M_end = matrix()
 		M_start.Translate(startpoint,0)
-		M_continue.Scale((endpoint-startpoint-stored_cap_width*2)/32,1)
+		M_continue.Scale(ceil(endpoint-startpoint-stored_cap_width*2)/32,1)
 		M_continue.Translate(startpoint+stored_cap_width+(endpoint-startpoint-stored_cap_width*2)/2 - 16,0)
 		M_end.Translate(endpoint-stored_cap_width,0)
 		stored_start.transform = M_start
@@ -232,19 +290,7 @@
 
 		O.screen_loc = "4:[round((startpoint+endpoint)/2)+2],2:16"
 		O.maptext = ""
-		O.hud_layerise()
+		O.layer = ABOVE_HUD_LAYER
+		O.plane = HUD_PLANE
 
 	closer.screen_loc = "4:[storage_width+19],2:16"
-
-// Sets up numbered display to show the stack size of each stored mineral
-// NOTE: numbered display is turned off currently because it's broken
-/datum/storage_ui/default/sheetsnatcher/prepare_ui(var/mob/user)
-	var/adjusted_contents = storage.contents.len
-
-	var/row_num = 0
-	var/col_count = min(7,storage.storage_slots) -1
-	if (adjusted_contents > 7)
-		row_num = round((adjusted_contents-1) / 7) // 7 is the maximum allowed width.
-	arrange_item_slots(row_num, col_count)
-	if(user && user.s_active)
-		user.s_active.show_to(user)

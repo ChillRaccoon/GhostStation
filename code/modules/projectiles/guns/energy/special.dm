@@ -1,121 +1,114 @@
 /obj/item/weapon/gun/energy/ionrifle
 	name = "ion rifle"
-	desc = "The NT Mk60 EW Halicon is a man portable anti-armor weapon designed to disable mechanical threats, produced by NT. Not the best of its type."
-	icon = 'icons/obj/guns/ion_rifle.dmi'
+	desc = "A man portable anti-armor weapon designed to disable mechanical threats."
+	icon = 'icons/obj/guns/energy/rifles.dmi'
 	icon_state = "ionrifle"
 	item_state = "ionrifle"
-	origin_tech = list(TECH_COMBAT = 2, TECH_MAGNET = 4)
-	w_class = ITEM_SIZE_HUGE
-	force = 10
-	obj_flags =  OBJ_FLAG_CONDUCTIBLE
+	origin_tech = "combat=2;magnets=4"
+	w_class = 4.0
+	flags =  CONDUCT
 	slot_flags = SLOT_BACK
-	one_hand_penalty = 4
-	charge_cost = 30
-	max_shots = 8
-	fire_delay = 30
-	projectile_type = /obj/item/projectile/ion
-	wielded_item_state = "ionrifle-wielded"
-	combustion = 0
+	ammo_type = list(/obj/item/ammo_casing/energy/ion)
+
+/obj/item/weapon/gun/energy/ionrifle/isHandgun()
+	return 0
+
+/obj/item/weapon/gun/energy/ionrifle/update_icon()
+	var/ratio = power_supply.charge / power_supply.maxcharge
+	ratio = ceil(ratio * 4) * 25
+	switch(modifystate)
+		if (0)
+			if(ratio > 100)
+				icon_state = "[initial(icon_state)]100"
+				item_state = "[initial(item_state)]100"
+			else
+				icon_state = "[initial(icon_state)][ratio]"
+				item_state = "[initial(item_state)][ratio]"
+	return
 
 /obj/item/weapon/gun/energy/ionrifle/emp_act(severity)
-	..(max(severity, 2)) //so it doesn't EMP itself, I guess
-
-/obj/item/weapon/gun/energy/ionrifle/small
-	name = "ion pistol"
-	desc = "The NT Mk72 EW Preston is a personal defense weapon designed to disable mechanical threats."
-	icon = 'icons/obj/guns/ion_pistol.dmi'
-	icon_state = "ionpistol"
-	item_state = "ionpistol"
-	origin_tech = list(TECH_COMBAT = 2, TECH_MAGNET = 4)
-	w_class = ITEM_SIZE_NORMAL
-	force = 5
-	slot_flags = SLOT_BELT|SLOT_HOLSTER
-	one_hand_penalty = 0
-	charge_cost = 20
-	max_shots = 4
-	projectile_type = /obj/item/projectile/ion/small
+	if(severity <= 2)
+		power_supply.use(round(power_supply.maxcharge / severity))
+		update_icon()
+	else
+		return
 
 /obj/item/weapon/gun/energy/decloner
 	name = "biological demolecularisor"
+	icon = 'icons/obj/guns/energy/pistols.dmi'
 	desc = "A gun that discharges high amounts of controlled radiation to slowly break a target into component elements."
-	icon = 'icons/obj/guns/decloner.dmi'
 	icon_state = "decloner"
-	item_state = "decloner"
-	origin_tech = list(TECH_COMBAT = 5, TECH_MATERIAL = 4, TECH_POWER = 3)
-	max_shots = 10
-	projectile_type = /obj/item/projectile/energy/declone
-	combustion = 0
+	origin_tech = "combat=5;materials=4;powerstorage=3"
+	ammo_type = list(/obj/item/ammo_casing/energy/declone)
 
 /obj/item/weapon/gun/energy/floragun
 	name = "floral somatoray"
 	desc = "A tool that discharges controlled radiation which induces mutation in plant cells."
-	icon = 'icons/obj/guns/floral.dmi'
-	icon_state = "floramut100"
-	item_state = "floramut"
-	charge_cost = 10
-	max_shots = 10
-	projectile_type = /obj/item/projectile/energy/floramut
-	origin_tech = list(TECH_MATERIAL = 2, TECH_BIO = 3, TECH_POWER = 3)
-	modifystate = "floramut"
-	self_recharge = 1
-	var/decl/plantgene/gene = null
-	combustion = 0
+	icon = 'icons/obj/guns/energy/pistols.dmi'
+	icon_state = "flora"
+	item_state = "gun"
+	ammo_type = list(/obj/item/ammo_casing/energy/flora/yield, /obj/item/ammo_casing/energy/flora/mut)
+	origin_tech = "materials=2;biotech=3;powerstorage=3"
+	modifystate = 1
+	var/charge_tick = 0
+	var/mode = 0 //0 = mutate, 1 = yield boost
 
-	firemodes = list(
-		list(mode_name="induce mutations", projectile_type=/obj/item/projectile/energy/floramut, modifystate="floramut"),
-		list(mode_name="increase yield", projectile_type=/obj/item/projectile/energy/florayield, modifystate="florayield"),
-		list(mode_name="induce specific mutations", projectile_type=/obj/item/projectile/energy/floramut/gene, modifystate="floramut"),
-		)
+/obj/item/weapon/gun/energy/floragun/atom_init()
+	. = ..()
+	START_PROCESSING(SSobj, src)
 
-/obj/item/weapon/gun/energy/floragun/resolve_attackby(atom/A)
-	if(istype(A,/obj/machinery/portable_atmospherics/hydroponics))
-		return FALSE // do afterattack, i.e. fire, at pointblank at trays.
+
+/obj/item/weapon/gun/energy/floragun/Destroy()
+	STOP_PROCESSING(SSobj, src)
 	return ..()
 
-/obj/item/weapon/gun/energy/floragun/afterattack(obj/target, mob/user, adjacent_flag)
-	//allow shooting into adjacent hydrotrays regardless of intent
-	if(adjacent_flag && istype(target,/obj/machinery/portable_atmospherics/hydroponics))
-		user.visible_message("<span class='danger'>\The [user] fires \the [src] into \the [target]!</span>")
-		Fire(target,user)
-		return
-	..()
+/obj/item/weapon/gun/energy/floragun/process()
+	charge_tick++
+	if(charge_tick < 4)
+		return 0
+	charge_tick = 0
+	if(!power_supply)
+		return 0
+	power_supply.give(100)
+	update_icon()
+	return 1
 
-/obj/item/weapon/gun/energy/floragun/verb/select_gene()
-	set name = "Select Gene"
-	set category = "Object"
-	set src in view(1)
-
-	var/genemask = input("Choose a gene to modify.") as null|anything in SSplants.plant_gene_datums
-
-	if(!genemask)
-		return
-
-	gene = SSplants.plant_gene_datums[genemask]
-
-	to_chat(usr, "<span class='info'>You set the [src]'s targeted genetic area to [genemask].</span>")
-
-	return
-
-/obj/item/weapon/gun/energy/floragun/consume_next_projectile()
-	. = ..()
-	var/obj/item/projectile/energy/floramut/gene/G = .
-	if(istype(G))
-		G.gene = gene
+/obj/item/weapon/gun/energy/floragun/attack_self(mob/living/user)
+	select_fire(user)
+	update_icon()
 
 /obj/item/weapon/gun/energy/meteorgun
 	name = "meteor gun"
 	desc = "For the love of god, make sure you're aiming this the right way!"
-	icon = 'icons/obj/guns/launchers.dmi'
 	icon_state = "riotgun"
 	item_state = "c20r"
-	slot_flags = SLOT_BELT|SLOT_BACK
-	w_class = ITEM_SIZE_HUGE
-	projectile_type = /obj/item/projectile/meteor
-	cell_type = /obj/item/weapon/cell/potato
-	self_recharge = 1
-	recharge_time = 5 //Time it takes for shots to recharge (in ticks)
-	charge_meter = 0
-	combustion = 0
+	w_class = 4
+	ammo_type = list(/obj/item/ammo_casing/energy/meteor)
+	cell_type = "/obj/item/weapon/stock_parts/cell/potato"
+	clumsy_check = 0 //Admin spawn only, might as well let clowns use it.
+	var/charge_tick = 0
+	var/recharge_time = 5 //Time it takes for shots to recharge (in ticks)
+
+/obj/item/weapon/gun/energy/meteorgun/atom_init()
+	. = ..()
+	START_PROCESSING(SSobj, src)
+
+
+/obj/item/weapon/gun/energy/meteorgun/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	return ..()
+
+/obj/item/weapon/gun/energy/meteorgun/process()
+	charge_tick++
+	if(charge_tick < recharge_time)
+		return 0
+	charge_tick = 0
+	if(!power_supply)
+		return 0
+	power_supply.give(100)
+
+/obj/item/weapon/gun/energy/meteorgun/update_icon()
+	return
 
 /obj/item/weapon/gun/energy/meteorgun/pen
 	name = "meteor pen"
@@ -123,79 +116,223 @@
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "pen"
 	item_state = "pen"
-	w_class = ITEM_SIZE_TINY
-	slot_flags = SLOT_BELT
+	lefthand_file = 'icons/mob/inhands/items_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/items_righthand.dmi'
+	w_class = 1
 
 /obj/item/weapon/gun/energy/mindflayer
 	name = "mind flayer"
-	desc = "A custom-built weapon of some kind."
-	icon = 'icons/obj/guns/xray.dmi'
+	desc = "A prototype weapon recovered from the ruins of Research-Station Epsilon."
+	icon = 'icons/obj/guns/energy/rifles.dmi'
 	icon_state = "xray"
-	origin_tech = list(TECH_COMBAT = 5, TECH_MAGNET = 4)
-	projectile_type = /obj/item/projectile/beam/mindflayer
+	ammo_type = list(/obj/item/ammo_casing/energy/mindflayer)
 
 /obj/item/weapon/gun/energy/toxgun
 	name = "phoron pistol"
 	desc = "A specialized firearm designed to fire lethal bolts of phoron."
-	icon = 'icons/obj/guns/toxgun.dmi'
+	icon = 'icons/obj/guns/energy/pistols.dmi'
 	icon_state = "toxgun"
-	w_class = ITEM_SIZE_NORMAL
-	origin_tech = list(TECH_COMBAT = 5, TECH_PHORON = 4)
-	projectile_type = /obj/item/projectile/energy/phoron
+	w_class = 3.0
+	origin_tech = "combat=5;phorontech=4"
+	ammo_type = list(/obj/item/ammo_casing/energy/toxin)
 
-/obj/item/weapon/gun/energy/plasmacutter
-	name = "plasma cutter"
-	desc = "A mining tool capable of expelling concentrated plasma bursts. You could use it to cut limbs off of xenos! Or, you know, mine stuff."
-	charge_meter = 0
-	icon = 'icons/obj/guns/plasmacutter.dmi'
-	icon_state = "plasmacutter"
-	item_state = "plasmacutter"
-	fire_sound = 'sound/weapons/plasma_cutter.ogg'
-	slot_flags = SLOT_BELT|SLOT_BACK
-	w_class = ITEM_SIZE_NORMAL
-	force = 8
-	origin_tech = list(TECH_MATERIAL = 4, TECH_PHORON = 4, TECH_ENGINEERING = 6, TECH_COMBAT = 3)
-	matter = list(MATERIAL_STEEL = 4000)
-	projectile_type = /obj/item/projectile/beam/plasmacutter
-	max_shots = 10
-	self_recharge = 1
-	var/datum/effect/effect/system/spark_spread/spark_system
+/obj/item/weapon/gun/energy/sniperrifle
+	name = "sniper rifle"
+	desc = "Designed by W&J Company, W2500-E sniper rifle constructed of lightweight materials, fitted with a SMART aiming-system scope."
+	icon = 'icons/obj/gun.dmi'
+	icon_state = "w2500e"
+	item_state = "w2500e"
+	origin_tech = "combat=6;materials=5;powerstorage=4"
+	ammo_type = list(/obj/item/ammo_casing/energy/sniper)
+	slot_flags = SLOT_BACK
+	fire_delay = 35
+	w_class = 4.0
+	var/zoom = 0
 
-/obj/item/weapon/gun/energy/plasmacutter/mounted
-	name = "mounted plasma cutter"
-	use_external_power = 1
-	max_shots = 4
-	has_safety = FALSE
-
-/obj/item/weapon/gun/energy/plasmacutter/Initialize()
+/obj/item/weapon/gun/energy/sniperrifle/atom_init()
 	. = ..()
-	spark_system = new /datum/effect/effect/system/spark_spread
-	spark_system.set_up(5, 0, src)
-	spark_system.attach(src)
+	update_icon()
 
-/obj/item/weapon/gun/energy/plasmacutter/Destroy()
-	QDEL_NULL(spark_system)
-	return ..()
-
-/obj/item/weapon/gun/energy/plasmacutter/proc/slice(var/mob/M = null)
-	if(!safety() && power_supply.checked_use(charge_cost)) //consumes a shot per use
-		if(M)
-			M.welding_eyecheck()//Welding tool eye check
-			if(check_accidents(M, "[M] loses grip on [src] from its sudden recoil!",SKILL_CONSTRUCTION, 60, SKILL_ADEPT))
-				return 0
-		spark_system.start()
-		return 1
-	handle_click_empty(M)
+/obj/item/weapon/gun/energy/sniperrifle/isHandgun()
 	return 0
 
-/obj/item/weapon/gun/energy/incendiary_laser
-	name = "dispersive blaster"
-	desc = "The A&M 'Shayatin' was the first of a now-banned class of dispersive laser weapons which, instead of firing a focused beam, scan over a target rapidly with the goal of setting it ablaze."
-	icon = 'icons/obj/guns/incendiary_laser.dmi'
-	icon_state = "incen"
-	item_state = "incen"
-	safety_icon = "safety"
-	origin_tech = list(TECH_COMBAT = 7, TECH_MAGNET = 4, TECH_ESOTERIC = 4)
-	matter = list(MATERIAL_ALUMINIUM = 1000, MATERIAL_PLASTIC = 500, MATERIAL_DIAMOND = 500)
-	projectile_type = /obj/item/projectile/beam/incendiary_laser
-	max_shots = 4
+/obj/item/weapon/gun/energy/sniperrifle/update_icon()
+	var/ratio = power_supply.charge / power_supply.maxcharge
+	ratio = ceil(ratio * 4) * 25
+	switch(modifystate)
+		if (0)
+			if(ratio > 100)
+				icon_state = "[initial(icon_state)]100"
+				item_state = "[initial(item_state)]100"
+			else
+				icon_state = "[initial(icon_state)][ratio]"
+				item_state = "[initial(item_state)][ratio]"
+	return
+
+/obj/item/weapon/gun/energy/sniperrifle/dropped(mob/user)
+	user.client.view = world.view
+
+/*
+This is called from
+modules/mob/mob_movement.dm if you move you will be zoomed out
+modules/mob/living/carbon/human/life.dm if you die, you will be zoomed out.
+*/
+
+/obj/item/weapon/gun/energy/sniperrifle/attack_self()
+	zoom()
+
+/obj/item/weapon/gun/energy/sniperrifle/verb/zoom()
+	set category = "Object"
+	set name = "Use Sniper Scope"
+	set popup_menu = 0
+	if(usr.stat || !(istype(usr,/mob/living/carbon/human)))
+		to_chat(usr, "You are unable to focus down the scope of the rifle.")
+		return
+	//if(!zoom && global_hud.darkMask[1] in usr.client.screen)
+	//	usr << "Your welding equipment gets in the way of you looking down the scope"
+	//	return
+	if(!zoom && usr.get_active_hand() != src)
+		to_chat(usr, "You are too distracted to look down the scope, perhaps if it was in your active hand this might work better")
+		return
+
+	if(usr.client.view == world.view)
+		if(usr.hud_used)
+			usr.hud_used.show_hud(HUD_STYLE_REDUCED)
+		usr.client.view = 12
+		zoom = 1
+	else
+		usr.client.view = world.view
+		if(usr.hud_used)
+			usr.hud_used.show_hud(HUD_STYLE_STANDARD)
+		zoom = 0
+	to_chat(usr, "<font color='[zoom?"blue":"red"]'>Zoom mode [zoom?"en":"dis"]abled.</font>")
+	return
+
+/obj/item/weapon/gun/energy/sniperrifle/rails
+	name = "Rails rifle"
+	desc = "With this weapon you'll be the boss at any Arena."
+	icon = 'icons/obj/gun.dmi'
+	icon_state = "relsotron"
+	item_state = "relsotron"
+	origin_tech = null
+	ammo_type = list(/obj/item/ammo_casing/energy/rails)
+	fire_delay = 20
+	w_class = 3.0
+
+//Tesla Cannon
+/obj/item/weapon/gun/tesla
+	name = "Tesla Cannon"
+	desc = "Cannon which uses electrical charge to damage multiple targets. Spin the generator handle to charge it up"
+	icon = 'icons/obj/guns/energy/rifles.dmi'
+	icon_state = "tesla"
+	item_state = "tesla"
+	w_class = 4.0
+	origin_tech = "combat=5;materials=5;powerstorage=5;magnets=5;engineering=5"
+	var/charge = 0
+	var/charging = FALSE
+	var/cooldown = FALSE
+	var/spinspeed = 1
+
+/obj/item/weapon/gun/tesla/atom_init()
+	. = ..()
+	update_icon()
+
+/obj/item/weapon/gun/tesla/proc/charge(mob/living/user)
+	set waitfor = FALSE
+	if(do_after(user, 40 * spinspeed, target = src))
+		if(charging && charge < 3)
+			charge++
+			playsound(loc, "sparks", 75, 1, -1)
+			if(charge < 3)
+				charge(user)
+			else
+				charging = FALSE
+		else
+			charging = FALSE
+	else
+		to_chat(user, "<span class='danger'>Generator is too difficult to spin while moving! Charging aborted.</span>")
+		charging = FALSE
+	update_icon()
+
+/obj/item/weapon/gun/tesla/attack_self(mob/living/user)
+	if(charging)
+		charging = FALSE
+		user.visible_message("<span class='danger'>[user] stops spinning generator on Tesla Cannon!</span>",\
+		                     "<span class='red'>You stop charging Tesla Cannon...</span>")
+		cooldown = TRUE
+		spawn(50)
+			cooldown = FALSE
+		return
+	if(cooldown || charge == 3)
+		return
+	user.visible_message("<span class='danger'>[user] starts spinning generator on Tesla Cannon!</span>",\
+	                     "<span class='red'>You start charging Tesla Cannon...</span>")
+	charging = TRUE
+	charge(user)
+
+/obj/item/weapon/gun/tesla/special_check(mob/user, atom/target)
+	if(!..())
+		return FALSE
+	if(!charge)
+		to_chat(user, "<span class='red'>Tesla Cannon is not charged!</span>")
+	else if(!istype(target, /mob/living))
+		to_chat(user, "<span class='red'>Tesla Cannon needs to be aimed directly at living target.</span>")
+	else if(charging)
+		to_chat(user, "<span class='red'>You can't shoot while charging!</span>")
+	else if(!los_check(user, target))
+		to_chat(user, "<span class='red'>Something is blocking our line of shot!</span>")
+	else
+		Bolt(user, target, user, charge)
+		charge = 0
+
+	update_icon()
+
+	/*if(user.hand) with custom inhand sprites - yes, without - no.
+		user.update_inv_l_hand()
+	else
+		user.update_inv_r_hand()*/
+
+	return 0
+
+/obj/item/weapon/gun/tesla/proc/los_check(mob/A, mob/B)
+	for(var/X in getline(A,B))
+		var/turf/T = X
+		if(T.density)
+			return 0
+	return 1
+
+/obj/item/weapon/gun/tesla/proc/Bolt(mob/origin, mob/living/target, mob/user, jumps)
+	origin.Beam(target, "lightning[rand(1,12)]", 'icons/effects/effects.dmi', time = 5)
+	target.electrocute_act(15 * (jumps + 1), src, , , 1)
+	playsound(target, 'sound/machines/defib_zap.ogg', 50, 1, -1)
+	var/list/possible_targets = new
+	for(var/mob/living/M in range(2, target))
+		if(user == M || !los_check(target, M) || origin == M || target == M)
+			continue
+		possible_targets += M
+	if(!possible_targets.len)
+		return
+	var/mob/living/next = pick(possible_targets)
+	msg_admin_attack("[origin.name] ([origin.ckey]) shot [target.name] ([target.ckey]) with a tesla bolt [ADMIN_JMP(origin)] [ADMIN_FLW(origin)]")
+	if(next && jumps > 0)
+		Bolt(target, next, user, --jumps)
+
+/obj/item/weapon/gun/tesla/update_icon()
+	icon_state = "[initial(icon_state)][charge]"
+
+/obj/item/weapon/gun/tesla/emp_act(severity)
+	if(charge)
+		if(istype(loc, /mob/living/carbon))
+			var/mob/living/carbon/M = loc
+			M.electrocute_act(5 * (4 - severity) * charge, src, , , 1)
+		charge = 0
+		update_icon()
+
+/obj/item/weapon/gun/tesla/rifle
+	name = "Tesla rifle"
+	desc = "Rifle which uses electrical charge to damage multiple targets. Spin the generator handle to charge it up"
+	icon_state = "arctesla"
+	item_state = "arctesla"
+	w_class = 3.0
+	origin_tech = null
+	spinspeed = 0.5

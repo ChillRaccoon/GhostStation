@@ -60,175 +60,55 @@ What is the naming convention for planes or layers?
 	FLOAT_PLANE = -32767
 */
 
-#define CLICKCATCHER_PLANE -100
+#define CLICKCATCHER_PLANE   -99
 
-#define SPACE_PLANE               -99
-	#define SPACE_LAYER                  1
-#define SKYBOX_PLANE              -98
-	#define SKYBOX_LAYER                 1
+#define PLANE_SPACE            -95
+#define PLANE_SPACE_PARALLAX   -90
 
-#define DUST_PLANE                 -97
-	#define DEBRIS_LAYER                 1
-	#define DUST_LAYER                   2
+#define GAME_PLANE   0
 
-// Openspace uses planes -80 through -70.
+#define LIGHTING_PLANE         15
+#define LIGHTING_LAYER         15
+#define ABOVE_LIGHTING_LAYER   16
 
-#define OVER_OPENSPACE_PLANE        -3
+//HUD layer defines
 
-#define DEFAULT_PLANE                   0
-	#define PLATING_LAYER               1
-	//ABOVE PLATING
-	#define HOLOMAP_LAYER               1.01
-	#define DECAL_PLATING_LAYER         1.02
-	#define DISPOSALS_PIPE_LAYER        1.03
-	#define LATTICE_LAYER               1.04
-	#define PIPE_LAYER                  1.05
-	#define WIRE_LAYER                  1.06
-	#define WIRE_TERMINAL_LAYER         1.07
-	#define ABOVE_WIRE_LAYER            1.08
-	//TURF PLANE
-	//TURF_LAYER = 2
-	#define TURF_DETAIL_LAYER           2.01
-	#define TURF_SHADOW_LAYER           2.02
-	//ABOVE TURF
-	#define DECAL_LAYER                 2.03
-	#define RUNE_LAYER                  2.04
-	#define ABOVE_TILE_LAYER            2.05
-	#define EXPOSED_PIPE_LAYER          2.06
-	#define EXPOSED_WIRE_LAYER          2.07
-	#define EXPOSED_WIRE_TERMINAL_LAYER 2.08
-	#define CATWALK_LAYER               2.09
-	#define BLOOD_LAYER                 2.10
-	#define MOUSETRAP_LAYER             2.11
-	#define PLANT_LAYER                 2.12
-	#define AO_LAYER                    2.13
-	//HIDING MOB
-	#define HIDING_MOB_LAYER            2.14
-	#define SHALLOW_FLUID_LAYER         2.15
-	#define MOB_SHADOW_LAYER            2.16
-	//OBJ
-	#define BELOW_DOOR_LAYER            2.17
-	#define OPEN_DOOR_LAYER             2.18
-	#define BELOW_TABLE_LAYER           2.19
-	#define TABLE_LAYER                 2.20
-	#define BELOW_OBJ_LAYER             2.21
-	#define STRUCTURE_LAYER             2.22
-	// OBJ_LAYER                        3
-	#define ABOVE_OBJ_LAYER             3.01
-	#define CLOSED_DOOR_LAYER           3.02
-	#define ABOVE_DOOR_LAYER            3.03
-	#define SIDE_WINDOW_LAYER           3.04
-	#define FULL_WINDOW_LAYER           3.05
-	#define ABOVE_WINDOW_LAYER          3.06
-	//LYING MOB AND HUMAN
-	#define LYING_MOB_LAYER             3.07
-	#define LYING_HUMAN_LAYER           3.08
-	#define BASE_ABOVE_OBJ_LAYER        3.09
-	//HUMAN
-	#define BASE_HUMAN_LAYER            3.10
-	//MOB
-	#define MECH_UNDER_LAYER            3.11
-	// MOB_LAYER                        4
-	#define MECH_BASE_LAYER             4.01
-	#define MECH_INTERMEDIATE_LAYER     4.02
-	#define MECH_PILOT_LAYER            4.03
-	#define MECH_LEG_LAYER              4.04
-	#define MECH_COCKPIT_LAYER          4.05
-	#define MECH_ARM_LAYER              4.06
-	#define MECH_GEAR_LAYER             4.07
-	//ABOVE HUMAN
-	#define ABOVE_HUMAN_LAYER           4.08
-	#define VEHICLE_LOAD_LAYER          4.09
-	#define CAMERA_LAYER                4.10
-	//BLOB
-	#define BLOB_SHIELD_LAYER           4.11
-	#define BLOB_NODE_LAYER             4.12
-	#define BLOB_CORE_LAYER	            4.13
-	//EFFECTS BELOW LIGHTING
-	#define BELOW_PROJECTILE_LAYER      4.14
-	#define DEEP_FLUID_LAYER            4.15
-	#define FIRE_LAYER                  4.16
-	#define PROJECTILE_LAYER            4.17
-	#define ABOVE_PROJECTILE_LAYER      4.18
-	#define SINGULARITY_LAYER           4.19
-	#define POINTER_LAYER               4.20
-	#define MIMICED_LIGHTING_LAYER      4.21	// Z-Mimic-managed lighting
+#define FULLSCREEN_PLANE 18
+#define FLASH_LAYER      18
+#define FULLSCREEN_LAYER 18.1
 
-	//FLY_LAYER                          5
-	//OBSERVER
-	#define OBSERVER_LAYER              5.1
+#define HUD_PLANE         19
+#define HUD_LAYER         19
+#define ABOVE_HUD_PLANE   20
+#define ABOVE_HUD_LAYER   20
 
-	#define OBFUSCATION_LAYER           5.2
-	#define BASE_AREA_LAYER             999
-
-#define OBSERVER_PLANE             1
-
-#define LIGHTING_PLANE             2 // For Lighting. - The highest plane (ignoring all other even higher planes)
-	#define LIGHTBULB_LAYER        0
-	#define LIGHTING_LAYER         1
-	#define ABOVE_LIGHTING_LAYER   2
-
-#define EFFECTS_ABOVE_LIGHTING_PLANE   3 // For glowy eyes, laser beams, etc. that shouldn't be affected by darkness
-	#define EYE_GLOW_LAYER         1
-	#define BEAM_PROJECTILE_LAYER  2
-	#define SUPERMATTER_WALL_LAYER 3
-
-#define FULLSCREEN_PLANE                4 // for fullscreen overlays that do not cover the hud.
-
-	#define FULLSCREEN_LAYER    0
-	#define DAMAGE_LAYER        1
-	#define IMPAIRED_LAYER      2
-	#define BLIND_LAYER         3
-	#define CRIT_LAYER          4
-
-#define HUD_PLANE                    5
-	#define UNDER_HUD_LAYER              0
-	#define HUD_BASE_LAYER               2
-	#define HUD_ITEM_LAYER               3
-	#define HUD_ABOVE_ITEM_LAYER         4
+//efine TURF_LAYER                 2     // For easy recordkeeping; this is a byond define
+#define ABOVE_NORMAL_TURF_LAYER    2.08  // Currently used only by /obj/structure/fans/tiny
+#define GAS_PIPE_HIDDEN_LAYER      2.35
+#define GAS_SCRUBBER_LAYER         2.46
+#define GAS_PIPE_VISIBLE_LAYER     2.47
+#define GAS_FILTER_LAYER           2.48
+#define GAS_PUMP_LAYER             2.49
+#define LOW_OBJ_LAYER              2.491 // Currently used only by unused machinery
+#define FIREDOOR_LAYER             2.5
+#define BLASTDOOR_LAYER            2.65
+#define BELOW_CONTAINERS_LAYER     2.7   // Below closets, crates...
+#define CONTAINER_STRUCTURE_LAYER  2.8   // Layer for closets, crates, bags, racks, tables
+#define DOOR_LAYER                 2.82
+#define BELOW_MACHINERY_LAYER      2.83  // Currently for grilles only, because they should be below machinery
+#define DEFAULT_MACHINERY_LAYER    2.85  // Every /obj/machinery by default have this layer
+//efine OBJ_LAYER                  3     // For easy recordkeeping; this is a byond define
+#define CLOSED_BLASTDOOR_LAYER     3.05
+#define CLOSED_DOOR_LAYER          3.06
+#define SHUTTERS_LAYER             3.1
+#define ABOVE_WINDOW_LAYER         3.3
+#define SIGN_LAYER                 3.4   // Default value for /obj/structure/sign
+#define BELOW_MOB_LAYER            3.7   // Currently used only by fluff struct in bluespace shelter
+//efine MOB_LAYER                  4     // For easy recordkeeping; this is a byond define
+//efine FLY_LAYER                  5     // For easy recordkeeping; this is a byond define
 
 
-//This is difference between planes used for atoms and effects
-#define PLANE_DIFFERENCE              3
-
-/atom
-	plane = DEFAULT_PLANE
-
-/image/proc/plating_decal_layerise()
-	plane = DEFAULT_PLANE
-	layer = DECAL_PLATING_LAYER
-
-/image/proc/turf_decal_layerise()
-	plane =  DEFAULT_PLANE
-	layer = DECAL_LAYER
-
-/atom/proc/hud_layerise()
-	plane = HUD_PLANE
-	layer = HUD_ITEM_LAYER
-
-/atom/proc/reset_plane_and_layer()
-	plane = initial(plane)
-	layer = initial(layer)
-
-/*
-  PLANE MASTERS
-*/
-
-/obj/screen/plane_master
-	appearance_flags = PLANE_MASTER
-	screen_loc = "CENTER,CENTER"
-	globalscreen = 1
-
-/obj/screen/plane_master/ghost_master
-	plane = OBSERVER_PLANE
-
-/obj/screen/plane_master/ghost_dummy
-	// this avoids a bug which means plane masters which have nothing to control get angry and mess with the other plane masters out of spite
-	alpha = 0
-	appearance_flags = 0
-	plane = OBSERVER_PLANE
-
-GLOBAL_LIST_INIT(ghost_master, list(
-	new /obj/screen/plane_master/ghost_master(),
-	new /obj/screen/plane_master/ghost_dummy()
-))
+//modifiers for /obj/machinery/door (and subtypes) layers
+#define DOOR_CLOSED_MOD     0.3          // how much the layer is increased when the door is closed
+#define PODDOOR_CLOSED_MOD  0.3
+#define FIREDOOR_CLOSED_MOD 0.31

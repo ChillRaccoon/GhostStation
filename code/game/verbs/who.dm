@@ -7,21 +7,19 @@
 
 	var/list/Lines = list()
 
-	if(check_rights(R_INVESTIGATE, 0))
-		for(var/client/C in GLOB.clients)
-			var/entry = "\t[C.key]"
-			if(!C.mob) //If mob is null, print error and skip rest of info for client.
-				entry += " - <font color='red'><i>HAS NO MOB</i></font>"
-				Lines += entry
-				continue
-
+	if(holder && (R_ADMIN & holder.rights))
+		for(var/client/C in clients)
+			if(C.ckey in stealth_keys) continue
+			var/entry = "&emsp;[C.key]"
+			if(C.holder && C.holder.fakekey)
+				entry += " <i>(as [C.holder.fakekey])</i>"
 			entry += " - Playing as [C.mob.real_name]"
 			switch(C.mob.stat)
 				if(UNCONSCIOUS)
 					entry += " - <font color='darkgray'><b>Unconscious</b></font>"
 				if(DEAD)
-					if(isghost(C.mob))
-						var/mob/observer/ghost/O = C.mob
+					if(isobserver(C.mob))
+						var/mob/dead/observer/O = C.mob
 						if(O.started_as_observer)
 							entry += " - <font color='gray'>Observing</font>"
 						else
@@ -36,21 +34,35 @@
 				age = 0
 
 			if(age <= 1)
-				age = "<font color='#ff0000'><b>[age]</b></font>"
+				age = "<font color='red'><b>[age]</b></font>"
 			else if(age < 10)
 				age = "<font color='#ff8c00'><b>[age]</b></font>"
 
 			entry += " - [age]"
 
+			var/ingame_age
+			if(isnum(C.player_ingame_age))
+				ingame_age = C.player_ingame_age
+			else
+				ingame_age = 0
+
+			if(ingame_age <= 60)
+				ingame_age = "<font color='red'><b>[ingame_age]</b></font>"
+			else if(ingame_age < 1440)
+				ingame_age = "<font color='#ff8c00'><b>[ingame_age]</b></font>"
+
+			entry += " - [ingame_age]"
+
 			if(is_special_character(C.mob))
 				entry += " - <b><font color='red'>Antagonist</font></b>"
-			if(C.is_afk())
-				entry += " (AFK - [C.inactivity2text()])"
 			entry += " (<A HREF='?_src_=holder;adminmoreinfo=\ref[C.mob]'>?</A>)"
 			Lines += entry
 	else
-		for(var/client/C in GLOB.clients)
-			if(!C.is_stealthed())
+		for(var/client/C in clients)
+			if(C.ckey in stealth_keys) continue
+			if(C.holder && C.holder.fakekey)
+				Lines += C.holder.fakekey
+			else
 				Lines += C.key
 
 	for(var/line in sortList(Lines))
@@ -63,48 +75,50 @@
 	set category = "Admin"
 	set name = "Staffwho"
 
-	var/list/msg = list()
-	var/active_staff = 0
-	var/total_staff = 0
-	var/can_investigate = check_rights(R_INVESTIGATE, 0)
-
-	for(var/client/C in GLOB.admins)
-		var/line = list()
-		if(!can_investigate && C.is_stealthed())
-			continue
-		total_staff++
-		if(check_rights(R_ADMIN,0,C))
-			line += "\t[C] is \an <b>["\improper[C.holder.rank]"]</b>"
-		else
-			line += "\t[C] is \an ["\improper[C.holder.rank]"]"
-		if(!C.is_afk())
-			active_staff++
-		if(can_investigate)
-			if(C.is_afk())
-				line += " (AFK - [C.inactivity2text()])"
-			if(isghost(C.mob))
-				line += " - Observing"
-			else if(istype(C.mob,/mob/new_player))
-				line += " - Lobby"
+	var/list/messages = list("", "")
+	var/list/num_online = list(0, 0)
+	if(holder)
+		for(var/client/C in admins)
+			if(C.ckey in stealth_keys)
+				continue
+			if(C.holder.fakekey && !(R_ADMIN & holder.rights))
+				continue
+			messages[1] += "&emsp;[C] is a [C.holder.rank]"
+			if(C.holder.fakekey)
+				messages[1] += " <i>(as [C.holder.fakekey])</i>"
+			if(isobserver(C.mob))
+				messages[1] += " - Observing"
+			else if(isnewplayer(C.mob))
+				messages[1] += " - Lobby"
 			else
-				line += " - Playing"
-			if(C.is_stealthed())
-				line += " (Stealthed)"
-			if(C.get_preference_value(/datum/client_preference/show_ooc) == GLOB.PREF_HIDE)
-				line += " <font color='#002eb8'><b><s>(OOC)</s></b></font>"
-			if(C.get_preference_value(/datum/client_preference/show_looc) == GLOB.PREF_HIDE)
-				line += " <font color='#3a9696'><b><s>(LOOC)</s></b></font>"
-			if(C.get_preference_value(/datum/client_preference/show_aooc) == GLOB.PREF_HIDE)
-				line += " <font color='#960018'><b><s>(AOOC)</s></b></font>"
-			if(C.get_preference_value(/datum/client_preference/show_dsay) == GLOB.PREF_HIDE)
-				line += " <font color='#530fad'><b><s>(DSAY)</s></b></font>"
-		line = jointext(line,null)
-		if(check_rights(R_ADMIN,0,C))
-			msg.Insert(1, line)
-		else
-			msg += line
+				messages[1] += " - Playing"
+			if(C.is_afk())
+				messages[1] += " (AFK)"
+			messages[1] += "\n"
+			num_online[1]++
+		for(var/client/C in mentors)
+			messages[2] += "&emsp;[C] is a Mentor"
+			if(isobserver(C.mob))
+				messages[2] += " - Observing"
+			else if(isnewplayer(C.mob))
+				messages[2] += " - Lobby"
+			else
+				messages[2] += " - Playing"
+			if(C.is_afk())
+				messages[2] += " (AFK)"
+			messages[2] += "\n"
+			num_online[2]++
+	else
+		for(var/client/C in admins)
+			if(C.ckey in stealth_keys)
+				continue
+			if(!C.holder.fakekey)
+				messages[1] += "&emsp;[C] is a [C.holder.rank]\n"
+				num_online[1]++
+		for(var/client/C in mentors)
+			messages[2] += "&emsp;[C] is a Mentor\n"
+			num_online[2]++
 
-	if(config.admin_irc)
-		to_chat(src, "<span class='info'>Adminhelps are also sent to IRC. If no admins are available in game try anyway and an admin on IRC may see it and respond.</span>")
-	to_chat(src, "<b>Current Staff ([active_staff]/[total_staff]):</b>")
-	to_chat(src, jointext(msg,"\n"))
+	messages[1]  = num_online[1] ? "<b>Current Admins ([num_online[1]]):</b>\n" + messages[1] : "<b>No Admins online</b>\n"
+	messages[1] += num_online[2] ? "\n<b>Current Mentors ([num_online[2]]):</b>\n" + messages[2] : "\n<b>No Mentors online</b>\n"
+	to_chat(src, messages[1])

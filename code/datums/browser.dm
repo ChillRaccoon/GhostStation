@@ -13,7 +13,6 @@
 	var/body_elements
 	var/head_content = ""
 	var/content = ""
-	var/title_buttons = ""
 
 
 /datum/browser/New(nuser, nwindow_id, ntitle = 0, nwidth = 0, nheight = 0, var/atom/nref = null)
@@ -28,19 +27,10 @@
 		height = nheight
 	if (nref)
 		ref = nref
-	// If a client exists, but they have disabled fancy windowing, disable it!
-	if(user && user.client && user.client.get_preference_value(/datum/client_preference/browser_style) == GLOB.PREF_PLAIN)
-		return
 	add_stylesheet("common", 'html/browser/common.css') // this CSS sheet is common to all UIs
-
-/datum/browser/proc/set_title(ntitle)
-	title = format_text(ntitle)
 
 /datum/browser/proc/add_head_content(nhead_content)
 	head_content = nhead_content
-
-/datum/browser/proc/set_title_buttons(ntitle_buttons)
-	title_buttons = ntitle_buttons
 
 /datum/browser/proc/set_window_options(nwindow_options)
 	window_options = nwindow_options
@@ -55,38 +45,37 @@
 	scripts[name] = file
 
 /datum/browser/proc/set_content(ncontent)
-	content = ncontent
+	content = entity_ja(ncontent)
 
 /datum/browser/proc/add_content(ncontent)
-	content += ncontent
+	content += entity_ja(ncontent)
 
 /datum/browser/proc/get_header()
 	var/key
 	var/filename
 	for (key in stylesheets)
 		filename = "[ckey(key)].css"
-		send_rsc(user, stylesheets[key], filename)
+		user << browse_rsc(stylesheets[key], filename)
 		head_content += "<link rel='stylesheet' type='text/css' href='[filename]'>"
 
 	for (key in scripts)
 		filename = "[ckey(key)].js"
-		send_rsc(user, scripts[key], filename)
+		user << browse_rsc(scripts[key], filename)
 		head_content += "<script type='text/javascript' src='[filename]'></script>"
 
 	var/title_attributes = "class='uiTitle'"
 	if (title_image)
 		title_attributes = "class='uiTitle icon' style='background-image: url([title_image]);'"
 
-	return {"<!DOCTYPE html>
+	return {"<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-	<meta charset=ISO-8859-1">
+	<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
 	<head>
-		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		[head_content]
 	</head>
 	<body scroll=auto>
 		<div class='uiWrapper'>
-			[title ? "<div class='uiTitleWrapper'><div [title_attributes]><tt>[title]</tt></div><div class='uiTitleButtons'>[title_buttons]</div></div>" : ""]
+			[title ? "<div class='uiTitleWrapper'><div [title_attributes]><tt>[title]</tt></div></div>" : ""]
 			<div class='uiContent'>
 	"}
 
@@ -94,6 +83,9 @@
 	return {"
 			</div>
 		</div>
+		<script>
+			document.body.innerHTML = document.body.innerHTML.replace(/¶/g, "ÿ");<!-- omg its so weird --!>
+		</script>
 	</body>
 </html>"}
 
@@ -103,23 +95,23 @@
 	[content]
 	[get_footer()]
 	"}
-
-/datum/browser/proc/open(var/use_onclose = 1)
+//"
+/datum/browser/proc/open(use_onclose = 1)
 	var/window_size = ""
 	if (width && height)
 		window_size = "size=[width]x[height];"
-	show_browser(user, get_content(), "window=[window_id];[window_size][window_options]")
+	user << browse(get_content(), "window=[window_id];[window_size][window_options]")
 	if (use_onclose)
 		onclose(user, window_id, ref)
+
+/datum/browser/proc/close()
+	user << browse(null, "window=[window_id]")
 
 /datum/browser/proc/update(var/force_open = 0, var/use_onclose = 1)
 	if(force_open)
 		open(use_onclose)
 	else
-		send_output(user, get_content(), "[window_id].browser")
-
-/datum/browser/proc/close()
-	close_browser(user, "window=[window_id]")
+		user << output(get_content(), "[window_id].browser")
 
 // This will allow you to show an icon in the browse window
 // This is added to mob so that it can be used without a reference to the browser object
@@ -134,7 +126,7 @@
 		dir = "default"
 
 	var/filename = "[ckey("[icon]_[icon_state]_[dir]")].png"
-	send_rsc(src, I, filename)
+	src << browse_rsc(I, filename)
 	return filename
 	*/
 
@@ -146,25 +138,22 @@
 // e.g. canisters, timers, etc.
 //
 // windowid should be the specified window name
-// e.g. code is	: show_browser(user, text, "window=fred")
+// e.g. code is	: user << browse(text, "window=fred")
 // then use 	: onclose(user, "fred")
 //
 // Optionally, specify the "ref" parameter as the controlled atom (usually src)
 // to pass a "close=1" parameter to the atom's Topic() proc for special handling.
 // Otherwise, the user mob's machine var will be reset directly.
 //
-/proc/onclose(mob/user, windowid, var/atom/ref=null)
-	if(!user || !user.client) return
+/proc/onclose(mob/user, windowid, atom/ref=null)
+	if(!user.client) return
 	var/param = "null"
 	if(ref)
 		param = "\ref[ref]"
 
-	spawn(2)
-		if(!user.client) return
-		winset(user, windowid, "on-close=\".windowclose [param]\"")
+	winset(user, windowid, "on-close=\".windowclose [param]\"")
 
-//	log_debug("OnClose [user]: [windowid] : ["on-close=\".windowclose [param]\""]")
-
+	//world << "OnClose [user]: [windowid] : ["on-close=\".windowclose [param]\""]"
 
 
 // the on-close client verb
@@ -172,25 +161,24 @@
 // if a valid atom reference is supplied, call the atom's Topic() with "close=1"
 // otherwise, just reset the client mob's machine var.
 //
-/client/verb/windowclose(var/atomref as text)
+/client/verb/windowclose(atomref as text)
 	set hidden = 1						// hide this verb from the user's panel
 	set name = ".windowclose"			// no autocomplete on cmd line
 
-//	log_debug("windowclose: [atomref]")
-
+	//world << "windowclose: [atomref]"
 	if(atomref!="null")				// if passed a real atomref
 		var/hsrc = locate(atomref)	// find the reffed atom
+		var/href = "close=1"
 		if(hsrc)
-//			log_debug("[src] Topic [href] [hsrc]")
-
+			//world << "[src] Topic [href] [hsrc]"
 			usr = src.mob
-			src.Topic("close=1", list("close"="1"), hsrc)	// this will direct to the atom's
+			src.Topic(href, params2list(href), hsrc)	// this will direct to the atom's
 			return										// Topic() proc via client.Topic()
 
 	// no atomref specified (or not found)
 	// so just reset the user mob's machine var
 	if(src && src.mob)
-//		log_debug("[src] was [src.mob.machine], setting to null")
-
+		//world << "[src] was [src.mob.machine], setting to null"
 		src.mob.unset_machine()
 	return
+

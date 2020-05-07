@@ -1,70 +1,213 @@
-//This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:31
+/var/const/access_security = 1 // Security equipment
+/var/const/access_brig = 2 // Brig timers and permabrig
+/var/const/access_armory = 3
+/var/const/access_forensics_lockers= 4
+/var/const/access_medical = 5
+/var/const/access_morgue = 6
+/var/const/access_tox = 7
+/var/const/access_tox_storage = 8
+/var/const/access_genetics = 9
+/var/const/access_engine = 10
+/var/const/access_engine_equip= 11
+/var/const/access_maint_tunnels = 12
+/var/const/access_external_airlocks = 13
+/var/const/access_emergency_storage = 14
+/var/const/access_change_ids = 15
+/var/const/access_ai_upload = 16
+/var/const/access_teleporter = 17
+/var/const/access_eva = 18
+/var/const/access_heads = 19
+/var/const/access_captain = 20
+/var/const/access_all_personal_lockers = 21
+/var/const/access_chapel_office = 22
+/var/const/access_tech_storage = 23
+/var/const/access_atmospherics = 24
+/var/const/access_bar = 25
+/var/const/access_janitor = 26
+/var/const/access_crematorium = 27
+/var/const/access_kitchen = 28
+/var/const/access_robotics = 29
+/var/const/access_rd = 30
+/var/const/access_cargo = 31
+/var/const/access_construction = 32
+/var/const/access_chemistry = 33
+/var/const/access_cargo_bot = 34
+/var/const/access_hydroponics = 35
+/var/const/access_manufacturing = 36
+/var/const/access_library = 37
+/var/const/access_lawyer = 38
+/var/const/access_virology = 39
+/var/const/access_cmo = 40
+/var/const/access_qm = 41
+/var/const/access_court = 42
+/var/const/access_clown = 43
+/var/const/access_mime = 44
+/var/const/access_surgery = 45
+/var/const/access_theatre = 46
+/var/const/access_research = 47
+/var/const/access_mining = 48
+/var/const/access_mining_office = 49 //not in use
+/var/const/access_mailsorting = 50
+/var/const/access_mint = 51
+/var/const/access_mint_vault = 52
+/var/const/access_heads_vault = 53
+/var/const/access_mining_station = 54
+/var/const/access_xenobiology = 55
+/var/const/access_ce = 56
+/var/const/access_hop = 57
+/var/const/access_hos = 58
+/var/const/access_RC_announce = 59 //Request console announcements
+/var/const/access_keycard_auth = 60 //Used for events which require at least two people to confirm them
+/var/const/access_tcomsat = 61 // has access to the entire telecomms satellite / machinery
+/var/const/access_gateway = 62
+/var/const/access_sec_doors = 63 // Security front doors
+/var/const/access_psychiatrist = 64 // Psychiatrist's office
+/var/const/access_xenoarch = 65
+/var/const/access_minisat = 66
+/var/const/access_recycler = 67
+/var/const/access_detective = 68
+/var/const/access_barber = 69
+/var/const/access_paramedic = 70
 
-/obj/var/list/req_access = list()
+	//BEGIN CENTCOM ACCESS
+	/*Should leave plenty of room if we need to add more access levels.
+/var/const/Mostly for admin fun times.*/
+/var/const/access_cent_general = 101//General facilities.
+/var/const/access_cent_thunder = 102//Thunderdome.
+/var/const/access_cent_specops = 103//Special Ops.
+/var/const/access_cent_medical = 104//Medical/Research
+/var/const/access_cent_living = 105//Living quarters.
+/var/const/access_cent_storage = 106//Generic storage areas.
+/var/const/access_cent_teleporter = 107//Teleporter.
+/var/const/access_cent_creed = 108//Creed's office.
+/var/const/access_cent_captain = 109//Captain's office/ID comp/AI.
+
+	//The Syndicate
+/var/const/access_syndicate = 150//General Syndicate Access
+/var/const/access_syndicate_commander = 151 //Syndicate Commander Access
+
+	//MONEY
+/var/const/access_crate_cash = 200
+
+/obj/var/list/req_access = null
+/obj/var/req_access_txt = "0"
+/obj/var/list/req_one_access = null
+/obj/var/req_one_access_txt = "0"
 
 //returns 1 if this mob has sufficient access to use this object
-/atom/movable/proc/allowed(mob/M)
+/obj/proc/allowed(mob/M)
 	//check if it doesn't require any access at all
 	if(src.check_access(null))
 		return TRUE
-	if(!istype(M))
-		return FALSE
-	return check_access_list(M.GetAccess())
+	if(issilicon(M))
+		var/mob/living/silicon/S = M
+		if(src.check_access(S))
+			return TRUE
+	if(IsAdminGhost(M))
+		//Access can't stop the abuse
+		return TRUE
+	else if(ishuman(M))
+		var/mob/living/carbon/human/H = M
+		//if they are holding or wearing a card that has access, that works
+		if(src.check_access(H.wear_id) && Adjacent(H))
+			return TRUE
+		var/atom/movable/what = H.get_active_hand()
+		if(src.check_access(what) && Adjacent(what))
+			return TRUE
+	else if(isIAN(M))
+		var/mob/living/carbon/ian/IAN = M
+		if(src.check_access(IAN.mouth) || src.check_access(IAN.neck))
+			return TRUE
+	else if(ismonkey(M) || isalienadult(M))
+		var/mob/living/carbon/george = M
+		//they can only hold things :(
+		if(src.check_access(george.get_active_hand()))
+			return TRUE
+	return FALSE
 
 /atom/movable/proc/GetAccess()
-	. = list()
-	var/obj/item/weapon/card/id/id = GetIdCard()
-	if(id)
-		. += id.GetAccess()
+	return list()
 
-/atom/movable/proc/GetIdCard()
+/mob/living/silicon/GetAccess()
+	return get_all_accesses()
+
+/mob/living/silicon/robot/syndicate/GetAccess()
+	return list(access_maint_tunnels, access_syndicate, access_external_airlocks) //syndicate basic access
+
+/obj/item/proc/GetID()
 	return null
 
-/atom/movable/proc/check_access(atom/movable/A)
-	return check_access_list(A ? A.GetAccess() : list())
+/obj/proc/check_access(atom/movable/AM)
+	if(istype(src, /obj/machinery))
+		var/obj/machinery/Machine = src
+		if(Machine.emagged)
+			return TRUE
 
-/atom/movable/proc/check_access_list(list/L)
-	var/list/R = get_req_access()
+	//These generations have been moved out of /obj/New() because they were slowing down the creation of objects that never even used the access system.
+	if(!islist(req_access))
+		req_access = list()
+		if(req_access_txt)
+			var/list/req_access_str = splittext(req_access_txt,";")
+			for(var/x in req_access_str)
+				var/n = text2num(x)
+				if(n)
+					req_access += n
 
-	if(!R)
-		R = list()
-	if(!istype(L, /list))
+	if(!islist(req_one_access))
+		req_one_access = list()
+		if(req_one_access_txt)
+			var/list/req_one_access_str = splittext(req_one_access_txt,";")
+			for(var/x in req_one_access_str)
+				var/n = text2num(x)
+				if(n)
+					req_one_access += n
+
+	if(!req_access.len && !req_one_access.len) //no requirements
+		return TRUE
+	if(!AM)
 		return FALSE
-
-	if(maint_all_access)
-		L = L.Copy()
-		L |= access_maint_tunnels
-
-	return has_access(R, L)
-
-/proc/has_access(list/req_access, list/accesses)
 	for(var/req in req_access)
-		if(islist(req))
-			var/found = FALSE
-			for(var/req_one in req)
-				if(req_one in accesses)
-					found = TRUE
-					break
-			if(!found)
-				return FALSE
-		else if(!(req in accesses)) //doesn't have this access
+		if(!(req in AM.GetAccess())) //doesn't have this access
 			return FALSE
+	if(req_one_access.len)
+		for(var/req in src.req_one_access)
+			if(req in AM.GetAccess()) //has an access from the single access list
+				return TRUE
+		return FALSE
 	return TRUE
 
-//Checks if the access (constant or list) is contained in one of the entries of access_patterns, a list of lists.
-/proc/has_access_pattern(list/access_patterns, access)
-	if(!islist(access))
-		access = list(access)
-	for(var/access_pattern in access_patterns)
-		if(has_access(access_pattern, access))
-			return 1
+/obj/proc/check_access_list(list/L)
+	if(!islist(req_access))
+		req_access = list()
+		if(req_access_txt)
+			var/list/req_access_str = splittext(req_access_txt,";")
+			for(var/x in req_access_str)
+				var/n = text2num(x)
+				if(n)
+					req_access += n
 
-// Used for retrieving required access information, if available
-/atom/movable/proc/get_req_access()
-	return null
+	if(!islist(req_one_access))
+		req_one_access = list()
+		if(req_one_access_txt)
+			var/list/req_one_access_str = splittext(req_one_access_txt,";")
+			for(var/x in req_one_access_str)
+				var/n = text2num(x)
+				if(n)
+					req_one_access += n
 
-/obj/get_req_access()
-	return req_access
+	if(!req_access.len && !req_one_access.len)
+		return TRUE
+	if(!islist(L))
+		return FALSE
+	for(var/req in req_access)
+		if(!(req in L)) //doesn't have this access
+			return FALSE
+	if(req_one_access.len)
+		for(var/req in req_one_access)
+			if(req in L) //has an access from the single access list
+				return TRUE
+		return FALSE
+	return TRUE
 
 /proc/get_centcom_access(job)
 	switch(job)
@@ -87,117 +230,237 @@
 		if("Supreme Commander")
 			return get_all_centcom_access()
 
-/var/list/datum/access/priv_all_access_datums
-/proc/get_all_access_datums()
-	if(!priv_all_access_datums)
-		priv_all_access_datums = init_subtypes(/datum/access)
-		priv_all_access_datums = dd_sortedObjectList(priv_all_access_datums)
-
-	return priv_all_access_datums.Copy()
-
-/var/list/datum/access/priv_all_access_datums_id
-/proc/get_all_access_datums_by_id()
-	if(!priv_all_access_datums_id)
-		priv_all_access_datums_id = list()
-		for(var/datum/access/A in get_all_access_datums())
-			priv_all_access_datums_id["[A.id]"] = A
-
-	return priv_all_access_datums_id.Copy()
-
-/var/list/datum/access/priv_all_access_datums_region
-/proc/get_all_access_datums_by_region()
-	if(!priv_all_access_datums_region)
-		priv_all_access_datums_region = list()
-		for(var/datum/access/A in get_all_access_datums())
-			if(!priv_all_access_datums_region[A.region])
-				priv_all_access_datums_region[A.region] = list()
-			priv_all_access_datums_region[A.region] += A
-
-	return priv_all_access_datums_region.Copy()
-
-/proc/get_access_ids(var/access_types = ACCESS_TYPE_ALL)
-	var/list/L = new()
-	for(var/datum/access/A in get_all_access_datums())
-		if(A.access_type & access_types)
-			L += A.id
-	return L
-
-/var/list/priv_all_access
 /proc/get_all_accesses()
-	if(!priv_all_access)
-		priv_all_access = get_access_ids()
+	return list(access_security, access_sec_doors, access_brig, access_armory, access_forensics_lockers, access_court,
+	            access_medical, access_genetics, access_morgue, access_rd,
+	            access_tox, access_tox_storage, access_chemistry, access_engine, access_engine_equip, access_maint_tunnels,
+	            access_external_airlocks, access_change_ids, access_ai_upload,
+	            access_teleporter, access_eva, access_heads, access_captain, access_all_personal_lockers,
+	            access_tech_storage, access_chapel_office, access_atmospherics, access_kitchen,
+	            access_bar, access_janitor, access_crematorium, access_robotics, access_cargo, access_construction,
+	            access_hydroponics, access_library, access_lawyer, access_virology, access_psychiatrist, access_cmo, access_qm, access_clown, access_mime, access_surgery,
+	            access_theatre, access_research, access_mining, access_mailsorting,
+	            access_heads_vault, access_mining_station, access_xenobiology, access_ce, access_hop, access_hos, access_RC_announce,
+	            access_keycard_auth, access_tcomsat, access_gateway, access_xenoarch, access_minisat, access_recycler, access_detective, access_barber, access_paramedic)
 
-	return priv_all_access.Copy()
-
-/var/list/priv_station_access
-/proc/get_all_station_access()
-	if(!priv_station_access)
-		priv_station_access = get_access_ids(ACCESS_TYPE_STATION)
-
-	return priv_station_access.Copy()
-
-/var/list/priv_centcom_access
 /proc/get_all_centcom_access()
-	if(!priv_centcom_access)
-		priv_centcom_access = get_access_ids(ACCESS_TYPE_CENTCOM)
+	return list(access_cent_general, access_cent_thunder, access_cent_specops, access_cent_medical, access_cent_living, access_cent_storage, access_cent_teleporter, access_cent_creed, access_cent_captain)
 
-	return priv_centcom_access.Copy()
-
-/var/list/priv_syndicate_access
 /proc/get_all_syndicate_access()
-	if(!priv_syndicate_access)
-		priv_syndicate_access = get_access_ids(ACCESS_TYPE_SYNDICATE)
+	return list(access_syndicate)
 
-	return priv_syndicate_access.Copy()
-
-/var/list/priv_region_access
-/proc/get_region_accesses(var/code)
-	if(code == ACCESS_REGION_ALL)
-		return get_all_station_access()
-
-	if(!priv_region_access)
-		priv_region_access = list()
-		for(var/datum/access/A in get_all_access_datums())
-			if(!priv_region_access["[A.region]"])
-				priv_region_access["[A.region]"] = list()
-			priv_region_access["[A.region]"] += A.id
-
-	var/list/region = priv_region_access["[code]"]
-	return region.Copy()
-
-/proc/get_region_accesses_name(var/code)
+/proc/get_region_accesses(code)
 	switch(code)
-		if(ACCESS_REGION_ALL)
+		if(0)
+			return get_all_accesses()
+		if(1) //security
+			return list(access_sec_doors, access_security, access_brig, access_armory, access_forensics_lockers, access_court, access_hos, access_detective)
+		if(2) //medbay
+			return list(access_medical, access_genetics, access_morgue, access_chemistry, access_psychiatrist, access_virology, access_surgery, access_cmo, access_paramedic)
+		if(3) //research
+			return list(access_research, access_tox, access_tox_storage, access_robotics, access_xenobiology, access_xenoarch, access_minisat, access_rd)
+		if(4) //engineering and maintenance
+			return list(access_construction, access_maint_tunnels, access_engine, access_engine_equip, access_external_airlocks, access_tech_storage, access_atmospherics, access_minisat, access_ce)
+		if(5) //command
+			return list(access_heads, access_RC_announce, access_keycard_auth, access_change_ids, access_ai_upload, access_teleporter, access_eva, access_tcomsat, access_gateway, access_all_personal_lockers, access_heads_vault, access_hop, access_captain)
+		if(6) //station general
+			return list(access_kitchen,access_bar, access_hydroponics, access_barber, access_janitor, access_chapel_office, access_crematorium, access_library, access_theatre, access_lawyer, access_clown, access_mime)
+		if(7) //supply
+			return list(access_mailsorting, access_mining, access_mining_station, access_cargo, access_recycler, access_qm)
+
+/proc/get_region_accesses_name(code)
+	switch(code)
+		if(0)
 			return "All"
-		if(ACCESS_REGION_SECURITY) //security
+		if(1) //security
 			return "Security"
-		if(ACCESS_REGION_MEDBAY) //medbay
+		if(2) //medbay
 			return "Medbay"
-		if(ACCESS_REGION_RESEARCH) //research
+		if(3) //research
 			return "Research"
-		if(ACCESS_REGION_ENGINEERING) //engineering and maintenance
+		if(4) //engineering and maintenance
 			return "Engineering"
-		if(ACCESS_REGION_COMMAND) //command
+		if(5) //command
 			return "Command"
-		if(ACCESS_REGION_GENERAL) //station general
-			return "General"
-		if(ACCESS_REGION_SUPPLY) //supply
+		if(6) //station general
+			return "Station General"
+		if(7) //supply
 			return "Supply"
-		if(ACCESS_REGION_NT) //nt
-			return "Corporate"
 
-/proc/get_access_desc(id)
-	var/list/AS = priv_all_access_datums_id || get_all_access_datums_by_id()
-	var/datum/access/A = AS["[id]"]
 
-	return A ? A.desc : ""
+/proc/get_access_desc(A)
+	switch(A)
+		if(access_cargo)
+			return "Cargo Bay"
+		if(access_recycler)
+			return "Recycler"
+		if(access_detective)
+			return "Detective"
+		if(access_cargo_bot)
+			return "Cargo Bot Delivery"
+		if(access_security)
+			return "Security"
+		if(access_brig)
+			return "Holding Cells"
+		if(access_court)
+			return "Courtroom"
+		if(access_forensics_lockers)
+			return "Forensics"
+		if(access_medical)
+			return "Medical"
+		if(access_genetics)
+			return "Genetics Lab"
+		if(access_morgue)
+			return "Morgue"
+		if(access_tox)
+			return "R&D Lab"
+		if(access_tox_storage)
+			return "Toxins Lab"
+		if(access_chemistry)
+			return "Chemistry Lab"
+		if(access_rd)
+			return "Research Director"
+		if(access_bar)
+			return "Bar"
+		if(access_janitor)
+			return "Custodial Closet"
+		if(access_engine)
+			return "Engineering"
+		if(access_engine_equip)
+			return "Power Equipment"
+		if(access_maint_tunnels)
+			return "Maintenance"
+		if(access_external_airlocks)
+			return "External Airlocks"
+		if(access_emergency_storage)
+			return "Emergency Storage"
+		if(access_change_ids)
+			return "ID Computer"
+		if(access_ai_upload)
+			return "AI Chambers"
+		if(access_teleporter)
+			return "Teleporter"
+		if(access_eva)
+			return "EVA"
+		if(access_heads)
+			return "Bridge"
+		if(access_captain)
+			return "Captain"
+		if(access_all_personal_lockers)
+			return "Personal Lockers"
+		if(access_chapel_office)
+			return "Chapel Office"
+		if(access_tech_storage)
+			return "Technical Storage"
+		if(access_atmospherics)
+			return "Atmospherics"
+		if(access_crematorium)
+			return "Crematorium"
+		if(access_armory)
+			return "Armory"
+		if(access_construction)
+			return "Construction Areas"
+		if(access_kitchen)
+			return "Kitchen"
+		if(access_hydroponics)
+			return "Hydroponics"
+		if(access_library)
+			return "Library"
+		if(access_lawyer)
+			return "IAA Office"
+		if(access_robotics)
+			return "Robotics"
+		if(access_virology)
+			return "Virology"
+		if(access_psychiatrist)
+			return "Psychiatrist's Office"
+		if(access_cmo)
+			return "Chief Medical Officer"
+		if(access_qm)
+			return "Quartermaster"
+/*		if(access_clown)
+			return "HONK! Access"
+		if(access_mime)
+			return "Silent Access"*/
+		if(access_surgery)
+			return "Surgery"
+		if(access_theatre)
+			return "Theatre"
+		if(access_manufacturing)
+			return "Manufacturing"
+		if(access_research)
+			return "Science"
+		if(access_mining)
+			return "Mining"
+		if(access_mining_office)
+			return "Mining Office"
+		if(access_mailsorting)
+			return "Cargo Office"
+		if(access_mint)
+			return "Mint"
+		if(access_mint_vault)
+			return "Mint Vault"
+		if(access_heads_vault)
+			return "Main Vault"
+		if(access_mining_station)
+			return "Mining EVA"
+		if(access_xenobiology)
+			return "Xenobiology Lab"
+		if(access_xenoarch)
+			return "Xenoarchaeology"
+		if(access_hop)
+			return "Head of Personnel"
+		if(access_hos)
+			return "Star Vigil Commander"
+		if(access_ce)
+			return "Chief Engineer"
+		if(access_RC_announce)
+			return "RC Announcements"
+		if(access_keycard_auth)
+			return "Keycode Auth. Device"
+		if(access_tcomsat)
+			return "Telecommunications"
+		if(access_gateway)
+			return "Gateway"
+		if(access_sec_doors)
+			return "Brig"
+		if(access_minisat)
+			return "AI Satellite"
+		if(access_barber)
+			return "Barber"
+		if(access_paramedic)
+			return "Paramedic"
 
 /proc/get_centcom_access_desc(A)
-	return get_access_desc(A)
+	switch(A)
+		if(access_cent_general)
+			return "Code Grey"
+		if(access_cent_thunder)
+			return "Code Yellow"
+		if(access_cent_storage)
+			return "Code Orange"
+		if(access_cent_living)
+			return "Code Green"
+		if(access_cent_medical)
+			return "Code White"
+		if(access_cent_teleporter)
+			return "Code Blue"
+		if(access_cent_specops)
+			return "Code Black"
+		if(access_cent_creed)
+			return "Code Silver"
+		if(access_cent_captain)
+			return "Code Gold"
 
-/proc/get_access_by_id(id)
-	var/list/AS = priv_all_access_datums_id || get_all_access_datums_by_id()
-	return AS[id]
+/proc/get_all_jobs()
+	var/list/all_jobs = list()
+	var/list/all_datums = typesof(/datum/job)
+	all_datums.Remove(list(/datum/job,/datum/job/ai,/datum/job/cyborg))
+	var/datum/job/jobdatum
+	for(var/jobtype in all_datums)
+		jobdatum = new jobtype
+		all_jobs.Add(jobdatum.title)
+	return all_jobs
 
 /proc/get_all_centcom_jobs()
 	return list("VIP Guest",
@@ -210,78 +473,102 @@
 		"BlackOps Commander",
 		"Supreme Commander",
 		"Emergency Response Team",
-		"Emergency Response Team Leader")
+		"Emergency Response Team Leader",
+		"NanoTrasen Representative")
 
-/mob/observer/ghost
-	var/static/obj/item/weapon/card/id/all_access/ghost_all_access
-
-/mob/observer/ghost/GetIdCard()
-	if(!is_admin(src))
+//gets the actual job rank (ignoring alt titles)
+//this is used solely for sechuds
+/obj/proc/GetJobRealName()
+	if (!istype(src, /obj/item/device/pda) && !istype(src,/obj/item/weapon/card/id))
 		return
 
-	if(!ghost_all_access)
-		ghost_all_access = new()
-	return ghost_all_access
+	var/rank
+	var/assignment
+	if(istype(src, /obj/item/device/pda))
+		if(src:id)
+			rank = src:id:rank
+			assignment = src:id:assignment
+	else if(istype(src, /obj/item/weapon/card/id))
+		rank = src:rank
+		assignment = src:assignment
 
-/mob/living/bot/GetIdCard()
-	return botcard
+	if( rank in joblist )
+		return rank
 
-#define HUMAN_ID_CARDS list(get_active_hand(), wear_id, get_inactive_hand())
-/mob/living/carbon/human/GetIdCard()
-	for(var/item_slot in HUMAN_ID_CARDS)
-		var/obj/item/I = item_slot
-		var/obj/item/weapon/card/id = I ? I.GetIdCard() : null
-		if(id)
-			return id
-	var/obj/item/organ/internal/controller/controller = locate() in internal_organs
-	if(istype(controller))
-		return controller.GetIdCard()
+	if( assignment in joblist )
+		return assignment
 
-/mob/living/carbon/human/GetAccess()
-	. = list()
-	for(var/item_slot in HUMAN_ID_CARDS)
-		var/obj/item/I = item_slot
-		if(I)
-			. |= I.GetAccess()
-	var/obj/item/organ/internal/controller/controller = locate() in internal_organs
-	if(istype(controller))
-		. |= controller.GetAccess()
-#undef HUMAN_ID_CARDS
+	return "Unknown"
 
-/mob/living/silicon/GetIdCard()
-	if(stat || (ckey && !client))
-		return // Unconscious, dead or once possessed but now client-less silicons are not considered to have id access.
-	return idcard
+//gets the alt title, failing that the actual job rank
+//this is unused
+/obj/proc/sdsdsd()	//GetJobDisplayName
+	if (!istype(src, /obj/item/device/pda) && !istype(src,/obj/item/weapon/card/id))
+		return
 
-/proc/FindNameFromID(var/mob/M, var/missing_id_name = "Unknown")
-	var/obj/item/weapon/card/id/C = M.GetIdCard()
-	if(C)
-		return C.registered_name
-	return missing_id_name
+	var/assignment
+	if(istype(src, /obj/item/device/pda))
+		if(src:id)
+			assignment = src:id:assignment
+	else if(istype(src, /obj/item/weapon/card/id))
+		assignment = src:assignment
 
-/proc/get_all_job_icons() //For all existing HUD icons
-	return SSjobs.titles_to_datums + list("Prisoner")
+	if(assignment)
+		return assignment
+
+	return "Unknown"
+
+proc/FindNameFromID(mob/living/carbon/human/H)
+	ASSERT(istype(H))
+	var/obj/item/weapon/card/id/C = H.get_active_hand()
+	if( istype(C) || istype(C, /obj/item/device/pda) )
+		var/obj/item/weapon/card/id/ID = C
+
+		if( istype(C, /obj/item/device/pda) )
+			var/obj/item/device/pda/pda = C
+			ID = pda.id
+		if(!istype(ID))
+			ID = null
+
+		if(ID)
+			return ID.registered_name
+
+	C = H.wear_id
+
+	if( istype(C) || istype(C, /obj/item/device/pda) )
+		var/obj/item/weapon/card/id/ID = C
+
+		if( istype(C, /obj/item/device/pda) )
+			var/obj/item/device/pda/pda = C
+			ID = pda.id
+		if(!istype(ID))
+			ID = null
+
+		if(ID)
+			return ID.registered_name
+
+proc/get_all_job_icons() //For all existing HUD icons
+	return joblist + list("Prisoner")
 
 /obj/proc/GetJobName() //Used in secHUD icon generation
-	var/obj/item/weapon/card/id/I = GetIdCard()
-
-	if(I)
-		var/job_icons = get_all_job_icons()
-		if(I.assignment	in job_icons) //Check if the job has a hud icon
-			return I.assignment
-		if(I.rank in job_icons)
-			return I.rank
-
-		var/centcom = get_all_centcom_jobs()
-		if(I.assignment	in centcom) //Return with the NT logo if it is a Centcom job
-			return "Centcom"
-		if(I.rank in centcom)
-			return "Centcom"
-	else
+	if (!istype(src, /obj/item/device/pda) && !istype(src,/obj/item/weapon/card/id))
 		return
 
+	var/jobName
+	var/alt
+	if(istype(src, /obj/item/device/pda))
+		var/obj/item/device/pda/P = src
+		if(P.id)
+			jobName = P.id.rank
+			alt = P.id.assignment
+	if(istype(src, /obj/item/weapon/card/id))
+		var/obj/item/weapon/card/id/I = src
+		jobName = I.rank
+		alt = I.assignment
+	if(alt in get_alternate_titles(jobName))
+		return alt
+	if(jobName in get_all_job_icons()) //Check if the job has a hud icon
+		return jobName
+	if(jobName in get_all_centcom_jobs()) //Return with the NT logo if it is a Centcom job
+		return "Centcom"
 	return "Unknown" //Return unknown if none of the above apply
-
-/proc/get_access_region_by_id(id)
-	var/datum/access/AD = get_access_by_id(id)
-	return AD.region

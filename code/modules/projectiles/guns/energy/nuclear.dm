@@ -1,129 +1,110 @@
 /obj/item/weapon/gun/energy/gun
 	name = "energy gun"
-	desc = "Another bestseller of Lawson Arms and the FTU, the LAEP90 Perun is a versatile energy based sidearm, capable of switching between low, medium and high power projectile settings. In other words: stun, shock or kill."
-	icon = 'icons/obj/guns/energy_gun.dmi'
-	icon_state = "energystun100"
+	desc = "A basic energy-based gun with two settings: Stun and kill."
+	icon = 'icons/obj/guns/energy/pistols.dmi'
+	icon_state = "energy"
 	item_state = null	//so the human update icon uses the icon_state instead.
-	max_shots = 10
-	fire_delay = 10 // To balance for the fact that it is a pistol and can be used one-handed without penalty
+	ammo_type = list(/obj/item/ammo_casing/energy/stun, /obj/item/ammo_casing/energy/laser)
+	origin_tech = "combat=3;magnets=2"
+	modifystate = 2
 
-	projectile_type = /obj/item/projectile/beam/stun
-	origin_tech = list(TECH_COMBAT = 3, TECH_MAGNET = 2)
-	modifystate = "energystun"
-
-	firemodes = list(
-		list(mode_name="stun", projectile_type=/obj/item/projectile/beam/stun, modifystate="energystun"),
-		list(mode_name="shock", projectile_type=/obj/item/projectile/beam/stun/shock, modifystate="energyshock"),
-		list(mode_name="kill", projectile_type=/obj/item/projectile/beam, modifystate="energykill"),
-		)
-
-/obj/item/weapon/gun/energy/gun/skrell
-	name = "skrellian handgun"
-	desc = "A common Skrellian side-arm, the Xuxquu*'Voom-5, or XV-5, is a more traditional energy weapon, tuned to dispense beams in three different wavelengths."
-	w_class = ITEM_SIZE_NORMAL
-	slot_flags = SLOT_BELT|SLOT_HOLSTER
-	icon = 'icons/obj/guns/skrell_pistol.dmi'
-	icon_state = "skrell_pistol_stun_100"
-	max_shots = 10
-	fire_delay = 6
-	one_hand_penalty = 1
-	self_recharge = 1
-
-	projectile_type = /obj/item/projectile/beam/stun
-	origin_tech = list(TECH_COMBAT = 3, TECH_MATERIAL = 5, TECH_POWER = 3)
-	modifystate = "skrell_pistol_stun"
-
-	firemodes = list(
-		list(mode_name="stun", projectile_type=/obj/item/projectile/beam/stun, modifystate="skrell_pistol_stun"),
-		list(mode_name="shock", projectile_type=/obj/item/projectile/beam/stun/shock, modifystate="skrell_pistol_shock"),
-		list(mode_name="kill", projectile_type=/obj/item/projectile/beam, modifystate="skrell_pistol_kill"),
-		)
-
-/obj/item/weapon/gun/energy/gun/small
-	name = "small energy gun"
-	desc = "A smaller model of the versatile LAEP90 Perun, the LAEP90-C packs considerable utility in a smaller package. Best used in situations where full-sized sidearms are inappropriate."
-	icon = 'icons/obj/guns/small_egun.dmi'
-	icon_state = "smallgunstun"
-	max_shots = 5
-	w_class = ITEM_SIZE_SMALL
-	force = 2 //it's the size of a car key, what did you expect?
-	modifystate = "smallgunstun"
-
-	firemodes = list(
-		list(mode_name="stun", projectile_type=/obj/item/projectile/beam/stun, modifystate="smallgunstun"),
-		list(mode_name="shock", projectile_type=/obj/item/projectile/beam/stun/shock, modifystate="smallgunshock"),
-		list(mode_name="kill", projectile_type=/obj/item/projectile/beam/smalllaser, modifystate="smallgunkill"),
-		)
-
-/obj/item/weapon/gun/energy/gun/mounted
-	name = "mounted energy gun"
-	self_recharge = 1
-	use_external_power = 1
-	has_safety = FALSE
+/obj/item/weapon/gun/energy/gun/attack_self(mob/living/user)
+	select_fire(user)
+	update_icon()
+	if(user.hand)
+		user.update_inv_l_hand()
+	else
+		user.update_inv_r_hand()
 
 /obj/item/weapon/gun/energy/gun/nuclear
-	name = "advanced energy gun"
+	name = "Advanced Energy Gun"
 	desc = "An energy gun with an experimental miniaturized reactor."
-	icon = 'icons/obj/guns/adv_egun.dmi'
+	icon = 'icons/obj/gun.dmi'
 	icon_state = "nucgun"
-	origin_tech = list(TECH_COMBAT = 3, TECH_MATERIAL = 5, TECH_POWER = 3)
-	slot_flags = SLOT_BELT
-	w_class = ITEM_SIZE_LARGE
-	force = 8 //looks heavier than a pistol
-	self_recharge = 1
-	modifystate = null
-	one_hand_penalty = 1 //bulkier than an e-gun, but not quite the size of a carbine
+	origin_tech = "combat=3;materials=5;powerstorage=3"
+	var/lightfail = 0
+	var/charge_tick = 0
+	modifystate = 0
 
-	firemodes = list(
-		list(mode_name="stun", projectile_type=/obj/item/projectile/beam/stun),
-		list(mode_name="shock", projectile_type=/obj/item/projectile/beam/stun/shock),
-		list(mode_name="kill", projectile_type=/obj/item/projectile/beam),
-		)
+/obj/item/weapon/gun/energy/gun/nuclear/atom_init()
+	. = ..()
+	START_PROCESSING(SSobj, src)
 
-	var/fail_counter = 0
 
-//override for failcheck behaviour
-/obj/item/weapon/gun/energy/gun/nuclear/Process()
-	if(fail_counter > 0)
-		SSradiation.radiate(src, (fail_counter * 2))
-		fail_counter--
-
+/obj/item/weapon/gun/energy/gun/nuclear/Destroy()
+	STOP_PROCESSING(SSobj, src)
 	return ..()
+
+
+/obj/item/weapon/gun/energy/gun/nuclear/process()
+	charge_tick++
+	if(charge_tick < 4) return 0
+	charge_tick = 0
+	if(!power_supply) return 0
+	if((power_supply.charge / power_supply.maxcharge) != 1)
+		if(!failcheck())	return 0
+		power_supply.give(100)
+		update_icon()
+	return 1
+
+
+/obj/item/weapon/gun/energy/gun/nuclear/proc/failcheck()
+	lightfail = 0
+	if (prob(src.reliability)) return 1 //No failure
+	if (prob(src.reliability))
+		for (var/mob/living/M in range(0,src)) //Only a minor failure, enjoy your radiation if you're in the same tile or carrying it
+			if (src in M.contents)
+				to_chat(M, "\red Your gun feels pleasantly warm for a moment.")
+			else
+				to_chat(M, "\red You feel a warm sensation.")
+			M.apply_effect(rand(3,120), IRRADIATE)
+		lightfail = 1
+	else
+		for (var/mob/living/M in range(rand(1,4),src)) //Big failure, TIME FOR RADIATION BITCHES
+			if (src in M.contents)
+				to_chat(M, "\red Your gun's reactor overloads!")
+			to_chat(M, "\red You feel a wave of heat wash over you.")
+			M.apply_effect(300, IRRADIATE)
+		crit_fail = 1 //break the gun so it stops recharging
+		STOP_PROCESSING(SSobj, src)
+		update_icon()
+	return 0
+
+/obj/item/weapon/gun/energy/gun/nuclear/proc/update_charge()
+	if (crit_fail)
+		overlays += "nucgun-whee"
+		return
+	var/ratio = power_supply.charge / power_supply.maxcharge
+	ratio = ceil(ratio * 4) * 25
+	overlays += "nucgun-[ratio]"
+
+/obj/item/weapon/gun/energy/gun/nuclear/proc/update_reactor()
+	if(crit_fail)
+		overlays += "nucgun-crit"
+		return
+	if(lightfail)
+		overlays += "nucgun-medium"
+	else if ((power_supply.charge/power_supply.maxcharge) <= 0.5)
+		overlays += "nucgun-light"
+	else
+		overlays += "nucgun-clean"
+
+/obj/item/weapon/gun/energy/gun/nuclear/proc/update_mode()
+	if (select == 1)
+		overlays += "nucgun-stun"
+	else if (select == 2)
+		overlays += "nucgun-kill"
 
 /obj/item/weapon/gun/energy/gun/nuclear/emp_act(severity)
 	..()
-	switch(severity)
-		if(1)
-			fail_counter = max(fail_counter, 30)
-			visible_message("\The [src]'s reactor overloads!")
-		if(2)
-			fail_counter = max(fail_counter, 10)
-			if(ismob(loc))
-				to_chat(loc, "<span class='warning'>\The [src] feels pleasantly warm.</span>")
+	reliability -= round(15/severity)
 
-/obj/item/weapon/gun/energy/gun/nuclear/proc/get_charge_overlay()
-	var/ratio = power_supply.percent()
-	ratio = round(ratio, 25)
-	return "nucgun-[ratio]"
 
-/obj/item/weapon/gun/energy/gun/nuclear/proc/get_reactor_overlay()
-	if(fail_counter)
-		return "nucgun-medium"
-	if (power_supply.percent() <= 50)
-		return "nucgun-light"
-	return "nucgun-clean"
+/obj/item/weapon/gun/energy/gun/nuclear/update_icon()
+	overlays.Cut()
+	update_charge()
+	update_reactor()
+	update_mode()
 
-/obj/item/weapon/gun/energy/gun/nuclear/proc/get_mode_overlay()
-	var/datum/firemode/current_mode = firemodes[sel_mode]
-	switch(current_mode.name)
-		if("stun") return "nucgun-stun"
-		if("kill") return "nucgun-kill"
-
-/obj/item/weapon/gun/energy/gun/nuclear/on_update_icon()
-	var/list/new_overlays = list()
-
-	new_overlays += get_charge_overlay()
-	new_overlays += get_reactor_overlay()
-	new_overlays += get_mode_overlay()
-
-	overlays = new_overlays
+/obj/item/weapon/gun/energy/gun/nuclear/isHandgun()
+	return 0

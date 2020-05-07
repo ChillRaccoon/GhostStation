@@ -1,183 +1,295 @@
 ///////////////////////////////////
 // POWERS
 ///////////////////////////////////
+//#Z2
+//Added activation chance for every power
 
 /datum/dna/gene/basic/nobreath
 	name="No Breathing"
 	activation_messages=list("You feel no need to breathe.")
-	mutation=mNobreath
+	mutation=NO_BREATH
+	activation_prob=50
 
 	New()
-		block=GLOB.NOBREATHBLOCK
+		block=NOBREATHBLOCK
 
 /datum/dna/gene/basic/remoteview
 	name="Remote Viewing"
 	activation_messages=list("Your mind expands.")
-	mutation=mRemote
+	mutation=REMOTE_VIEW
+	activation_prob=50
 
 	New()
-		block=GLOB.REMOTEVIEWBLOCK
+		block=REMOTEVIEWBLOCK
 
-	activate(var/mob/M, var/connected, var/flags)
+	activate(mob/M, connected, flags)
 		..(M,connected,flags)
 		M.verbs += /mob/living/carbon/human/proc/remoteobserve
+
+	deactivate(mob/M, connected, flags)
+		..(M,connected,flags)
+		M.verbs -= /mob/living/carbon/human/proc/remoteobserve
 
 /datum/dna/gene/basic/regenerate
 	name="Regenerate"
 	activation_messages=list("You feel better.")
-	mutation=mRegen
+	mutation=REGEN
+	activation_prob=50
 
 	New()
-		block=GLOB.REGENERATEBLOCK
+		block=REGENERATEBLOCK
+
+	can_activate(mob/M,flags)
+		if((SMALLSIZE in M.mutations))
+			return 0
+		return ..(M,flags)
+
+	OnMobLife(mob/living/carbon/human/M)
+		if(!istype(M)) return
+		var/obj/item/organ/external/head/H = M.bodyparts_by_name[BP_HEAD]
+
+		if(H.disfigured)
+			H.disfigured = FALSE
+
+		if(HUSK in M.mutations)
+			M.mutations.Remove(HUSK)
+			M.update_mutations()
+			M.UpdateAppearance()
+
+		var/obj/item/organ/external/chest/BP = M.bodyparts_by_name[BP_CHEST]
+		for(var/obj/item/organ/internal/IO in BP.bodypart_organs)
+			if(IO.damage > 0)
+				IO.damage -= 0.25
+
+		if(M.getBrainLoss() > 24)
+			if(M.getBrainLoss() < 76) M.adjustBrainLoss(-0.25)
+		else
+			if(prob(20))
+				if(M.getOxyLoss() < 126) M.adjustOxyLoss(-1)
+				if(M.getBruteLoss() < 126) M.heal_bodypart_damage(1,0)
+				if(M.getFireLoss() < 126) M.heal_bodypart_damage(0,1)
+				if(M.getToxLoss() < 126) M.adjustToxLoss(-1)
+				if(M.getCloneLoss() < 126) M.adjustCloneLoss(-1)
+			if(M.getBrainLoss()) M.adjustBrainLoss(-0.10)
 
 /datum/dna/gene/basic/increaserun
 	name="Super Speed"
 	activation_messages=list("Your leg muscles pulsate.")
-	mutation=mRun
+	mutation=RUN
+	activation_prob=50
 
 	New()
-		block=GLOB.INCREASERUNBLOCK
+		block=INCREASERUNBLOCK
 
 /datum/dna/gene/basic/remotetalk
 	name="Telepathy"
-	activation_messages=list("You expand your mind outwards.")
-	mutation=mRemotetalk
+	activation_messages=list("You feel your voice can penetrate other minds.")
+	mutation=REMOTE_TALK
+	activation_prob=50
 
 	New()
-		block=GLOB.REMOTETALKBLOCK
+		block=REMOTETALKBLOCK
 
-	activate(var/mob/M, var/connected, var/flags)
+	activate(mob/M, connected, flags)
 		..(M,connected,flags)
 		M.verbs += /mob/living/carbon/human/proc/remotesay
+
+	deactivate(mob/M, connected, flags)
+		..(M,connected,flags)
+		M.verbs -= /mob/living/carbon/human/proc/remotesay
 
 /datum/dna/gene/basic/morph
 	name="Morph"
 	activation_messages=list("Your skin feels strange.")
-	mutation=mMorph
+	mutation=MORPH
+	activation_prob=50
 
 	New()
-		block=GLOB.MORPHBLOCK
+		block=MORPHBLOCK
 
-	activate(var/mob/M)
+	activate(mob/M)
 		..(M)
 		M.verbs += /mob/living/carbon/human/proc/morph
 
-/* Not used on bay
+	deactivate(mob/M)
+		..(M)
+		M.verbs -= /mob/living/carbon/human/proc/morph
+
 /datum/dna/gene/basic/heat_resist
 	name="Heat Resistance"
 	activation_messages=list("Your skin is icy to the touch.")
-	mutation=mHeatres
+	mutation=RESIST_HEAT
+	activation_prob=30
 
 	New()
-		block=GLOB.COLDBLOCK
+		block=COLDBLOCK
 
-	can_activate(var/mob/M,var/flags)
-		if(flags & MUTCHK_FORCED)
-			return !(/datum/dna/gene/basic/cold_resist in M.active_genes)
-		// Probability check
-		var/_prob = 15
-		if(MUTATION_COLD_RESISTANCE in M.mutations)
-			_prob=5
-		if(probinj(_prob,(flags&MUTCHK_FORCED)))
-			return 1
+	can_activate(mob/M,flags)
+		if(COLD_RESISTANCE in M.mutations)
+			return 0
+		return ..(M,flags)
 
-	OnDrawUnderlays(var/mob/M,var/g,var/fat)
-		return "cold[fat]_s"
-*/
+	OnDrawUnderlays(mob/M,g,fat)
+		return "fire[fat]_s"
 
 /datum/dna/gene/basic/cold_resist
 	name="Cold Resistance"
 	activation_messages=list("Your body is filled with warmth.")
-	mutation=MUTATION_COLD_RESISTANCE
+	mutation=COLD_RESISTANCE
+	activation_prob=30
 
 	New()
-		block=GLOB.FIREBLOCK
+		block=FIREBLOCK
 
-	can_activate(var/mob/M,var/flags)
-		if(flags & MUTCHK_FORCED)
-			return 1
-		//	return !(/datum/dna/gene/basic/heat_resist in M.active_genes)
-		// Probability check
-		var/_prob=30
-		//if(mHeatres in M.mutations)
-		//	_prob=5
-		if(probinj(_prob,(flags&MUTCHK_FORCED)))
-			return 1
+	can_activate(mob/M,flags)
+		if(RESIST_HEAT in M.mutations)
+			return 0
+		return ..(M,flags)
 
-	OnDrawUnderlays(var/mob/M,var/g,var/fat)
+	OnDrawUnderlays(mob/M,g,fat)
 		return "fire[fat]_s"
 
 /datum/dna/gene/basic/noprints
 	name="No Prints"
 	activation_messages=list("Your fingers feel numb.")
-	mutation=mFingerprints
+	mutation=FINGERPRINTS
+	activation_prob=50
 
 	New()
-		block=GLOB.NOPRINTSBLOCK
+		block=NOPRINTSBLOCK
 
 /datum/dna/gene/basic/noshock
 	name="Shock Immunity"
-	activation_messages=list("Your skin feels strange.")
-	mutation=mShock
+	activation_messages=list("Your skin feels electric.")
+	mutation=NO_SHOCK
+	activation_prob=50
 
 	New()
-		block=GLOB.SHOCKIMMUNITYBLOCK
+		block=SHOCKIMMUNITYBLOCK
 
 /datum/dna/gene/basic/midget
 	name="Midget"
-	activation_messages=list("Your skin feels rubbery.")
-	mutation=mSmallsize
+	activation_messages=list("You feel small.")
+	mutation=SMALLSIZE
+	activation_prob=50
 
 	New()
-		block=GLOB.SMALLSIZEBLOCK
+		block=SMALLSIZEBLOCK
 
-	can_activate(var/mob/M,var/flags)
-		// Can't be big and small.
-		if(MUTATION_HULK in M.mutations)
+	can_activate(mob/M,flags)
+		// Can't be big, small and regenerate.
+		if( (REGEN in M.mutations)) //#Z2
 			return 0
 		return ..(M,flags)
 
-	activate(var/mob/M, var/connected, var/flags)
+	activate(mob/M, connected, flags)
 		..(M,connected,flags)
 		M.pass_flags |= 1
+		if(ishuman(M))
+			var/mob/living/carbon/human/H = M
+			H.ventcrawler = 1
+			to_chat(H, "\blue \b Ventcrawling allowed")
 
-	deactivate(var/mob/M, var/connected, var/flags)
+		var/matrix/Mx = matrix()
+		Mx.Scale(0.8) //Makes our hulk to be bigger than any normal human.
+		Mx.Translate(0,-2)
+		M.transform = Mx
+
+	deactivate(mob/M, connected, flags)
 		..(M,connected,flags)
-		M.pass_flags &= ~PASS_FLAG_TABLE
+		M.pass_flags &= ~1
+		if(ishuman(M))
+			var/mob/living/carbon/human/H = M
+			H.ventcrawler = 0
+
+		var/matrix/Mx = matrix()
+		Mx.Scale(1) ////Reset size of our halfling
+		Mx.Translate(0,0)
+		M.transform = Mx
 
 /datum/dna/gene/basic/hulk
-	name="Hulk"
-	activation_messages=list("Your muscles hurt.")
-	mutation=MUTATION_HULK
+	name                = "Hulk"
+	activation_messages = list("Your muscles hurt.")
+	mutation            = HULK
+	activation_prob     = 15
 
-	New()
-		block=GLOB.HULKBLOCK
+/datum/dna/gene/basic/hulk/New()
+	block=HULKBLOCK
 
-	can_activate(var/mob/M,var/flags)
-		// Can't be big and small.
-		if(mSmallsize in M.mutations)
+	/*can_activate(mob/M,flags)
+		// Can't be big, small and regenerate.
+		if( (SMALLSIZE in M.mutations) || (REGEN in M.mutations)) //#Z2
 			return 0
-		return ..(M,flags)
+		return ..(M,flags)*/
 
-	OnDrawUnderlays(var/mob/M,var/g,var/fat)
-		if(fat)
-			return "hulk_[fat]_s"
+/datum/dna/gene/basic/hulk/can_activate(mob/M, flags)
+	if(!M.mind)
+		return FALSE
+	if(M.mind.hulkizing)
+		return FALSE
+	if(config.disallow_gene_hulks && !(flags & MUTATION_FORCED))
+		return FALSE
+	return TRUE
+
+/datum/dna/gene/basic/hulk/activate(mob/M, connected, flags)
+	M.mind.hulkizing = 1
+	..()
+	addtimer(CALLBACK(src, .proc/mutate_user, M), rand(600, 900), TIMER_UNIQUE)
+
+/datum/dna/gene/basic/hulk/proc/mutate_user(mob/M)
+	if(!M)
+		return
+	if(!(HULK in M.mutations)) //If user cleans hulk mutation before timer runs out, then there is no mutation.
+		M.mind.hulkizing = 0   //We don't want to waste user's try, so user can mutate once later.
+		return
+
+	message_admins("[M.name] ([M.ckey]) is a <span class='warning'>Monster</span> (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[M.x];Y=[M.y];Z=[M.z]'>JMP</a>)")
+	if(istype(M.loc, /obj/machinery/dna_scannernew))
+		var/obj/machinery/dna_scannernew/DSN = M.loc
+		DSN.occupant = null
+		DSN.icon_state = "scanner_0"
+
+	var/mob/living/simple_animal/hulk/Monster
+	if(istype(M, /mob/living/carbon/human/unathi))
+		Monster = new /mob/living/simple_animal/hulk/unathi(get_turf(M))
+	else
+		if(prob(19))
+			Monster = new /mob/living/simple_animal/hulk/unathi(get_turf(M))
 		else
-			return "hulk_[g]_s"
+			Monster = new /mob/living/simple_animal/hulk/human(get_turf(M))
 
-	OnMobLife(var/mob/living/carbon/human/M)
-		if(!istype(M)) return
-		if(M.health <= 25)
-			M.mutations.Remove(MUTATION_HULK)
-			M.update_mutations()		//update our mutation overlays
-			to_chat(M, "<span class='warning'>You suddenly feel very weak.</span>")
-			M.Weaken(3)
-			M.emote("collapse")
+	playsound(M.loc, 'sound/effects/bamf.ogg', 50, 2)
+
+	for(var/obj/item/W in M)
+		M.drop_from_inventory(W)
+
+	Monster.original_body = M
+	M.forceMove(Monster)
+	M.mind.transfer_to(Monster)
+	Monster.name = M.name
+
+	Monster.attack_log = M.attack_log
+	Monster.attack_log += "\[[time_stamp()]\]<font color='blue'> ======MONSTER LIFE======</font>"
+	Monster.say(pick("RAAAAAAAARGH!", "HNNNNNNNNNGGGGGGH!", "GWAAAAAAAARRRHHH!", "NNNNNNNNGGGGGGGGHH!", "AAAAAAARRRGH!" ))
+	return
 
 /datum/dna/gene/basic/xray
 	name="X-Ray Vision"
 	activation_messages=list("The walls suddenly disappear.")
-	mutation=MUTATION_XRAY
+	mutation=XRAY
+	activation_prob=30
 
 	New()
-		block=GLOB.XRAYBLOCK
+		block=XRAYBLOCK
+
+/datum/dna/gene/basic/tk
+	name="Telekenesis"
+	activation_messages=list("You feel smarter.")
+	mutation=TK
+	activation_prob=10
+
+/datum/dna/gene/basic/tk/New()
+	block=TELEBLOCK
+
+/datum/dna/gene/basic/tk/OnDrawUnderlays(mob/M,g,fat)
+	return "telekinesishead[fat]_s"

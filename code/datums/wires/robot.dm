@@ -1,80 +1,66 @@
+var/const/BORG_WIRE_LAWCHECK    = 1
+var/const/BORG_WIRE_MAIN_POWER  = 2
+var/const/BORG_WIRE_LOCKED_DOWN = 4
+var/const/BORG_WIRE_AI_CONTROL  = 8
+var/const/BORG_WIRE_CAMERA      = 16
+
 /datum/wires/robot
-	random = 1
+	random = TRUE
 	holder_type = /mob/living/silicon/robot
 	wire_count = 5
-	descriptions = list(
-		new /datum/wire_description(BORG_WIRE_LAWCHECK, "This wire runs to the unit's law module."),
-		new /datum/wire_description(BORG_WIRE_MAIN_POWER, "This wire seems to be carrying a heavy current.", SKILL_EXPERT),
-		new /datum/wire_description(BORG_WIRE_LOCKED_DOWN, "This wire connects to the unit's safety override."),
-		new /datum/wire_description(BORG_WIRE_AI_CONTROL, "This wire connects to automated control systems."),
-		new /datum/wire_description(BORG_WIRE_CAMERA,  "This wire runs to the unit's vision modules.")
-	)
 
-var/const/BORG_WIRE_LAWCHECK = 1
-var/const/BORG_WIRE_MAIN_POWER = 2 // The power wires do nothing whyyyyyyyyyyyyy
-var/const/BORG_WIRE_LOCKED_DOWN = 4
-var/const/BORG_WIRE_AI_CONTROL = 8
-var/const/BORG_WIRE_CAMERA = 16
-
-/datum/wires/robot/GetInteractWindow(mob/user)
-
+/datum/wires/robot/get_interact_window()
+	var/mob/living/silicon/robot/R = holder
 	. = ..()
-	var/mob/living/silicon/robot/R = holder
-	. += text("<br>\n[(R.lawupdate ? "The LawSync light is on." : "The LawSync light is off.")]")
-	. += text("<br>\n[(R.connected_ai ? "The AI link light is on." : "The AI link light is off.")]")
-	. += text("<br>\n[((!isnull(R.camera) && R.camera.status == 1) ? "The Camera light is on." : "The Camera light is off.")]")
-	. += text("<br>\n[(R.lockcharge ? "The lockdown light is on." : "The lockdown light is off.")]")
-	return .
+	. += "<br>[R.lawupdate ? "The LawSync light is on." : "The LawSync light is off."]"
+	. += "<br>[R.connected_ai ? "The AI link light is on." : "The AI link light is off."]"
+	. += "<br>[(!isnull(R.camera) && R.camera.status == 1) ? "The Camera light is on." : "The Camera light is off."]"
+	. += "<br>[R.lockcharge ? "The lockdown light is on." : "The lockdown light is off."]"
 
-/datum/wires/robot/UpdateCut(var/index, var/mended)
-
+/datum/wires/robot/can_use()
 	var/mob/living/silicon/robot/R = holder
+	return R.wiresexposed
+
+/datum/wires/robot/update_cut(index, mended)
+	var/mob/living/silicon/robot/R = holder
+
 	switch(index)
-		if(BORG_WIRE_LAWCHECK) //Cut the law wire, and the borg will no longer receive law updates from its AI
-			if(!mended)
-				if (R.lawupdate == 1)
-					to_chat(R, "LawSync protocol engaged.")
-					R.show_laws()
-			else
-				if (R.lawupdate == 0 && !R.emagged)
+		if(BORG_WIRE_LAWCHECK)
+			if(mended)
+				if(R.lawupdate == 0 && !R.emagged)
 					R.lawupdate = 1
+			else
+				if(R.lawupdate == 1)
+					to_chat(R, "<span class='notice>LawSync protocol engaged.</span>")
+					R.show_laws()
 
-		if (BORG_WIRE_AI_CONTROL) //Cut the AI wire to reset AI control
+		if(BORG_WIRE_AI_CONTROL)
 			if(!mended)
-				R.disconnect_from_ai()
+				if (R.connected_ai)
+					R.connected_ai = null
 
-		if (BORG_WIRE_CAMERA)
+		if(BORG_WIRE_CAMERA)
 			if(!isnull(R.camera) && !R.scrambledcodes)
 				R.camera.status = mended
+				R.camera.toggle_cam(FALSE)
 
-		if(BORG_WIRE_LOCKED_DOWN)
-			R.SetLockdown(!mended)
-
-
-/datum/wires/robot/UpdatePulsed(var/index)
+/datum/wires/robot/update_pulsed(index)
 	var/mob/living/silicon/robot/R = holder
+
 	switch(index)
-		if (BORG_WIRE_AI_CONTROL) //pulse the AI wire to make the borg reselect an AI
+		if(BORG_WIRE_AI_CONTROL)
 			if(!R.emagged)
-				var/mob/living/silicon/ai/new_ai = select_active_ai(R, get_z(R))
-				R.connect_to_ai(new_ai)
+				R.connected_ai = select_active_ai()
 
-		if (BORG_WIRE_CAMERA)
-			if(!isnull(R.camera) && R.camera.can_use() && !R.scrambledcodes)
-				R.visible_message("[R]'s camera lense focuses loudly.")
-				to_chat(R, "Your camera lense focuses loudly.")
+		if(BORG_WIRE_CAMERA)
+			if(!isnull(R.camera) && R.camera.status && !R.scrambledcodes)
+				R.camera.disconnect_viewers()
+				R.visible_message(
+					"<span class='notice'>Your camera lens focuses loudly.</span>",
+					"<span class='notice'>[R.name]'s camera lens focuses loudly.</span>"
+				)
 
-		if(BORG_WIRE_LOCKED_DOWN)
-			R.SetLockdown(!R.lockcharge) // Toggle
-
-/datum/wires/robot/CanUse(var/mob/living/L)
-	var/mob/living/silicon/robot/R = holder
-	if(R.wiresexposed)
-		return 1
-	return 0
-
-/datum/wires/robot/proc/IsCameraCut()
-	return wires_status & BORG_WIRE_CAMERA
-
-/datum/wires/robot/proc/LockedCut()
-	return wires_status & BORG_WIRE_LOCKED_DOWN
+		if(BORG_WIRE_LAWCHECK)
+			if(R.lawupdate)
+				R.lawsync()
+				R.photosync()

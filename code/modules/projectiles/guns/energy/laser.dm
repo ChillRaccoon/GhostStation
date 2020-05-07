@@ -1,187 +1,235 @@
 /obj/item/weapon/gun/energy/laser
-	name = "laser carbine"
-	desc = "A Hephaestus Industries G40E carbine, designed to kill with concentrated energy blasts."
-	icon = 'icons/obj/guns/laser_carbine.dmi'
+	name = "laser rifle"
+	desc = "a basic weapon designed kill with concentrated energy bolts."
+	icon = 'icons/obj/guns/energy/rifles.dmi'
 	icon_state = "laser"
-	item_state = "laser"
-	slot_flags = SLOT_BELT|SLOT_BACK
-	w_class = ITEM_SIZE_LARGE
-	force = 10
-	one_hand_penalty = 2
-	bulk = GUN_BULK_RIFLE
-	origin_tech = list(TECH_COMBAT = 3, TECH_MAGNET = 2)
-	matter = list(MATERIAL_STEEL = 2000)
-	projectile_type = /obj/item/projectile/beam/midlaser
-	wielded_item_state = "laser-wielded"
+	item_state = null	//so the human update icon uses the icon_state instead.
+	w_class = 3.0
+	m_amt = 2000
+	origin_tech = "combat=3;magnets=2"
+	slot_flags = SLOT_BACK
+	ammo_type = list(/obj/item/ammo_casing/energy/laser)
 
-/obj/item/weapon/gun/energy/laser/mounted
-	self_recharge = 1
-	use_external_power = 1
-	one_hand_penalty = 0 //just in case
-	has_safety = FALSE
+/obj/item/weapon/gun/energy/laser/atom_init()
+	. = ..()
+	if(power_supply)
+		power_supply.maxcharge = 1500
+		power_supply.charge = 1500
+
+/obj/item/weapon/gun/energy/laser/isHandgun()
+	return 0
 
 /obj/item/weapon/gun/energy/laser/practice
-	name = "practice laser carbine"
-	desc = "A modified version of the HI G40E, this one fires less concentrated energy bolts designed for target practice."
-	icon_state = "laserp"
-	projectile_type = /obj/item/projectile/beam/practice
-	charge_cost = 10 //How much energy is needed to fire.
+	name = "practice laser gun"
+	desc = "A modified version of the basic laser gun, this one fires less concentrated energy bolts designed for target practice."
+	ammo_type = list(/obj/item/ammo_casing/energy/laser/practice)
+	clumsy_check = 0
 
-/obj/item/weapon/gun/energy/laser/practice/proc/hacked()
-	return projectile_type != /obj/item/projectile/beam/practice
+obj/item/weapon/gun/energy/laser/retro
+	name ="retro laser"
+	icon = 'icons/obj/guns/energy/pistols.dmi'
+	icon_state = "retro"
+	desc = "An older model of the basic lasergun, no longer used by Nanotrasen's security or military forces. Nevertheless, it is still quite deadly and easy to maintain, making it a favorite amongst pirates and other outlaws."
+	slot_flags = SLOT_BELT
 
-/obj/item/weapon/gun/energy/laser/practice/emag_act(var/remaining_charges, var/mob/user, var/emag_source)
-	if(hacked())
-		return NO_EMAG_ACT
-	to_chat(user, "<span class='warning'>You disable the safeties on [src] and crank the output to the lethal levels.</span>")
-	desc += " Its safeties are disabled and output is set to dangerous levels."
-	projectile_type = /obj/item/projectile/beam/midlaser
-	charge_cost = 20
-	max_shots = rand(3,6) //will melt down after those
+obj/item/weapon/gun/energy/laser/retro/jetsons
+	name ="unwanted laser"
+	icon_state = "jetsons"
+	item_state = "jetsons"
+	desc = "Very unusual version of laser gun, oldschool style"
+	origin_tech = "combat=2;magnets=1"
+	ammo_type = list(/obj/item/ammo_casing/energy/laser/practice/jetsons)
+
+
+obj/item/weapon/gun/energy/laser/retro/jetsons/update_icon()
+	return 0
+
+/obj/item/ammo_casing/energy/laser/practice/jetsons
+	projectile_type = /obj/item/projectile/beam/practice/jetsons
+	select_name = "practice_jetsons"
+	fire_sound = 'sound/weapons/Laser2.ogg'
+
+/obj/item/projectile/beam/practice/jetsons
+	name = "laser"
+	icon_state = "laser"
+	pass_flags = PASSTABLE | PASSGLASS | PASSGRILLE
+	damage = 7 //lucky shot
+	damage_type = BURN
+	flag = "laser"
+	eyeblur = 2
+
+/obj/item/weapon/gun/energy/laser/selfcharging
+	slot_flags = SLOT_BELT
+	var/charge_tick = 0
+	var/chargespeed = 0
+
+/obj/item/weapon/gun/energy/laser/selfcharging/atom_init()
+	. = ..()
+	START_PROCESSING(SSobj, src)
+
+
+/obj/item/weapon/gun/energy/laser/selfcharging/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	return ..()
+
+/obj/item/weapon/gun/energy/laser/selfcharging/process()
+	charge_tick++
+	if(charge_tick < 4) return 0
+	charge_tick = 0
+	if(!power_supply) return 0
+	power_supply.give(100 * chargespeed)
+	update_icon()
 	return 1
 
-/obj/item/weapon/gun/energy/laser/practice/handle_post_fire(mob/user, atom/target, var/pointblank=0, var/reflex=0)
-	..()
-	if(hacked())
-		max_shots--
-		if(!max_shots) //uh hoh gig is up
-			to_chat(user, "<span class='danger'>\The [src] sizzles in your hands, acrid smoke rising from the firing end!</span>")
-			desc += " The optical pathway is melted and useless."
-			projectile_type = null
+/obj/item/weapon/gun/energy/laser/selfcharging/isHandgun()
+	return 1
 
-obj/item/weapon/gun/energy/retro
-	name = "retro laser"
-	icon = 'icons/obj/guns/retro_laser.dmi'
-	icon_state = "retro"
-	item_state = "retro"
-	desc = "An older model of the basic lasergun. Nevertheless, it is still quite deadly and easy to maintain, making it a favorite amongst pirates and other outlaws."
-	slot_flags = SLOT_BELT|SLOT_HOLSTER
-	w_class = ITEM_SIZE_NORMAL
-	projectile_type = /obj/item/projectile/beam
-	fire_delay = 15 //old technology, and a pistol
+/obj/item/weapon/gun/energy/laser/cyborg/newshot()
+	if(isrobot(src.loc))
+		var/mob/living/silicon/robot/R = src.loc
+		if(R && R.cell)
+			var/obj/item/ammo_casing/energy/shot = ammo_type[select] //Necessary to find cost of shot
+			if(R.cell.use(shot.e_cost))
+				chambered = shot
+				chambered.newshot()
+	return
 
-/obj/item/weapon/gun/energy/captain
-	name = "antique laser gun"
-	icon = 'icons/obj/guns/caplaser.dmi'
+/obj/item/weapon/gun/energy/laser/selfcharging/captain
 	icon_state = "caplaser"
-	item_state = "caplaser"
-	desc = "A rare weapon, handcrafted by a now defunct specialty manufacturer on Luna for a small fortune. It's certainly aged well."
-	force = 5
-	slot_flags = SLOT_BELT //too unusually shaped to fit in a holster
-	w_class = ITEM_SIZE_NORMAL
-	projectile_type = /obj/item/projectile/beam
+	icon = 'icons/obj/guns/energy/pistols.dmi'
+	desc = "This is an antique laser gun. All craftsmanship is of the highest quality. It is decorated with assistant leather and chrome. The object menaces with spikes of energy. On the item is an image of Space Station 13. The station is exploding."
+	force = 10
 	origin_tech = null
-	max_shots = 5 //to compensate a bit for self-recharging
-	one_hand_penalty = 1 //a little bulky
-	self_recharge = 1
+	chargespeed = 1
+
+/obj/item/weapon/gun/energy/laser/selfcharging/alien
+	name = "Alien blaster"
+	icon = 'icons/obj/guns/energy/archeology.dmi'
+	icon_state = "egun"
+	desc = " The object menaces with spikes of energy. You don't kmown what kind of weapon."
+	force = 5
+	origin_tech = null
+	chargespeed = 2
+
+/obj/item/weapon/gun/energy/laser/scatter
+	name = "scatter laser gun"
+	icon_state = "oldlaser"
+	desc = "A laser gun equipped with a refraction kit that spreads bolts."
+	slot_flags = SLOT_BELT
+	ammo_type = list(/obj/item/ammo_casing/energy/laser, /obj/item/ammo_casing/energy/laser/scatter)
+
+/obj/item/weapon/gun/energy/laser/scatter/attack_self(mob/living/user)
+	select_fire(user)
+	update_icon()
+
+/obj/item/weapon/gun/energy/laser/scatter/alien
+	name = "scatter laser rife"
+	icon_state = "subegun"
+	icon = 'icons/obj/guns/energy/archeology.dmi'
+	desc = "A laser gun equipped with a refraction kit that spreads bolts."
+	ammo_type = list(/obj/item/ammo_casing/energy/laser, /obj/item/ammo_casing/energy/laser/scatter)
+	origin_tech = null
 
 /obj/item/weapon/gun/energy/lasercannon
 	name = "laser cannon"
-	desc = "With the laser cannon, the lasing medium is enclosed in a tube lined with uranium-235 and subjected to high neutron flux in a nuclear reactor core. This incredible technology may help YOU achieve high excitation rates with small laser volumes!"
+	desc = "With the L.A.S.E.R. cannon, the lasing medium is enclosed in a tube lined with uranium-235 and subjected to high neutron flux in a nuclear reactor core. This incredible technology may help YOU achieve high excitation rates with small laser volumes!"
 	icon_state = "lasercannon"
-	icon = 'icons/obj/guns/laser_cannon.dmi'
+	icon = 'icons/obj/guns/energy/rifles.dmi'
 	item_state = null
-	origin_tech = list(TECH_COMBAT = 4, TECH_MATERIAL = 3, TECH_POWER = 3)
-	slot_flags = SLOT_BELT|SLOT_BACK
-	one_hand_penalty = 6 //large and heavy
-	w_class = ITEM_SIZE_HUGE
-	projectile_type = /obj/item/projectile/beam/heavylaser
-	charge_cost = 40
-	max_shots = 6
-	accuracy = 2
-	fire_delay = 20
-	wielded_item_state = "gun_wielded"
+	origin_tech = "combat=4;materials=3;powerstorage=3"
+	ammo_type = list(/obj/item/ammo_casing/energy/laser/heavy)
 
-/obj/item/weapon/gun/energy/lasercannon/mounted
-	name = "mounted laser cannon"
-	self_recharge = 1
-	use_external_power = 1
-	recharge_time = 10
-	accuracy = 0 //mounted laser cannons don't need any help, thanks
-	one_hand_penalty = 0
-	has_safety = FALSE
+	fire_delay = 20
+
+/obj/item/weapon/gun/energy/lasercannon/isHandgun()
+	return 0
+
+/obj/item/weapon/gun/energy/lasercannon/cyborg/newshot()
+	if(isrobot(src.loc))
+		var/mob/living/silicon/robot/R = src.loc
+		if(R && R.cell)
+			var/obj/item/ammo_casing/energy/shot = ammo_type[select] //Necessary to find cost of shot
+			if(R.cell.use(shot.e_cost))
+				chambered = shot
+				chambered.newshot()
+	return
 
 /obj/item/weapon/gun/energy/xray
-	name = "x-ray laser carbine"
-	desc = "A high-power laser gun capable of emitting concentrated x-ray blasts, that are able to penetrate laser-resistant armor much more readily than standard photonic beams."
-	icon = 'icons/obj/guns/xray.dmi'
+	name = "xray laser gun"
+	desc = "A high-power laser gun capable of expelling concentrated xray blasts."
+	icon = 'icons/obj/guns/energy/rifles.dmi'
 	icon_state = "xray"
-	item_state = "xray"
-	slot_flags = SLOT_BELT|SLOT_BACK
-	origin_tech = list(TECH_COMBAT = 5, TECH_MATERIAL = 3, TECH_MAGNET = 2, TECH_ESOTERIC = 2)
-	projectile_type = /obj/item/projectile/beam/xray/midlaser
-	one_hand_penalty = 2
-	w_class = ITEM_SIZE_LARGE
-	charge_cost = 15
-	max_shots = 10
-	wielded_item_state = "gun_wielded"
-	combustion = 0
-
-/obj/item/weapon/gun/energy/xray/pistol
-	name = "x-ray laser gun"
-	icon = 'icons/obj/guns/xray_pistol.dmi'
-	icon_state = "oldxray"
-	item_state = "oldxray"
-	slot_flags = SLOT_BELT|SLOT_HOLSTER
-	origin_tech = list(TECH_COMBAT = 4, TECH_MATERIAL = 3, TECH_MAGNET = 2, TECH_ESOTERIC = 2)
-	projectile_type = /obj/item/projectile/beam/xray
-	one_hand_penalty = 1
-	w_class = ITEM_SIZE_NORMAL
-	fire_delay = 10
-
-/obj/item/weapon/gun/energy/sniperrifle
-	name = "marksman energy rifle"
-	desc = "The HI DMR 9E is an older design of Hephaestus Industries. A designated marksman rifle capable of shooting powerful ionized beams, this is a weapon to kill from a distance."
-	icon = 'icons/obj/guns/laser_sniper.dmi'
-	icon_state = "sniper"
-	item_state = "laser"
-	origin_tech = list(TECH_COMBAT = 6, TECH_MATERIAL = 5, TECH_POWER = 4)
-	projectile_type = /obj/item/projectile/beam/sniper
-	one_hand_penalty = 5 // The weapon itself is heavy, and the long barrel makes it hard to hold steady with just one hand.
-	slot_flags = SLOT_BACK
-	charge_cost = 40
-	max_shots = 4
-	fire_delay = 35
-	force = 10
-	w_class = ITEM_SIZE_HUGE
-	accuracy = -2 //shooting at the hip
-	scoped_accuracy = 9
-	scope_zoom = 2
-	wielded_item_state = "gun_wielded"
-
-/obj/item/weapon/gun/energy/sniperrifle/on_update_icon()
-	..()
-	item_state_slots[slot_back_str] = icon_state //so that the on-back overlay uses the different charged states
+	item_state = null
+	origin_tech = "combat=5;materials=3;magnets=2;syndicate=2"
+	ammo_type = list(/obj/item/ammo_casing/energy/xray)
 
 ////////Laser Tag////////////////////
 
-/obj/item/weapon/gun/energy/lasertag
+/obj/item/weapon/gun/energy/laser/bluetag
 	name = "laser tag gun"
-	icon = 'icons/obj/guns/lasertag.dmi'
 	icon_state = "bluetag"
-	item_state = "laser"
+	icon = 'icons/obj/guns/energy/pistols.dmi'
 	desc = "Standard issue weapon of the Imperial Guard."
-	origin_tech = list(TECH_COMBAT = 1, TECH_MAGNET = 2)
-	self_recharge = 1
-	matter = list(MATERIAL_STEEL = 2000)
-	projectile_type = /obj/item/projectile/beam/lastertag/blue
-	var/required_vest
+	ammo_type = list(/obj/item/ammo_casing/energy/laser/bluetag)
+	origin_tech = "combat=1;magnets=2"
+	clumsy_check = 0
+	var/charge_tick = 0
 
-/obj/item/weapon/gun/energy/lasertag/special_check(var/mob/living/carbon/human/M)
+/obj/item/weapon/gun/energy/laser/bluetag/special_check(mob/living/carbon/human/M)
 	if(ishuman(M))
-		if(!istype(M.wear_suit, required_vest))
-			to_chat(M, "<span class='warning'>You need to be wearing your laser tag vest!</span>")
-			return 0
+		if(istype(M.wear_suit, /obj/item/clothing/suit/bluetag))
+			return ..()
+		to_chat(M, "\red You need to be wearing your laser tag vest!")
+	return 0
+
+/obj/item/weapon/gun/energy/laser/bluetag/atom_init()
+	. = ..()
+	START_PROCESSING(SSobj, src)
+
+
+/obj/item/weapon/gun/energy/laser/bluetag/Destroy()
+	STOP_PROCESSING(SSobj, src)
 	return ..()
 
-/obj/item/weapon/gun/energy/lasertag/blue
-	icon_state = "bluetag"
-	item_state = "bluetag"
-	projectile_type = /obj/item/projectile/beam/lastertag/blue
-	required_vest = /obj/item/clothing/suit/bluetag
+/obj/item/weapon/gun/energy/laser/bluetag/process()
+	charge_tick++
+	if(charge_tick < 4) return 0
+	charge_tick = 0
+	if(!power_supply) return 0
+	power_supply.give(100)
+	update_icon()
+	return 1
 
-/obj/item/weapon/gun/energy/lasertag/red
+/obj/item/weapon/gun/energy/laser/redtag
+	name = "laser tag gun"
 	icon_state = "redtag"
-	item_state = "redtag"
-	projectile_type = /obj/item/projectile/beam/lastertag/red
-	required_vest = /obj/item/clothing/suit/redtag
+	icon = 'icons/obj/guns/energy/pistols.dmi'
+	desc = "Standard issue weapon of the Imperial Guard."
+	ammo_type = list(/obj/item/ammo_casing/energy/laser/redtag)
+	origin_tech = "combat=1;magnets=2"
+	clumsy_check = 0
+	var/charge_tick = 0
+
+/obj/item/weapon/gun/energy/laser/redtag/special_check(mob/living/carbon/human/M)
+	if(ishuman(M))
+		if(istype(M.wear_suit, /obj/item/clothing/suit/redtag))
+			return ..()
+		to_chat(M, "\red You need to be wearing your laser tag vest!")
+	return 0
+
+/obj/item/weapon/gun/energy/laser/redtag/atom_init()
+	. = ..()
+	START_PROCESSING(SSobj, src)
+
+/obj/item/weapon/gun/energy/laser/redtag/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	return ..()
+
+/obj/item/weapon/gun/energy/laser/redtag/process()
+	charge_tick++
+	if(charge_tick < 4) return 0
+	charge_tick = 0
+	if(!power_supply) return 0
+	power_supply.give(100)
+	update_icon()
+	return 1

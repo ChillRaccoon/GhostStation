@@ -2,7 +2,7 @@ var/CMinutes = null
 var/savefile/Banlist
 
 
-/proc/CheckBan(var/ckey, var/id, var/address)
+/proc/CheckBan(ckey, id, address)
 	if(!Banlist)		// if Banlist cannot be located for some reason
 		LoadBans()		// try to load the bans
 		if(!Banlist)	// uh oh, can't find bans!
@@ -58,9 +58,6 @@ var/savefile/Banlist
 	CMinutes = (world.realtime / 10) / 60
 	return 1
 
-/hook/startup/proc/loadBans()
-	return LoadBans()
-
 /proc/LoadBans()
 
 	Banlist = new("data/banlist.bdb")
@@ -106,10 +103,7 @@ var/savefile/Banlist
 
 	Banlist.cd = "/base"
 	if ( Banlist.dir.Find("[ckey][computerid]") )
-		to_chat(usr, "<span class='warning'>Ban already exists.</span>")
-		return 0
-	else if (!ckey)
-		to_chat(usr, "<span class='warning'>Ckey does not exist.</span>")
+		to_chat(usr, text("\red Ban already exists."))
 		return 0
 	else
 		Banlist.dir.Add("[ckey][computerid]")
@@ -142,7 +136,7 @@ var/savefile/Banlist
 		ban_unban_log_save("[key_name_admin(usr)] unbanned [key]")
 		log_admin("[key_name_admin(usr)] unbanned [key]")
 		message_admins("[key_name_admin(usr)] unbanned: [key]")
-		SSstatistics.add_field("ban_unban",1)
+		feedback_inc("ban_unban",1)
 		usr.client.holder.DB_ban_unban( ckey(key), BANTYPE_ANY_FULLBAN)
 	for (var/A in Banlist.dir)
 		Banlist.cd = "/base/[A]"
@@ -153,7 +147,7 @@ var/savefile/Banlist
 
 	return 1
 
-/proc/GetExp(minutes as num)
+/proc/GetExp(minutes)
 	UpdateTime()
 	var/exp = minutes - CMinutes
 	if (exp <= 0)
@@ -171,7 +165,7 @@ var/savefile/Banlist
 /datum/admins/proc/unbanpanel()
 	var/count = 0
 	var/dat
-	//var/dat = "<HR><B>Unban Player:</B> <span class='notice'>(U) = Unban , (E) = Edit Ban</span> <span class='good'>(Total<HR><table border=1 rules=all frame=void cellspacing=0 cellpadding=3 ></span>"
+	//var/dat = "<HR><B>Unban Player:</B> \blue(U) = Unban , (E) = Edit Ban\green (Total<HR><table border=1 rules=all frame=void cellspacing=0 cellpadding=3 >"
 	Banlist.cd = "/base"
 	for (var/A in Banlist.dir)
 		count++
@@ -192,7 +186,7 @@ var/savefile/Banlist
 
 	dat += "</table>"
 	dat = "<HR><B>Bans:</B> <FONT COLOR=blue>(U) = Unban , (E) = Edit Ban</FONT> - <FONT COLOR=green>([count] Bans)</FONT><HR><table border=1 rules=all frame=void cellspacing=0 cellpadding=3 >[dat]"
-	show_browser(usr, dat, "window=unbanp;size=875x400")
+	usr << browse(entity_ja(dat), "window=unbanp;size=875x400")
 
 //////////////////////////////////// DEBUG ////////////////////////////////////
 
