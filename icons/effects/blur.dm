@@ -1,0 +1,1 @@
+//Here must be code for blur system

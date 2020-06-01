@@ -38,3 +38,6 @@
 #define CG 18
 #define CB 19
 #define CA 20
+#define LUMA_R
+#define LUMA_G
+#define LUMA_B
