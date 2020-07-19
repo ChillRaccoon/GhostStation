@@ -1,3 +1,7 @@
+#define LOOP_NONE
+#define LOOP_NORMAL
+#define LOOP_REVERSE
+#define LOOP_TIME
 
 /client
 	var/list/parallax_layers
