@@ -84,8 +84,8 @@
 #define SHOES_SLOWDOWN -1.0			// How much shoes slow you down by default. Negative values speed you up
 
 //Nutrition levels for humans.
-#define NUTRITION_LEVEL_FAT 550
-#define NUTRITION_LEVEL_FULL 500
+#define NUTRITION_LEVEL_FAT 600
+#define NUTRITION_LEVEL_FULL 550
 #define NUTRITION_LEVEL_WELL_FED 450
 #define NUTRITION_LEVEL_FED 350
 #define NUTRITION_LEVEL_HUNGRY 250
@@ -176,6 +176,13 @@
 #define MOOD_LEVEL_SAD2 -10
 #define MOOD_LEVEL_SAD3 -15
 #define MOOD_LEVEL_SAD4 -20
+
+#define NUTRITION_LEVEL_FAT 550
+#define NUTRITION_LEVEL_FULL 500
+#define NUTRITION_LEVEL_WELL_FED 450
+#define NUTRITION_LEVEL_FED 350
+#define NUTRITION_LEVEL_HUNGRY 250
+#define NUTRITION_LEVEL_STARVING 150
 
 //Thirst levels for humans
 #define THIRST_LEVEL_MAX 600
