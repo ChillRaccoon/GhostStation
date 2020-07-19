@@ -9,13 +9,11 @@
 	var/datum/reagents/metabolism/bloodstr = null
 	var/datum/reagents/metabolism/ingested = null
 	var/datum/reagents/metabolism/touching = null
-	var/losebreath = 0 //if we failed to breathe last tick
 
 	var/coughedtime = null
 
 	var/cpr_time = 1.0
 	var/lastpuke = 0
-	var/nutrition = 400
 
 	var/obj/item/weapon/tank/internal = null//Human/Monkey
 

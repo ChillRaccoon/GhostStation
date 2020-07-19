@@ -110,7 +110,7 @@
 	var/charges = 0.0
 	var/dna_inject_count = 0
 	var/losebreath = 0
-	var/nutrition = 0
+	var/nutrition = 400
 	var/overeatduration = 0		// How long this guy is overeating //Carbon
 	var/paralysis = 0.0
 	var/stunned = 0.0
