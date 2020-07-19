@@ -30,7 +30,7 @@
 
 	if(src.client)
 		if(src.client.prefs.muted & MUTE_DEADCHAT)
-			to_chat(src, "<span class='alert'>You cannot emote in deadchat (muted).</span>")
+			to_chat(src, "<span class='alert'>You cannot emote in deadchat (muted).</span></span>")
 			return
 
 		if(src.client.handle_spam_prevention(message, MUTE_DEADCHAT))

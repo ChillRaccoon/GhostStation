@@ -1,4 +1,4 @@
-<ui-display>
+﻿<ui-display>
   <ui-section label='Power'>
     <ui-button icon='{{data.on ? "power-off" : "close"}}' style='{{data.on ? "selected" : null}}'
       action='power'>{{data.on ? "On" : "Off"}}</ui-button>

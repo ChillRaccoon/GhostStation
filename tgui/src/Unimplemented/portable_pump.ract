@@ -1,4 +1,4 @@
-<ui-notice>
+﻿<ui-notice>
   <span>The regulator {{data.holding ? "is" : "is not"}} connected to a tank.</span>
 </ui-notice>
 <ui-display title='Status' button>

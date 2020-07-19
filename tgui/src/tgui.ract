@@ -1,4 +1,4 @@
-<link rel='ractive' href='components/resize.ract'>
+﻿<link rel='ractive' href='components/resize.ract'>
 <link rel='ractive' href='components/titlebar.ract'>
 <link rel='ractive' href='components/warnings.ract'>
 

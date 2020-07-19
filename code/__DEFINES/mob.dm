@@ -116,3 +116,127 @@
 
 // Telepathy, but for dummies.
 #define MAX_TELEPATHY_RANGE 30
+
+//carbon taste sensitivity defines, used in mob/living/carbon/proc/ingest
+#define TASTE_HYPERSENSITIVE 3 //anything below 5%
+#define TASTE_SENSITIVE 2 //anything below 7%
+#define TASTE_NORMAL 1 //anything below 15%
+#define TASTE_DULL 0.5 //anything below 30%
+#define TASTE_NUMB 0.1 //anything below 150%
+
+//Used by show_message() and emotes
+#define VISIBLE_MESSAGE 1
+#define AUDIBLE_MESSAGE 2
+
+//used for getting species temp values
+#define COLD_LEVEL_1 -1
+#define COLD_LEVEL_2 -2
+#define COLD_LEVEL_3 -3
+#define HEAT_LEVEL_1 1
+#define HEAT_LEVEL_2 2
+#define HEAT_LEVEL_3 3
+
+//Synthetic human temperature vals
+#define SYNTH_COLD_LEVEL_1 50
+#define SYNTH_COLD_LEVEL_2 -1
+#define SYNTH_COLD_LEVEL_3 -1
+#define SYNTH_HEAT_LEVEL_1 500
+#define SYNTH_HEAT_LEVEL_2 1000
+#define SYNTH_HEAT_LEVEL_3 2000
+
+#define CORPSE_CAN_REENTER 1
+#define CORPSE_CAN_REENTER_AND_RESPAWN 2
+
+#define SPECIES_HUMAN "Human"
+#define SPECIES_TAJARA "Tajara"
+#define SPECIES_DIONA "Diona"
+#define SPECIES_VOX "Vox"
+#define SPECIES_IPC "Machine"
+#define SPECIES_UNATHI "Unathi"
+#define SPECIES_SKRELL "Skrell"
+#define SPECIES_NABBER "Giant Armoured Serpentid"
+#define SPECIES_PROMETHEAN "Promethean"
+#define SPECIES_BOGANI "Bogani"
+#define SPECIES_EGYNO "Egyno"
+
+#define SURGERY_CLOSED 0
+#define SURGERY_OPEN 1
+#define SURGERY_RETRACTED 2
+#define SURGERY_ENCASED 3
+
+#define STAMINA_EXHAUST 200
+
+//Moods levels for humans
+#define MOOD_LEVEL_HAPPY4 20
+#define MOOD_LEVEL_HAPPY3 15
+#define MOOD_LEVEL_HAPPY2 10
+#define MOOD_LEVEL_HAPPY1 5
+#define MOOD_LEVEL_NEUTRAL 0
+#define MOOD_LEVEL_SAD1 -5
+#define MOOD_LEVEL_SAD2 -10
+#define MOOD_LEVEL_SAD3 -15
+#define MOOD_LEVEL_SAD4 -20
+
+#define NUTRITION_LEVEL_FAT 550
+#define NUTRITION_LEVEL_FULL 500
+#define NUTRITION_LEVEL_WELL_FED 450
+#define NUTRITION_LEVEL_FED 350
+#define NUTRITION_LEVEL_HUNGRY 250
+#define NUTRITION_LEVEL_STARVING 150
+
+//Thirst levels for humans
+#define THIRST_LEVEL_MAX 600
+#define THIRST_LEVEL_FILLED 500
+#define THIRST_LEVEL_MEDIUM 300
+#define THIRST_LEVEL_THIRSTY 200
+#define THIRST_LEVEL_DEHYDRATED 50
+#define THIRST_FACTOR 0.5
+
+//Hygiene levels for humans
+#define HYGIENE_LEVEL_CLEAN 250
+#define HYGIENE_LEVEL_NORMAL 200
+#define HYGIENE_LEVEL_DIRTY 75
+#define HYGIENE_FACTOR_LOWEST 0.09
+#define HYGIENE_FACTOR 0.1
+#define HYGIENE_FACTOR_HIGHEST 0.110
+
+//Disgust levels for humans
+#define DISGUST_LEVEL_MAXEDOUT 150
+#define DISGUST_LEVEL_DISGUSTED 75
+#define DISGUST_LEVEL_VERYGROSS 50
+#define DISGUST_LEVEL_GROSS 25
+
+//Hardcore mode stuff
+
+#define STARVATION_MIN 60 //If you have less nutrition than this value, the hunger indicator starts flashing
+#define STARVATION_NOTICE 45 //If you have more nutrition than this value, you get an occasional message reminding you that you're going to starve soon
+#define STARVATION_WEAKNESS 20 //Otherwise, if you have more nutrition than this value, you occasionally become weak and receive minor damage
+#define STARVATION_NEARDEATH 5 //Otherwise, if you have more nutrition than this value, you have seizures and occasionally receive damage
+
+//If you have less nutrition than STARVATION_NEARDEATH, you start getting damage
+#define STARVATION_OXY_DAMAGE 2.5
+#define STARVATION_TOX_DAMAGE 2.5
+#define STARVATION_BRAIN_DAMAGE 2.5
+
+#define STARVATION_OXY_HEAL_RATE 1 //While starving, THIS much oxygen damage is restored per life tick (instead of the default 5)
+
+//Temperature stuff
+//BODYTEMP_COLD_DAMAGE_LIMIT 			 -13�C Below which freezing damage occurs.						(defined in items_clothing.dm)
+#define TEMPERATURE_REFRESHING 	278.15	//5�C  Below which drinks and foods are considered refreshing.
+#define TEMPERATURE_WARM 		323.15	//50�C Above which drinks and foods are considered warm.
+//BODYTEMP_HEAT_DAMAGE_LIMIT 			  87�C Above which burn damage occurs.							(defined in items_clothing.dm)#define STASIS_MISC "misc"
+#define STASIS_CRYOBAG "cryobag"
+#define STASIS_COLD "cold"
+
+#define AURA_CANCEL 1
+#define AURA_FALSE  2
+#define AURA_TYPE_BULLET "Bullet"
+#define AURA_TYPE_WEAPON "Weapon"
+#define AURA_TYPE_THROWN "Thrown"
+#define AURA_TYPE_LIFE   "Life"
+
+//Social classes
+#define SOCIAL_CLASS_MIN 1
+#define SOCIAL_CLASS_MED 2
+#define SOCIAL_CLASS_HIGH 3
+#define SOCIAL_CLASS_MAX 4

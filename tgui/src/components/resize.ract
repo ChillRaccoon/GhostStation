@@ -1,4 +1,4 @@
-<script>
+﻿<script>
 import { winset } from 'util/byond'
 import { resize } from 'util/dragresize'
 

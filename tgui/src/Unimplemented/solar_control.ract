@@ -1,4 +1,4 @@
-<ui-display title='Status'>
+﻿<ui-display title='Status'>
   <ui-section label='Generated Power'>
     {{Math.round(adata.generated)}}W
   </ui-section>

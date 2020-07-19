@@ -1,4 +1,4 @@
-<div class='display'>
+﻿<div class='display'>
   {{#if title}}
     <header>
       <h3>{{title}}</h3>

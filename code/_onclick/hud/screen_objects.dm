@@ -120,6 +120,10 @@
 		screen_loc = ui_gun_select
 		//dir = 1
 
+/obj/screen/happiness_icon/Click()
+	var/mob/living/carbon/C = usr
+	C.print_happiness(C)
+
 /obj/screen/zone_sel
 	name = "damage zone"
 	icon_state = "zone_sel"
@@ -669,3 +673,8 @@
 /obj/screen/inventory/craft/Click()
 	var/mob/living/M = usr
 	M.OpenCraftingMenu()
+
+/obj/screen/Click(location, control, params)
+	if("mood")
+		var/mob/living/carbon/C = usr
+		C.print_happiness(C)

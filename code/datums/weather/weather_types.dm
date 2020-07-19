@@ -73,7 +73,7 @@
 
 	telegraph_message = "<span class='boldwarning'>An eerie moan rises on the wind. Sheets of sand blacken the horizon. Seek shelter.</span>"
 	telegraph_duration = 300
-	telegraph_sound = 'sound/ambience/ash_storm_windup.ogg'
+	telegraph_sound = 'sound/effects/siren.ogg'
 	telegraph_overlay = "light_ash"
 
 	weather_message = "<span class='userdanger'><i>Smoldering clouds of scorching trash billow down around you! Get inside!</i></span>"

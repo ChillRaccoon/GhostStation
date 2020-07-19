@@ -1,4 +1,4 @@
-<ui-display title='Status'>
+﻿<ui-display title='Status'>
   <ui-section label='Energy'>
     <ui-bar min='0' max='{{data.maxEnergy}}' value='{{data.energy}}'>{{Math.fixed(adata.energy)}} Units</ui-bar>
   </ui-section>

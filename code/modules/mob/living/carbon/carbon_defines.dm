@@ -17,7 +17,6 @@
 	//Surgery info
 	var/datum/surgery_status/op_stage = new/datum/surgery_status
 	//Active emote/pose
-	var/pose = null
 
 	var/pulse = PULSE_NORM	//current pulse level
 

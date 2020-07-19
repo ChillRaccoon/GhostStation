@@ -58,11 +58,7 @@ var/datum/subsystem/ticker/ticker
 	'sound/music/title2.ogg',\
 	'sound/music/traitor.ogg',\	 //disgusting
 	*/
-	'sound/lobby/animatronica.ogg',\
-	'sound/lobby/less-traveled.ogg',\
-	'sound/lobby/milkywayexplore.ogg',\
-	'sound/lobby/welcometolunarInd.ogg')
-
+	'sound/lobby/lobbynewest.ogg')
 
 /datum/subsystem/ticker/Initialize(timeofday)
 	if(!syndicate_code_phrase)

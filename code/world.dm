@@ -2,9 +2,9 @@
 	mob = /mob/dead/new_player
 	turf = /turf/space
 	area = /area/space
-	view = "13x13"
+	view = "15x15"
 	cache_lifespan = 0	//stops player uploaded stuff from being kept in the rsc past the current session
-	fps = 25
+	fps = 20
 
 
 #define RECOMMENDED_VERSION 511
@@ -51,6 +51,7 @@
 
 	radio_controller = new /datum/controller/radio()
 	data_core = new /obj/effect/datacore()
+	paiController = new /datum/paiController()
 
 	spawn(10)
 		Master.Setup()
@@ -64,6 +65,8 @@
 		world.log << "Your server failed to establish a connection with the feedback database."
 	else
 		world.log << "Feedback database connection established."
+
+	Get_Holiday()
 
 	src.update_status()
 

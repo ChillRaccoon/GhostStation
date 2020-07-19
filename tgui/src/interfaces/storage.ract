@@ -1,4 +1,4 @@
-<ui-display title='Contained Items:'>
+﻿<ui-display title='Contained Items:'>
     {{#each data.items}}
         <ui-button action='remove_item' params='{"name":"{{name}}", "type":"{{type}}"}'>{{name}} x{{amount}}</ui-button><br>
     {{/each}}

@@ -58,7 +58,6 @@
 		msg += "<span class='bold'>, <font color='[species.flesh_color]'>\a [species_name]</font></span>"
 	msg += "!\n"
 
-
 	//uniform
 	if(w_uniform && !skipjumpsuit)
 		//Ties
@@ -413,6 +412,10 @@
 		msg += "<span class='warning'>[t_He] [t_is] moving [t_his] body in an unnatural and blatantly inhuman manner.</span>\n"
 	if(mind && mind.changeling && mind.changeling.isabsorbing)
 		msg += "<span class='warning'><b>[t_He] sucking fluids from someone through a giant proboscis!</b></span>\n"
+
+	if(!skipface)
+		if(happiness <= MOOD_LEVEL_SAD2)
+			msg += "<span class='warning'>[t_He] looks sad.</span>\n"
 
 
 

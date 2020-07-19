@@ -1,5 +1,5 @@
 /obj/structure/trap
-	name = "IT'S A TRAP"
+	name = "IT'S A TARP"
 	desc = "stepping on me is a guaranteed bad day"
 	icon = 'icons/obj/flora/traps.dmi'
 	icon_state = "trap"

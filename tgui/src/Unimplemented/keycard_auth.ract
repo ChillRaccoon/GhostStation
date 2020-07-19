@@ -1,4 +1,4 @@
-{{#if data.waiting}}
+﻿{{#if data.waiting}}
 	<ui-notice>
 		<span>Waiting for another device to confirm your request...</span>
 	</ui-notice>

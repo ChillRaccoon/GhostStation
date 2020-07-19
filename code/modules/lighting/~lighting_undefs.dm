@@ -24,6 +24,3 @@
 #undef CG
 #undef CB
 #undef CA
-#define LUMA_R
-#define LUMA_G
-#define LUMA_B

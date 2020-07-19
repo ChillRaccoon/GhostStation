@@ -1050,19 +1050,46 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 		else
 			break
 
-/mob/living/carbon/human/proc/invoke_vomit()
-	if(species.flags[IS_SYNTHETIC] || species.flags[IS_IMMATERIAL])
-		return //Machines don't throw up. Neither do beings out of this plane of existance... (If more flags seem to pile up here, add NO_VOMIT flag instead) ~Luduk.
-
+/mob/living/carbon/human/proc/vomit(var/toxvomit = 0, var/timevomit = 1, var/level = 3)
+	set waitfor = 0
+	if(!check_has_mouth() || isSynthetic() || !timevomit || !level)
+		return
+	level = Clamp(level, 1, 3)
+	timevomit = Clamp(timevomit, 1, 10)
+	if(stat == DEAD)
+		return
 	if(!lastpuke)
 		lastpuke = 1
 		to_chat(src, "<span class='warning'>You feel nauseous...</span>")
-		spawn(150)	//15 seconds until second warning
+		if(level > 1)
+			sleep(150 / timevomit)	//15 seconds until second warning
 			to_chat(src, "<span class='warning'>You feel like you are about to throw up!</span>")
-			spawn(100)	//and you have 10 more for mad dash to the bucket
-				vomit()
-				spawn(350)	//wait 35 seconds before next volley
-					lastpuke = 0
+			if(level > 2)
+				sleep(100 / timevomit)	//and you have 10 more for mad dash to the bucket
+				Stun(3)
+				if(nutrition < 40)
+					custom_emote(1,"dry heaves.")
+				else
+					for(var/a in stomach_contents)
+						var/atom/movable/A = a
+						A.forceMove(get_turf(src))
+						stomach_contents.Remove(a)
+						if(src.species.gluttonous & GLUT_PROJECTILE_VOMIT)
+							A.throw_at(get_edge_target_turf(src,src.dir),7,7,src)
+
+					src.visible_message("<span class='warning'>[src] throws up!</span>","<span class='warning'>You throw up!</span>")
+					playsound(loc, 'sound/effects/splat.ogg', 50, 1)
+
+					adjust_hygiene(-25)
+					add_event("hygiene", /datum/happiness_event/hygiene/vomitted)
+
+					var/turf/location = loc
+					if (istype(location, /turf/simulated))
+						location.add_vomit_floor(src, toxvomit)
+					ingested.remove_any(5)
+					nutrition -= 30
+		sleep(350)	//wait 35 seconds before next volley
+		lastpuke = 0
 
 /mob/living/carbon/human/proc/morph()
 	set name = "Morph"
@@ -1898,3 +1925,75 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 			else
 				to_chat(src, "<span class='warning'>Not enough static charge.</span>")
 				return FALSE
+
+/mob/living/carbon/human/proc/handle_decay()
+	var/decaytime = world.time - timeofdeath
+	var/image/flies = image('icons/effects/effects.dmi', "rotten")//This is a hack, there has got to be a safer way to do this but I don't know it at the moment.
+
+	if(isSynthetic())
+		return
+
+	if(decaytime <= 6000) //10 минут 1 уровень -- подванивает
+		return
+
+	if(decaytime > 6000 && decaytime <= 12000)//20 минут 2 уровень -- очень сильно воняет и меняет внешность
+		decaylevel = 1
+		overlays -= flies
+		overlays += flies
+
+	if(decaytime > 12000 && decaytime <= 18000)//30 минут 3 уровень -- сильное изменение внешности
+		decaylevel = 2
+
+	if(decaytime > 18000 && decaytime <= 27000)//45 минут 4 уровень -- скелет
+		decaylevel = 3
+
+	if(decaytime > 27000)
+		decaylevel = 4
+		overlays -= flies
+		flies = null
+		ChangeToSkeleton()
+		return //Скелеты уже не должны вонять!
+
+
+	for(var/mob/living/carbon/human/H in range(decaylevel, src))
+		if(prob(2))
+			if(istype(loc,/obj/item/bodybag))
+				return
+			if(H.wear_mask)
+				return
+			if(H.stat == DEAD)//This shouldn't even need to be a fucking check.
+				return
+			to_chat(H, "<spawn class='warning'>You smell something foul...")
+			H.add_event("disgust", /datum/happiness_event/disgust/verygross) // Кидает ивент в mood
+			if(prob(75))
+				H.vomit()
+
+//So that people will stop shitting in the fucking hallways all the time. Actually this will probably encourage them.
+/mob/living/carbon/human/proc/handle_smelly_things()
+	if(wear_mask)
+		return
+
+	if(/obj/effect/decal/cleanable/poo in range(5, src))
+		if(prob(2))
+			to_chat(src, "<spawn class='warning'>Something smells like shit...")
+			add_event("disgust", /datum/happiness_event/disgust/verygross)
+			if(prob(50))
+				vomit()
+
+	for(var/obj/item/weapon/reagent_containers/food/snacks/poo/P in range(5, src))
+		if(istype(P.loc, /obj/machinery/disposal) || istype(P.loc, /obj/item/weapon/storage/bag))
+			return
+
+		if(prob(2))
+			to_chat(src, "<spawn class='warning'>Something smells like shit...")
+			add_event("disgust", /datum/happiness_event/disgust/verygross)
+			if(prob(50))
+				vomit()
+
+
+/mob/living/carbon/human/proc/handle_gas_mask_sound()
+	//var/soundcooldown = world.time
+	if(istype(wear_mask, /obj/item/clothing/mask/gas))
+		//if((world.time - soundcooldown) >= 300)
+		var/mask_sound = pick('sound/effects/gasmask1.ogg','sound/effects/gasmask2.ogg','sound/effects/gasmask3.ogg','sound/effects/gasmask4.ogg','sound/effects/gasmask5.ogg','sound/effects/gasmask6.ogg','sound/effects/gasmask7.ogg','sound/effects/gasmask8.ogg','sound/effects/gasmask9.ogg','sound/effects/gasmask10.ogg')
+		playsound(src, mask_sound, 50, 1)

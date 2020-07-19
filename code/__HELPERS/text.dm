@@ -239,8 +239,8 @@ proc/sql_sanitize_text(text)
 	return trim_left(trim_right(text))
 
 //Returns a string with the first element of the string capitalized.
-/proc/capitalize(t)
-	return r_uppertext(t)
+/proc/capitalize(var/t as text)
+	return r_capitalize(t)
 
 //This proc strips html properly, remove < > and all text between
 //for complete text sanitizing should be used sanitize()

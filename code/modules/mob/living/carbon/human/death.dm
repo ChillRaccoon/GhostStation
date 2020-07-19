@@ -56,6 +56,7 @@
 	dizziness = 0
 	jitteriness = 0
 	dog_owner = null
+	density = 1
 
 	update_health_hud()
 	handle_hud_list()

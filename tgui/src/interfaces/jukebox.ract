@@ -1,4 +1,4 @@
-<ui-display title='Current track: {{data.current_track}}'>
+﻿<ui-display title='Current track: {{data.current_track}}'>
     <ui-section>
         <ui-button style='{{data.playing ? "selected" : null}}' action='play'>Play</ui-button>
         <ui-button style='{{data.playing ? null : "selected"}}' action='stop'>Stop</ui-button>

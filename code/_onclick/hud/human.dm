@@ -1,9 +1,10 @@
-/datum/hud/proc/human_hud(ui_style='icons/mob/screen1_White.dmi', ui_color = "#ffffff", ui_alpha = 255)
+/datum/hud/proc/human_hud(ui_style='icons/mob/screen/dark.dmi', ui_color = "#ffffff", ui_alpha = 255)
 
 	src.adding = list()
 	src.other = list()
 	src.hotkeybuttons = list() //These can be disabled for hotkey usersx
 
+	var/list/hud_elements = list()
 	var/obj/screen/using
 	var/obj/screen/inventory/inv_box
 
@@ -172,6 +173,13 @@
 	using.color = ui_color
 	using.alpha = ui_alpha
 	src.adding += using
+
+	mymob.happiness_icon = new /obj/screen()
+	mymob.happiness_icon.name = "mood"
+	mymob.happiness_icon.icon = ui_style
+	mymob.happiness_icon.icon_state = "mood4"
+	mymob.happiness_icon.screen_loc = ui_happiness
+	hud_elements |= mymob.happiness_icon
 
 	inv_box = new /obj/screen/inventory()
 	inv_box.name = "id"

@@ -60,9 +60,9 @@
 
 	//var/message_a = sanitize_chat(say_quote(message))
 	//на бэй опять рефакторят, нужно обновить эту часть кода. А пока, так
-	var/message_a = "<span class='say_quote'>hisses,</span> \"<span class='body'>[message]</span>\""
+	var/message_a = "<span style = text-shadow: #EEEE00 0 0 10px;><span class='say_quote'>hisses,</span> \"<span class='body'>[message]</span></span>\""
 
-	var/rendered = "<i><span class='game say'>Hivemind, <span class='name'>[name]</span> <span class='message'>[message_a]</span></span></i>"
+	var/rendered = "<i><span style = text-shadow: #EEEE00 0 0 10px;><span class='game say'>Hivemind, <span class='name'>[name]</span> <span class='message'>[message_a]</span></span></span></i>"
 	for (var/mob/living/S in player_list)
 		if(!S.stat)
 			if(S.alien_talk_understand)
@@ -86,18 +86,18 @@
 
 		//message_b = "hsssss"
 		//message_b = say_quote(message_b)
-		message_b = "<span class='say_quote'>hisses,</span> \"<span class='body'>hsssss</span>\""
+		message_b = "<span style = text-shadow: #EEEE00 0 0 10px;><span class='say_quote'>hisses,</span> \"<span class='body'>hsssss</span></span>\""
 
 		message_b = "<i>[message_b]</i>"
-		rendered = "<i><span class='game say'><span class='name'>[voice_name]</span> <span class='message'>[message_b]</span></span></i>"
+		rendered = "<i><span style = text-shadow: #EEEE00 0 0 10px;><span class='game say'><span class='name'>[voice_name]</span> <span class='message'>[message_b]</span></span></span></i>"
 
 		for (var/mob/M in heard)
 			M.show_message(rendered, 2)
 
 	//message = say_quote(message)
-	message = "<span class='say_quote'>hisses,</span> \"<span class='body'>[message]</span>\""
+	message = "<span style = text-shadow: #EEEE00 0 0 10px;><span class='say_quote'>hisses,</span> \"<span class='body'>[message]</span></span>\""
 
-	rendered = "<i><span class='game say'>Hivemind, <span class='name'>[name]</span> <span class='message'>[message_a]</span></span></i>"
+	rendered = "<i><span style = text-shadow: #EEEE00 0 0 10px;><span class='game say'>Hivemind, <span class='name'>[name]</span> <span class='message'>[message_a]</span></span></span></i>"
 
 	for (var/mob/M in player_list)
 		if (isnewplayer(M))

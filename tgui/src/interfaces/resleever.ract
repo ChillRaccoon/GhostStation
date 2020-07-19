@@ -1,4 +1,4 @@
-<ui-display title='Neural Lace Resleever'>
+﻿<ui-display title='Neural Lace Resleever'>
     <ui-section label='Occupant'>
         {{data.name}}
     </ui-section>

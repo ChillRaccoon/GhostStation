@@ -72,7 +72,7 @@
 #define ui_acti "EAST-3:24,SOUTH:5"
 #define ui_zonesel "EAST-1:28,SOUTH:5"
 #define ui_acti_alt "EAST-1:28,SOUTH:5" 		//alternative intent switcher for when the interface is hidden (F12)
-
+#define ui_happiness "EAST+1, NORTH-13"
 //Gun buttons
 #define ui_gun1 "EAST-2:26,SOUTH+2:7"
 #define ui_gun2 "EAST-1:28, SOUTH+3:7"

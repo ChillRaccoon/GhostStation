@@ -492,7 +492,7 @@
 				L.Weaken(3)
 				if(ishuman(L))
 					shake_camera(L, 20, 1)
-					INVOKE_ASYNC(L, /mob/living/carbon/human.proc/invoke_vomit)
+					spawn owner.vomit()
 
 
 

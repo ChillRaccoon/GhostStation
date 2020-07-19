@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { UI_INTERACTIVE } from 'util/constants'
   import { act } from 'util/byond'
 

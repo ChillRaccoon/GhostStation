@@ -196,8 +196,13 @@
 /obj/item/organ/internal/liver
 	name = "liver"
 	organ_tag = O_LIVER
-	parent_bodypart = BP_CHEST
+	parent_bodypart = BP_GROIN
 	process_accuracy = 10
+	w_class = ITEM_SIZE_SMALL
+	min_bruised_damage = 25
+	min_broken_damage = 45
+	max_damage = 70
+	relative_size = 60
 
 /obj/item/organ/internal/liver/diona
 	name = "chlorophyll sac"
@@ -214,7 +219,7 @@
 			to_chat(owner, "\red Your skin itches.")
 	if (germ_level > INFECTION_LEVEL_TWO)
 		if(prob(1))
-			INVOKE_ASYNC(owner, /mob/living/carbon/human.proc/invoke_vomit)
+			spawn owner.vomit()
 
 	if(owner.life_tick % process_accuracy == 0)
 		if(src.damage < 0)
@@ -260,7 +265,10 @@
 /obj/item/organ/internal/kidneys
 	name = "kidneys"
 	organ_tag = O_KIDNEYS
-	parent_bodypart = BP_CHEST
+	parent_bodypart = BP_GROIN
+	min_bruised_damage = 25
+	min_broken_damage = 45
+	max_damage = 70
 
 /obj/item/organ/internal/kidneys/diona
 	name = "vacuole"

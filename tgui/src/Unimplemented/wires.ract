@@ -1,4 +1,4 @@
-<ui-display>
+﻿<ui-display>
   {{#each data.wires}}
     <ui-section label='{{color}}{{wire ? " (" + wire + ")" : ""}}' labelcolor='{{color}}' candystripe right>
       <ui-button action='cut' params='{"wire":"{{color}}"}'>{{cut ? "Mend" : "Cut"}}</ui-button>

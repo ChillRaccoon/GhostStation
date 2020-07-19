@@ -1,4 +1,4 @@
-<ui-display title='Thermostat'>
+﻿<ui-display title='Thermostat'>
   <ui-section label='Power'>
     <ui-button icon='{{data.isActive ? "power-off" : "close"}}'
 		style='{{data.isActive ? "selected" : null}}'

@@ -34,13 +34,13 @@
 			return									// seems legit.
 
 	// Things you might plausibly want to follow
-	if(istype(A, /atom/movable))
-		ManualFollow(A)
+//	if(istype(A, /atom/movable))
+//		ManualFollow(A)
 
 	// Otherwise jump
-	else
-		loc = get_turf(A)
-		update_parallax_contents()
+//	else
+//		loc = get_turf(A)
+//		update_parallax_contents()
 
 /mob/dead/observer/ClickOn(atom/A, params)
 	if(world.time <= next_click)

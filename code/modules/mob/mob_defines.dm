@@ -26,6 +26,7 @@
 	var/obj/screen/gun/move/gun_move_icon = null
 	var/obj/screen/gun/run/gun_run_icon = null
 	var/obj/screen/gun/mode/gun_setting_icon = null
+	var/obj/screen/happiness_icon = null
 
 	/*A bunch of this stuff really needs to go under their own defines instead of being globally attached to mob.
 	A variable should only be globally attached to turfs/objects/whatever, when it is in fact needed as such.
@@ -86,7 +87,6 @@
 	var/lying_current = 0
 	var/crawling = 0 //For crawling
 	var/canmove = 1
-	var/lastpuke = 0
 	var/unacidable = 0
 	var/small = 0
 	var/list/pinned = list()            // List of things pinning this creature to walls (see living_defense.dm)
@@ -100,8 +100,6 @@
 	var/name_archive //For admin things like possession
 
 	var/timeofdeath = 0.0//Living
-	var/cpr_time = 1.0//Carbon
-
 
 	var/bodytemperature = BODYTEMP_NORMAL	//98.7 F
 	var/drowsyness = 0.0//Carbon
@@ -110,14 +108,12 @@
 	var/is_jittery = 0
 	var/jitteriness = 0//Carbon
 	var/charges = 0.0
-	var/nutrition = 400.0//Carbon
 	var/dna_inject_count = 0
 
 	var/overeatduration = 0		// How long this guy is overeating //Carbon
 	var/paralysis = 0.0
 	var/stunned = 0.0
 	var/weakened = 0.0
-	var/losebreath = 0.0//Carbon
 	var/intent = null//Living
 	var/a_intent = "help"//Living
 	var/m_int = null//Living
@@ -127,7 +123,6 @@
 	var/obj/item/l_hand = null//Living
 	var/obj/item/r_hand = null//Living
 	var/obj/item/weapon/back = null//Human/Monkey
-	var/obj/item/weapon/tank/internal = null//Human/Monkey
 	var/obj/item/weapon/storage/s_active = null//Carbon
 	var/obj/item/clothing/mask/wear_mask = null//Carbon
 
@@ -141,7 +136,6 @@
 	var/in_throw_mode = 0
 	var/next_throw = 0
 
-	var/coughedtime = null
 
 	var/music_lastplayed = "null"
 
@@ -240,3 +234,5 @@
 	// Telepathy for dummies.
 	var/list/remote_hearers = list() // A list of people that are listening to you.
 	var/list/remote_hearing = list() // A list of people you are listening to.
+
+#define GLUT_PROJECTILE_VOMIT 64 // When vomitting, does it fly out?

@@ -1,4 +1,4 @@
-<ui-notice>
+﻿<ui-notice>
   {{#if data.siliconUser}}
     <ui-section label='Interface Lock'>
       <ui-button icon='{{data.locked ? "lock" : "unlock"}}' action='lock'>{{data.locked ? "Engaged" : "Disengaged"}}</ui-button>

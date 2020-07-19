@@ -1,4 +1,4 @@
-{{#if data.occupied && data.safeties}}
+﻿{{#if data.occupied && data.safeties}}
   <ui-notice>
     <span>Biological entity detected in contents. Please remove.</span>
   </ui-notice>

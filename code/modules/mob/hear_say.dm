@@ -60,14 +60,14 @@
 	var/clean_message = message
 	if(sdisabilities & DEAF || ear_deaf)
 		if(speaker == src)
-			to_chat(src, "<span class='warning'>You cannot hear yourself speak!</span>")
+			to_chat(src, "<span class='warning'>You cannot hear yourself speak!</span></span>")
 		else
-			to_chat(src, "<span class='name'>[speaker_name]</span>[alt_name] talks but you cannot hear \him.")
+			to_chat(src, "[speaker_name]</span>[alt_name] talks but you cannot hear \him.</span>")
 	else
 		if(language)
-			message = "<span class='game say'><span class='name'>[speaker_name]</span>[alt_name] [track][language.format_message(message, verb)]</span>"
+			message = "<span class='game say'><span class='name'>[speaker_name]</span>[alt_name] [track][language.format_message(message, verb)]</span></span>"
 		else
-			message = "<span class='game say'><span class='name'>[speaker_name]</span>[alt_name] [track][verb], <span class='message'><span class='body'>\"[message]\"</span></span></span>"
+			message = "<span class='game say'><span class='name'>[speaker_name]</span>[alt_name] [track][verb], <span class='message'><span class='body'>\"[message]\"</span></span></span></span>"
 
 		to_chat(src, message)
 		if(language && speaker != src)
@@ -232,10 +232,10 @@
 			heardword = copytext(heardword,2)
 		if(copytext(heardword,-1) in punctuation)
 			heardword = copytext(heardword,1,length(heardword))
-		heard = "<span class = 'game_say'>...You hear something about...[heardword]</span>"
+		heard = "<span class = 'game_say'>...You hear something about...[heardword]</span></span>"
 
 	else
-		heard = "<span class = 'game_say'>...<i>You almost hear someone talking</i>...</span>"
+		heard = "<span class = 'game_say'>...<i>You almost hear someone talking</i>...</span></span>"
 
 	to_chat(src, heard)
 

@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\code",
+    "\\code\\modules",
+    "\\code\\modules\\mob",
+    "\\code\\modules\\mob\\living",
+    "\\code\\modules\\mob\\living\\carbon",
+    "\\code\\modules\\mob\\living\\carbon\\human",
+    "\\tgui",
+    "\\tgui\\src",
+    "\\tgui\\src\\components"
+  ],
+  "SelectedNode": "\\code\\modules\\mob\\living\\carbon\\human\\mood.dm",
+  "PreviewInSolutionExplorer": false
+}

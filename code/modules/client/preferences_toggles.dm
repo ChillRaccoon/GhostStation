@@ -228,7 +228,7 @@
 
 var/global/list/ghost_orbits = list(GHOST_ORBIT_CIRCLE,GHOST_ORBIT_TRIANGLE,GHOST_ORBIT_SQUARE,GHOST_ORBIT_HEXAGON,GHOST_ORBIT_PENTAGON)
 
-/client/verb/pick_ghost_orbit()
+/*/client/verb/pick_ghost_orbit()
 	set name = "Choose Ghost Orbit"
 	set category = "Preferences"
 	set desc = "Choose your preferred ghostly orbit."
@@ -240,7 +240,7 @@ var/global/list/ghost_orbits = list(GHOST_ORBIT_CIRCLE,GHOST_ORBIT_TRIANGLE,GHOS
 		if(istype(mob, /mob/dead/observer))
 			var/mob/dead/observer/O = mob
 			O.ghost_orbit = new_orbit
-
+*/
 /client/verb/set_ckey_show()
 	set name = "Show/Hide Ckey"
 	set desc = "Toggle between showing your Ckey in LOOC and dead chat."

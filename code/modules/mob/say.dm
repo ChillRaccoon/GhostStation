@@ -56,7 +56,7 @@
 	if(client.prefs.chat_toggles & CHAT_CKEY)
 		name += " ([key])"
 
-	var/rendered = "<span class='game deadsay linkify emojify'><span class='prefix'>DEAD:</span> <span class='name'>[name]</span>[alt_name] [pick("complains","moans","whines","laments","blubbers")], <span class='message'>\"[message]\"</span></span>"
+	var/rendered = "<span class='game deadsay linkify emojify'><span style = text-shadow: #EEEE00 0 0 10px;><span class='prefix'>DEAD:</span> <span class='name'>[name]</span>[alt_name] [pick("complains","moans","whines","laments","blubbers")], <span class='message'>\"[message]\"</span></span></span>"
 
 	for(var/mob/M in player_list)
 		if(isnewplayer(M))
@@ -112,12 +112,12 @@
 */
 
 /mob/proc/say_quote(message, datum/language/speaking = null)
-        var/verb = "says"
+        var/verb = "говорит"
         var/ending = copytext(message, length(message))
         if(ending=="!")
-                verb=pick("exclaims","shouts","yells")
+                verb=pick("восклицает","вскрикивает","кричит")
         else if(ending=="?")
-                verb="asks"
+                verb="спрашивает"
 
         return verb
 

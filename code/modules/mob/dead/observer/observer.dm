@@ -2,8 +2,6 @@ var/global/list/image/ghost_darkness_images = list() //this is a list of images 
 var/global/list/image/ghost_sightless_images = list() //this is a list of images for things ghosts should still be able to see even without ghost sight
 
 /mob/dead/observer
-	name = "ghost"
-	desc = "It's a g-g-g-g-ghooooost!" //jinkies!
 	icon = 'icons/mob/mob.dmi'
 	icon_state = "blank"
 	layer = MOB_LAYER // on tg it is FLOAT LAYER
@@ -31,14 +29,11 @@ var/global/list/image/ghost_sightless_images = list() //this is a list of images
 	var/image/ghostimage = null //this mobs ghost image, for deleting and stuff
 	var/ghostvision = 1 //is the ghost able to see things humans can't?
 	var/seedarkness = 1
-	var/ghost_orbit = GHOST_ORBIT_CIRCLE
 
 	var/obj/item/device/multitool/adminMulti = null //Wew, personal multiotool for ghosts!
 
 /mob/dead/observer/atom_init()
 	invisibility = INVISIBILITY_OBSERVER
-
-	verbs += /mob/dead/observer/proc/dead_tele
 
 	ghostimage = image(icon, src, "ghost")
 	ghost_darkness_images |= ghostimage
@@ -103,7 +98,7 @@ var/global/list/image/ghost_sightless_images = list() //this is a list of images
 			return
 
 	return ..()
-
+/*
 /mob/dead/observer/Topic(href, href_list)
 	if(href_list["track"])
 		var/mob/target = locate(href_list["track"]) in mob_list
@@ -117,7 +112,7 @@ var/global/list/image/ghost_sightless_images = list() //this is a list of images
 
 		var/turf/T = get_turf(target)
 		forceMove(T)
-
+*/
 /mob/dead/attackby(obj/item/W, mob/user)
 	if(istype(W,/obj/item/weapon/book/tome))
 		user.SetNextMove(CLICK_CD_MELEE)
@@ -201,8 +196,7 @@ Works together with spawning an observer, noted above.
 		ghost.can_reenter_corpse = can_reenter_corpse
 		ghost.timeofdeath = src.timeofdeath //BS12 EDIT
 		ghost.key = key
-		if(client && !ghost.client.holder && !config.antag_hud_allowed)		// For new ghosts we remove the verb from even showing up if it's not allowed.
-			ghost.verbs -= /mob/dead/observer/verb/toggle_antagHUD			// Poor guys, don't know what they are missing!
+
 		return ghost
 
 /*
@@ -289,7 +283,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	mind.current.key = key
 	return 1
 
-/mob/dead/observer/verb/toggle_medHUD()
+/*/mob/dead/observer/verb/toggle_medHUD()
 	set category = "Ghost"
 	set name = "Toggle MedicHUD"
 	set desc = "Toggles Medical HUD allowing you to see how everyone is doing."
@@ -428,7 +422,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 				A.update_parallax_contents()
 			else
 				to_chat(A, "This mob is not located in the game world.")
-
+*/
 /*
 /mob/dead/observer/verb/boo()
 	set category = "Ghost"
@@ -463,7 +457,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	if(t)
 		print_atmos_analysis(src, atmosanalyzer_scan(t))
 
-/mob/dead/observer/verb/become_mouse()
+/*/mob/dead/observer/verb/become_mouse()
 	set name = "Become mouse"
 	set category = "Ghost"
 
@@ -492,7 +486,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		return  //Hit the wrong key...again.
 
 	mousize()
-
+*/
 /mob/proc/mousize()
 	//find a viable mouse candidate
 	var/mob/living/simple_animal/mouse/host
@@ -514,7 +508,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		to_chat(host, "<span class='info'>You are now a mouse. Try to avoid interaction with players, and do not give hints away that you are more than a simple rodent.</span>")
 	return host
 
-/mob/dead/observer/proc/ianize()
+/*/mob/dead/observer/proc/ianize()
 	set name = "Become Ian"
 	set category = "Ghost"
 
@@ -556,7 +550,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	dat += data_core.get_manifest()
 
 	src << browse(entity_ja(dat), "window=manifest;size=370x420;can_close=1")
-
+*/
 //Used for drawing on walls with blood puddles as a spooky ghost.
 /mob/dead/observer/verb/bloody_doodle()
 
@@ -632,7 +626,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		W.message = message
 		W.add_hiddenprint(src)
 		W.visible_message("<span class='red'>Invisible fingers crudely paint something in blood on [T]...</span>")
-
+/*
 /mob/dead/observer/verb/toggle_ghostsee()
 	set name = "Toggle Ghost Vision"
 	set desc = "Toggles your ability to see things only ghosts can see, like other ghosts."
@@ -640,7 +634,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	ghostvision = !(ghostvision)
 	updateghostsight()
 	to_chat(usr, "You [(ghostvision?"now":"no longer")] have ghost vision.")
-
+*/
 /mob/dead/observer/verb/toggle_darkness()
 	set name = "Toggle Darkness"
 	set category = "Ghost"

@@ -24,16 +24,16 @@
 	new_player_panel_proc()
 
 /mob/dead/new_player/proc/new_player_panel_proc()
-	var/output = "<div align='center'><B>New Player Options</B>"
+	var/output = "<div align='center'><B>ЛОББИ</B>"
 	output +="<hr>"
-	output += "<p><a href='byond://?src=\ref[src];show_preferences=1'>Setup Character</A></p>"
+	output += "<p><a href='byond://?src=\ref[src];show_preferences=1'>Настройка персонажа</A></p>"
 
 	if(!ticker || ticker.current_state <= GAME_STATE_PREGAME)
-		if(!ready)	output += "<p><a href='byond://?src=\ref[src];ready=1'>Declare Ready</A></p>"
-		else	output += "<p><b>You are ready</b> (<a href='byond://?src=\ref[src];ready=2'>Cancel</A>)</p>"
+		if(!ready)	output += "<p><a href='byond://?src=\ref[src];ready=1'>Не готов</A></p>"
+		else	output += "<p><b>Готов</b> (<a href='byond://?src=\ref[src];ready=2'>Закрыть</A>)</p>"
 
 	else
-		output += "<a href='byond://?src=\ref[src];manifest=1'>View the Crew Manifest</A><br><br>"
+//		output += "<a href='byond://?src=\ref[src];manifest=1'>View the Crew Manifest</A><br><br>"
 		output += "<p><a href='byond://?src=\ref[src];late_join=1'>Join Game!</A></p>"
 
 	output += "<p><a href='byond://?src=\ref[src];observe=1'>Observe</A></p>"
@@ -66,14 +66,14 @@
 	..()
 
 	if(statpanel("Lobby"))
-		stat("Game Mode:", (ticker.hide_mode) ? "Secret" : "[master_mode]")
+		stat("Аспект:", (ticker.hide_mode) ? "ZERO" : "[master_mode]")
 
 		if(ticker.current_state == GAME_STATE_PREGAME)
-			stat("Time To Start:", (ticker.timeLeft >= 0) ? "[round(ticker.timeLeft / 10)]s" : "DELAYED")
+			stat("Время до начала:", (ticker.timeLeft >= 0) ? "[round(ticker.timeLeft / 10)]с" : "(ОТЛОЖЕН)")
 
-			stat("Players:", "[ticker.totalPlayers]")
+			stat("Всего игроков:", "[ticker.totalPlayers]")
 			if(client.holder)
-				stat("Players Ready:", "[ticker.totalPlayersReady]")
+				stat("Игроков готово:", "[ticker.totalPlayersReady]")
 
 /mob/dead/new_player/Topic(href, href_list[])
 	if(src != usr)
@@ -88,7 +88,7 @@
 
 	if(href_list["ready"])
 		if(ready && ticker.timeLeft <= 50)
-			to_chat(src, "<span class='warning'>Locked! The round is about to start.</span>")
+			to_chat(src, "<span class='warning'>ЗАБЛОКИРОВАНО! Раунд вот вот начнётся.</span>")
 			return 0
 		if(ticker && ticker.current_state <= GAME_STATE_PREGAME)
 			ready = !ready
@@ -99,7 +99,7 @@
 
 	if(href_list["observe"])
 		if(!(ckey in admin_datums) && jobban_isbanned(src, "Observer"))
-			to_chat(src, "<span class='red'>You have been banned from observing. Declare yourself.</span>")
+			to_chat(src, "<span class='red'>Вы были ЗАБАНЕНЫ за наблюдателя, заходите в раунд за персонажа.</span>")
 			return 0
 		if(alert(src,"Are you sure you wish to observe? You will have to wait 30 minutes before being able to respawn!","Player Setup","Yes","No") == "Yes")
 			if(!client)
@@ -127,8 +127,8 @@
 				client.prefs.real_name = random_name(client.prefs.gender)
 			observer.real_name = client.prefs.real_name
 			observer.name = observer.real_name
-			if(!client.holder && !config.antag_hud_allowed)           // For new ghosts we remove the verb from even showing up if it's not allowed.
-				observer.verbs -= /mob/dead/observer/verb/toggle_antagHUD        // Poor guys, don't know what they are missing!
+//			if(!client.holder && !config.antag_hud_allowed)           // For new ghosts we remove the verb from even showing up if it's not allowed.
+//				observer.verbs -= /mob/dead/observer/verb/toggle_antagHUD        // Poor guys, don't know what they are missing!
 			observer.key = key
 			qdel(src)
 
@@ -136,12 +136,12 @@
 
 	if(href_list["late_join"])
 		if(!ticker || ticker.current_state != GAME_STATE_PLAYING)
-			to_chat(usr, "\red The round is either not ready, or has already finished...")
+			to_chat(usr, "\red Кажется восставать уже поздно, мультивселенная вот вот закроется...")
 			return
 
 		if(client.prefs.species != HUMAN)
 			if(!is_alien_whitelisted(src, client.prefs.species) && config.usealienwhitelist)
-				to_chat(src, alert("You are currently not whitelisted to play [client.prefs.species]."))
+				to_chat(src, alert("ВЫ не состоите в БЕЛОМ списке [client.prefs.species]."))
 				return FALSE
 
 		LateChoices()
@@ -152,12 +152,12 @@
 	if(href_list["SelectedJob"])
 
 		if(!enter_allowed)
-			to_chat(usr, "\blue There is an administrative lock on entering the game!")
+			to_chat(usr, "\blue Установлен админ блок на вход в игру!")
 			return
 
 		if(client.prefs.species != HUMAN)
 			if(!is_alien_whitelisted(src, client.prefs.species) && config.usealienwhitelist)
-				to_chat(src, alert("You are currently not whitelisted to play [client.prefs.species]."))
+				to_chat(src, alert("ВЫ не в белом списке для игры [client.prefs.species]."))
 				return FALSE
 		AttemptLateSpawn(href_list["SelectedJob"])
 		return
@@ -280,13 +280,13 @@
 	if (src != usr)
 		return 0
 	if(!ticker || ticker.current_state != GAME_STATE_PLAYING)
-		to_chat(usr, "\red The round is either not ready, or has already finished...")
+		to_chat(usr, "\red Мультивселенная вот вот закроется...")
 		return 0
 	if(!enter_allowed)
-		to_chat(usr, "\blue There is an administrative lock on entering the game!")
+		to_chat(usr, "\blue Здесь админ блок на вход в игру!")
 		return 0
 	if(!IsJobAvailable(rank))
-		to_chat(src, alert("[rank] is not available. Please try another."))
+		to_chat(src, alert("[rank] на данный момент не доступен. Попробуйте другой."))
 		return 0
 
 	spawning = 1
@@ -344,7 +344,7 @@
 		var/obj/item/device/radio/intercom/a = new /obj/item/device/radio/intercom(null)// BS12 EDIT Arrivals Announcement Computer, rather than the AI.
 		if(character.mind.role_alt_title)
 			rank = character.mind.role_alt_title
-		a.autosay("[character.real_name],[rank ? " [rank]," : " visitor," ] has arrived on the station.", "Arrivals Announcement Computer")
+		a.autosay("[character.real_name],[rank ? " [rank]," : " посетитель," ] пробудился на STER-09.", "К.М.С.К - А.О")
 		qdel(a)
 
 /mob/dead/new_player/proc/LateChoices()
@@ -358,24 +358,24 @@
 
 	if(SSshuttle) //In case Nanotrasen decides reposess CentComm's shuttles.
 		if(SSshuttle.direction == 2) //Shuttle is going to centcomm, not recalled
-			dat += "<font color='red'><b>The station has been evacuated.</b></font><br>"
+			dat += "<font color='red'><b>Отчёт STER-09 - Стальная птица была успешно отстыкованна.</b></font><br>"
 		if(SSshuttle.direction == 1 && SSshuttle.timeleft() < 300 && SSshuttle.alert == 0) // Emergency shuttle is past the point of no recall
-			dat += "<font color='red'>The station is currently undergoing evacuation procedures.</font><br>"
+			dat += "<font color='red'>Колония производит масшатбную эвакуацию.</font><br>"
 		if(SSshuttle.direction == 1 && SSshuttle.alert == 1) // Crew transfer initiated
-			dat += "<font color='red'>The station is currently undergoing crew transfer procedures.</font><br>"
+			dat += "<font color='red'>Колония производит перенос экипажа.</font><br>"
 
-	dat += "Choose from the following open positions:<br>"
+/*	dat += "Выберите из открытых позиций:<br>"
 	for(var/datum/job/job in SSjob.occupations)
 		if(job && IsJobAvailable(job.title))
 			var/active = 0
 			// Only players with the job assigned and AFK for less than 10 minutes count as active
 			for(var/mob/M in player_list) if(M.mind && M.client && M.mind.assigned_role == job.title && M.client.inactivity <= 10 * 60 * 10)
 				active++
-			dat += "<a href='byond://?src=\ref[src];SelectedJob=[job.title]'>[job.title] ([job.current_positions]) (Active: [active])</a><br>"
+			dat += "<a href='byond://?src=\ref[src];SelectedJob=[job.title]'>[job.title] ([job.current_positions]) (Активно: [active])</a><br>"
 
 	dat += "</center>"
 	src << browse(entity_ja(dat), "window=latechoices;size=300x640;can_close=1")
-
+*/
 
 /mob/dead/new_player/proc/create_character()
 	spawning = 1
@@ -409,9 +409,9 @@
 
 	if(mind)
 		mind.active = 0					//we wish to transfer the key manually
-		if(mind.assigned_role == "Clown")				//give them a clownname if they are a clown
+		if(mind.assigned_role == "Клоун")				//give them a clownname if they are a clown
 			new_character.real_name = pick(clown_names)	//I hate this being here of all places but unfortunately dna is based on real_name!
-			new_character.rename_self("clown")
+			new_character.rename_self("клоун")
 		mind.original = new_character
 		mind.transfer_to(new_character)					//won't transfer key since the mind is not active
 
@@ -493,8 +493,8 @@
 /mob/dead/new_player/is_ready()
 	return ready && ..()
 
-/mob/dead/new_player/hear_say(message, verb = "says", datum/language/language = null, alt_name = "",italics = 0, mob/speaker = null)
+/mob/dead/new_player/hear_say(message, verb = "говорит", datum/language/language = null, alt_name = "",italics = 0, mob/speaker = null)
 	return
 
-/mob/dead/new_player/hear_radio(message, verb="says", datum/language/language=null, part_a, part_b, mob/speaker = null, hard_to_hear = 0)
+/mob/dead/new_player/hear_radio(message, verb="говорит", datum/language/language=null, part_a, part_b, mob/speaker = null, hard_to_hear = 0)
 	return

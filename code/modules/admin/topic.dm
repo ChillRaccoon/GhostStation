@@ -1406,7 +1406,7 @@
 
 		check_antagonists()
 
-	else if(href_list["adminplayerobservefollow"])
+/*	else if(href_list["adminplayerobservefollow"])
 		if(!isobserver(usr) && !check_rights(R_ADMIN))
 			return
 
@@ -1416,7 +1416,7 @@
 		if(!isobserver(usr))	C.admin_ghost()
 		var/mob/dead/observer/A = C.mob
 		A.ManualFollow(AM)
-
+*/
 	else if(href_list["take_ticket"])
 		var/datum/ticket/ticket = locate(href_list["take_ticket"])
 

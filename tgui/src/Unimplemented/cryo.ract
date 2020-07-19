@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   component.exports = {
     data: {
       temperatureStatus (temp) {

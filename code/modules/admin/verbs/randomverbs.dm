@@ -340,7 +340,7 @@ Ccomp's first proc.
 	message_admins("Admin [key_name_admin(usr)] allowed [key_name_admin(G)] to bypass the 30 minute respawn limit")
 
 
-/client/proc/toggle_antagHUD_use()
+/*/client/proc/toggle_antagHUD_use()
 	set category = "Server"
 	set name = "Toggle antagHUD usage"
 	set desc = "Toggles antagHUD usage for observers."
@@ -399,7 +399,7 @@ Ccomp's first proc.
 
 	log_admin("[key_name(usr)] has [action] on joining the round if they use AntagHUD")
 	message_admins("Admin [key_name_admin(usr)] has [action] on joining the round if they use AntagHUD")
-
+*/
 
 
 

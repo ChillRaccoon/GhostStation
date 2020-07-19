@@ -1,4 +1,4 @@
-<ui-display title='Active: {{data.active ? "Enabled" : "Disabled"}}'>
+﻿<ui-display title='Active: {{data.active ? "Enabled" : "Disabled"}}'>
     <ui-section>
         <ui-button style='{{data.active ? "selected" : null}}' action='enable_jammer'>Enable</ui-button>
         <ui-button style='{{data.active ? null : "selected"}}' action='disable_jammer'>Disable</ui-button>

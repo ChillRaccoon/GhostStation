@@ -1,4 +1,4 @@
-<ui-display>
+﻿<ui-display>
     <ui-section label='Dispense'>
         <ui-button icon='{{data.plasma ? "square" : "square-o"}}' state='{{data.plasma ? null : "disabled"}}'
             action='plasma'>Plasma ({{Math.round(adata.plasma)}})</ui-button>

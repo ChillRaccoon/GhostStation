@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   const versions = [11, 10, 9, 8]
 
   component.exports = {

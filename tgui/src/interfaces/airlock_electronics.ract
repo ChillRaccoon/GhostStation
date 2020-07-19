@@ -1,4 +1,4 @@
-<ui-display>
+﻿<ui-display>
   {{#if data.locked}}
   <ui-section label='Card locked!'>
     Swipe ID to continue: <ui-button icon='unlock' action='unlock'>Unlock</ui-button>
