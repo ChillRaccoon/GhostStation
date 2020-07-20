@@ -70,6 +70,7 @@
 		var/spoopysound = pick('sound/effects/badmood1.ogg','sound/effects/badmood2.ogg','sound/effects/badmood3.ogg','sound/effects/badmood4.ogg')
 		sound_to(src, spoopysound)
 
+/*
 /mob/living/carbon/proc/handle_happiness()
 	switch(happiness)
 		if(-5000000 to MOOD_LEVEL_SAD4)
@@ -84,7 +85,7 @@
 			crit_mood_modifier = 5
 		if(MOOD_LEVEL_HAPPY4 to INFINITY)
 			crit_mood_modifier = 10
-
+*/
 
 /mob/living/carbon/proc/add_event(category, type) //Category will override any events in the same category, should be unique unless the event is based on the same thing like hunger.
 	var/datum/happiness_event/the_event

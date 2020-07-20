@@ -185,8 +185,8 @@
 	item_state = "locator"
 	name = "Slime bloodlust pulse emitter"
 	desc = "Highly dangeroues experimental device that makes nearby slimes completely loose it. Has 5 uses."
-	var uses = 5
-	var mobu
+	var/uses = 5
+	var/mobu
 
 /obj/item/device/lustmodule/attack_self(mob/user)
 	if(uses > 0)
