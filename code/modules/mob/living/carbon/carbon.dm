@@ -686,15 +686,43 @@
 /mob/living/carbon/proc/crawl_in_blood(obj/effect/decal/cleanable/blood/floor_blood,amount)
 	return
 
-/mob/living/carbon/vomit(punched = FALSE)
-	if(head && (head.flags & HEADCOVERSMOUTH))
-		return FALSE
+/mob/living/carbon/proc/vomit(var/toxvomit = 0, var/timevomit = 1, var/level = 3)
+	set waitfor = 0
+	if(!check_has_mouth() || isSynthetic() || !timevomit || !level)
+		return
+	level = Clamp(level, 1, 3)
+	timevomit = Clamp(timevomit, 1, 10)
+	if(stat == DEAD)
+		return
+	if(!lastpuke)
+		lastpuke = 1
+		to_chat(src, "<span class='warning'>You feel nauseous...</span>")
+		if(level > 1)
+			sleep(150 / timevomit)	//15 seconds until second warning
+			to_chat(src, "<span class='warning'>You feel like you are about to throw up!</span>")
+			if(level > 2)
+				sleep(100 / timevomit)	//and you have 10 more for mad dash to the bucket
+				Stun(3)
+				if(nutrition < 40)
+					custom_emote(1,"dry heaves.")
+				else
+					for(var/a in stomach_contents)
+						var/atom/movable/A = a
+						A.forceMove(get_turf(src))
+						stomach_contents.Remove(a)
+						if(src.species.gluttonous & GLUT_PROJECTILE_VOMIT)
+							A.throw_at(get_edge_target_turf(src,src.dir),7,7,src)
 
-	. = ..()
-	if(.)
-		if(reagents.total_volume > 0)
-			var/datum/reagents/R = new(10)
-			reagents.trans_to(R, 10)
-			R.reaction(loc)
-		else
-			adjustToxLoss(-10)
+					src.visible_message("<span class='warning'>[src] throws up!</span>","<span class='warning'>You throw up!</span>")
+					playsound(loc, 'sound/effects/splat.ogg', 50, 1)
+
+					adjust_hygiene(-25)
+					add_event("hygiene", /datum/happiness_event/hygiene/vomitted)
+
+					var/turf/location = loc
+					if (istype(location, /turf/simulated))
+						location.add_vomit_floor(src, toxvomit)
+					ingested.remove_any(5)
+					nutrition -= 30
+		sleep(350)	//wait 35 seconds before next volley
+		lastpuke = 0

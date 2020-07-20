@@ -1002,15 +1002,6 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 			xylophone=0
 	return
 
-/mob/living/carbon/human/vomit(punched = FALSE)
-	if(species.flags[IS_SYNTHETIC] || species.flags[IS_IMMATERIAL])
-		return FALSE //Machines don't throw up. Neither do beings out of this plane of existance... (If more flags seem to pile up here, add NO_VOMIT flag instead) ~Luduk.
-
-	if(wear_mask && (wear_mask.flags & MASKCOVERSMOUTH))
-		return FALSE
-
-	return ..()
-
 /mob/living/carbon/human/proc/force_vomit(mob/living/carbon/human/H)
 	if(H.species.flags[IS_SYNTHETIC] || H.species.flags[IS_IMMATERIAL])
 		to_chat(src, "<span class='warning'>Wait... Where is the mouth?")
@@ -1050,46 +1041,6 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 		else
 			break
 
-/mob/living/carbon/human/proc/vomit(var/toxvomit = 0, var/timevomit = 1, var/level = 3)
-	set waitfor = 0
-	if(!check_has_mouth() || isSynthetic() || !timevomit || !level)
-		return
-	level = Clamp(level, 1, 3)
-	timevomit = Clamp(timevomit, 1, 10)
-	if(stat == DEAD)
-		return
-	if(!lastpuke)
-		lastpuke = 1
-		to_chat(src, "<span class='warning'>You feel nauseous...</span>")
-		if(level > 1)
-			sleep(150 / timevomit)	//15 seconds until second warning
-			to_chat(src, "<span class='warning'>You feel like you are about to throw up!</span>")
-			if(level > 2)
-				sleep(100 / timevomit)	//and you have 10 more for mad dash to the bucket
-				Stun(3)
-				if(nutrition < 40)
-					custom_emote(1,"dry heaves.")
-				else
-					for(var/a in stomach_contents)
-						var/atom/movable/A = a
-						A.forceMove(get_turf(src))
-						stomach_contents.Remove(a)
-						if(src.species.gluttonous & GLUT_PROJECTILE_VOMIT)
-							A.throw_at(get_edge_target_turf(src,src.dir),7,7,src)
-
-					src.visible_message("<span class='warning'>[src] throws up!</span>","<span class='warning'>You throw up!</span>")
-					playsound(loc, 'sound/effects/splat.ogg', 50, 1)
-
-					adjust_hygiene(-25)
-					add_event("hygiene", /datum/happiness_event/hygiene/vomitted)
-
-					var/turf/location = loc
-					if (istype(location, /turf/simulated))
-						location.add_vomit_floor(src, toxvomit)
-					ingested.remove_any(5)
-					nutrition -= 30
-		sleep(350)	//wait 35 seconds before next volley
-		lastpuke = 0
 
 /mob/living/carbon/human/proc/morph()
 	set name = "Morph"
@@ -1926,7 +1877,7 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 				to_chat(src, "<span class='warning'>Not enough static charge.</span>")
 				return FALSE
 
-/mob/living/carbon/human/proc/handle_decay(mob/living/carbon/human/H)
+mob/living/carbon/human/proc/handle_decay(mob/living/carbon/human/H)
 	var/decaytime = world.time - timeofdeath
 	var/image/flies = image('icons/effects/effects.dmi', "rotten")//This is a hack, there has got to be a safer way to do this but I don't know it at the moment.
 	var/decaylevel = 0
@@ -1956,7 +1907,7 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 		return //Скелеты уже не должны вонять!
 
 
-	for(var/mob/living/carbon/human/H in range(decaylevel, src))
+	if(ishuman(H))
 		if(prob(2))
 			if(istype(loc,/obj/item/bodybag))
 				return
