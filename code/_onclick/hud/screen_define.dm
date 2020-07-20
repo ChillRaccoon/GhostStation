@@ -13,6 +13,9 @@
 	Therefore, the top right corner (except during admin shenanigans) is at "15,15"
 */
 
+/*
+Енот, доделай до конца этот код
+
 #define ui_entire_screen "WEST,SOUTH to EAST,NORTH"
 
 //Upper left action buttons, displayed when you pick up an item that has this enabled.
@@ -268,3 +271,5 @@
 
 #define ui_tg_iarrowleft "SOUTH-1,11"
 #define ui_tg_iarrowright "SOUTH-1,13"
+
+*/
