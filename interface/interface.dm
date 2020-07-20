@@ -16,9 +16,9 @@
 	set desc = "Show Server Rules."
 	set hidden = 1
 
-	getFiles('config/rules/rules.html', 'config/rules/style.css')
+//	getFiles('config/rules/rules.html', 'config/rules/style.css')
 
-	src << browse('config/rules/rules.html', "window=rules;size=800x600")
+//	src << browse('config/rules/rules.html', "window=rules;size=800x600")
 
 /client/verb/banhub()
 	set name = "Banhub"

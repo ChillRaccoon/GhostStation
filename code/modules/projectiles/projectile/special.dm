@@ -137,19 +137,17 @@
 	damage = 0
 	damage_type = TOX
 	nodamage = 1
-	flag = "energy"
 
-mob/obj/item/projectile/energy/florayield/on_hit(atom/target, blocked = 0)
-	var/mob/M = target
-//	if(ishuman(target) && M.dna && M.dna.mutantrace == "plant") //These rays make plantmen fat.
-	if(ishuman(target)) //These rays make plantmen fat.
-		var/mob/living/carbon/human/H = M
-		if((H.species.flags[IS_PLANT]) && (M.nutrition < 500))
-			M.nutrition += 30
-	else if (istype(target, /mob/living/carbon/))
-		M.show_message("\blue The radiation beam dissipates harmlessly through your body.")
-	else
-		return 1
+	on_hit(var/atom/target, var/blocked = 0)
+		var/mob/M = target
+		if(ishuman(target)) //These rays make plantmen fat.
+			var/mob/living/carbon/human/H = M
+			if((H.species.species_flags & SPECIES_FLAG_IS_PLANT) && (H.nutrition < 500))
+				H.adjust_nutrition(30)
+		else if (istype(target, /mob/living/carbon/))
+			M.show_message("<span class='notice'>The radiation beam dissipates harmlessly through your body.</span>")
+		else
+			return 1
 
 
 
