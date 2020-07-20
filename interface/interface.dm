@@ -18,7 +18,7 @@
 
 //	getFiles('config/rules/rules.html', 'config/rules/style.css')
 
-	src << browse('config/rules/rules.html', "window=rules;size=800x600")
+//	src << browse('config/rules/rules.html', "window=rules;size=800x600")
 
 /client/verb/banhub()
 	set name = "Banhub"

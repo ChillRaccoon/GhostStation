@@ -38,6 +38,7 @@
 #define HOLOGRAM_2   1
 
 //Species flags.
+#define SPECIES_FLAG_IS_PLANT                   0x0002  // Is a treeperson.
 #define NO_BLOOD           "no_blood"
 #define NO_BREATHE         "no_breathe"
 #define NO_SCAN            "no_scan"

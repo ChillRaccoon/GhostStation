@@ -137,11 +137,13 @@
 	if(stat != DEAD && vomit_score > 25 && prob(10))
 		spawn vomit(1, vomit_score, vomit_score/25)
 
+/*
 	//0.1% chance of playing a scary sound to someone who's in complete darkness
 	if(isturf(loc) && rand(1,1000) == 1)
 		var/turf/T = loc
 		if(T.get_lumcount() <= LIGHTING_SOFT_THRESHOLD)
 			playsound_local(src,pick(GLOB.scarySounds),50, 1, -1)
+*/
 
 	var/area/A = get_area(src)
 	if(client && world.time >= client.played + 600)
