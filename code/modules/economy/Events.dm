@@ -37,7 +37,7 @@
 #define MINERALS 8
 
 #define EMERGENCY 9
-#define GAS 10
+#define GAS_EVENT 10
 #define MAINTENANCE 11
 #define ELECTRICAL 12
 #define ROBOTICS 13
@@ -73,16 +73,16 @@
 			if(INDUSTRIAL_ACCIDENT)
 				dearer_goods = list(EMERGENCY, BIOMEDICAL, ROBOTICS)
 			if(BIOHAZARD_OUTBREAK)
-				dearer_goods = list(BIOMEDICAL, GAS)
+				dearer_goods = list(BIOMEDICAL, GAS_EVENT)
 			if(PIRATES)
 				dearer_goods = list(SECURITY, MINERALS)
 			if(CORPORATE_ATTACK)
 				dearer_goods = list(SECURITY, MAINTENANCE)
 			if(ALIEN_RAIDERS)
 				dearer_goods = list(BIOMEDICAL, ANIMALS)
-				cheaper_goods = list(GAS, MINERALS)
+				cheaper_goods = list(GAS_EVENT, MINERALS)
 			if(AI_LIBERATION)
-				dearer_goods = list(EMERGENCY, GAS, MAINTENANCE)
+				dearer_goods = list(EMERGENCY, GAS_EVENT, MAINTENANCE)
 			if(MOURNING)
 				cheaper_goods = list(MINERALS, MAINTENANCE)
 			if(CULT_CELL_REVEALED)
@@ -151,4 +151,4 @@
 	for(var/good_type in cheaper_goods)
 		affected_dest.temp_price_change[good_type] = 1
 
-#undef GAS
+#undef GAS_EVENT
