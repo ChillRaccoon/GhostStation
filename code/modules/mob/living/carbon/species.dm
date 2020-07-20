@@ -1255,9 +1255,11 @@
 	H.ventcrawler = TRUE
 	H.verbs += /mob/living/carbon/human/proc/toggle_sphere
 	H.verbs += /mob/living/carbon/human/proc/metal_bend
-	///H.verbs += /mob/living/carbon/human/proc/toggle_telepathy_hear
+	/*
+	H.verbs += /mob/living/carbon/human/proc/toggle_telepathy_hear
 	H.verbs += /mob/living/carbon/human/proc/quick_telepathy_say
 	H.verbs += /mob/living/carbon/human/proc/force_telepathy_say
+	*/
 	H.verbs += /mob/living/carbon/human/proc/breath_from_tank
 	H.toggle_sphere_icon = new /obj/screen/tycheon_ability/toggle_sphere(null, H)
 	H.toggle_sphere_icon.screen_loc = "EAST-2:-8,SOUTH+1:-5"
@@ -1282,9 +1284,10 @@
 	H.ventcrawler = FALSE
 	H.verbs -= /mob/living/carbon/human/proc/toggle_sphere
 	H.verbs -= /mob/living/carbon/human/proc/metal_bend
-	///H.verbs -= /mob/living/carbon/human/proc/toggle_telepathy_hear
+	/*H.verbs -= /mob/living/carbon/human/proc/toggle_telepathy_hear
 	H.verbs -= /mob/living/carbon/human/proc/quick_telepathy_say
 	H.verbs -= /mob/living/carbon/human/proc/force_telepathy_say
+	*/
 	H.verbs -= /mob/living/carbon/human/proc/breath_from_tank
 	if(H.hud_used)
 		if(H.toggle_sphere_icon)
