@@ -471,16 +471,15 @@
 
 	return
 
-/mob/living/carbon/show_inv(mob/living/carbon/user)
+/mob/living/carbon/show_inv(mob/user as mob)
 	user.set_machine(src)
 	var/dat = {"
 	<B><HR><FONT size=3>[name]</FONT></B>
 	<BR><HR>
-	<BR><B>Head(Mask):</B> <A href='?src=\ref[src];item=mask'>[(wear_mask && !(wear_mask.flags&ABSTRACT))	? wear_mask	: "Nothing"]</A>
-	<BR><B>Left Hand:</B> <A href='?src=\ref[src];item=l_hand'>[(l_hand && !(l_hand.flags&ABSTRACT))		? l_hand	: "Nothing"]</A>
-	<BR><B>Right Hand:</B> <A href='?src=\ref[src];item=r_hand'>[(r_hand && !(r_hand.flags&ABSTRACT))		? r_hand	: "Nothing"]</A>
+	<BR><B>Head(Mask):</B> <A href='?src=\ref[src];item=mask'>[(wear_mask ? wear_mask : "Nothing")]</A>
+	<BR><B>Left Hand:</B> <A href='?src=\ref[src];item=l_hand'>[(l_hand ? l_hand  : "Nothing")]</A>
+	<BR><B>Right Hand:</B> <A href='?src=\ref[src];item=r_hand'>[(r_hand ? r_hand : "Nothing")]</A>
 	<BR><B>Back:</B> <A href='?src=\ref[src];item=back'>[(back ? back : "Nothing")]</A> [((istype(wear_mask, /obj/item/clothing/mask) && istype(back, /obj/item/weapon/tank) && !( internal )) ? text(" <A href='?src=\ref[];item=internal'>Set Internal</A>", src) : "")]
-	<BR>[(handcuffed ? text("<A href='?src=\ref[src];item=handcuff'>Handcuffed</A>") : text("<A href='?src=\ref[src];item=handcuff'>Not Handcuffed</A>"))]
 	<BR>[(internal ? text("<A href='?src=\ref[src];item=internal'>Remove Internal</A>") : "")]
 	<BR><A href='?src=\ref[src];item=pockets'>Empty Pockets</A>
 	<BR><A href='?src=\ref[user];refresh=1'>Refresh</A>
@@ -489,6 +488,28 @@
 	user << browse(entity_ja(dat), text("window=mob[];size=325x500", name))
 	onclose(user, "mob[name]")
 	return
+
+/**
+ *  Return FALSE if victim can't be devoured, DEVOUR_FAST if they can be devoured quickly, DEVOUR_SLOW for slow devour
+ */
+/mob/living/carbon/proc/check_has_mouth()
+	// carbon mobs have mouths by default
+	// behavior of this proc for humans is overridden in human.dm
+	return 1
+
+/mob/living/carbon/proc/check_mouth_coverage()
+	// carbon mobs do not have blocked mouths by default
+	// overridden in human_defense.dm
+	return null
+
+/mob/living/carbon/proc/get_ingested_reagents()
+	return reagents
+
+/mob/living/carbon/proc/set_nutrition(var/amt)
+	nutrition = Clamp(amt, 0, initial(nutrition))
+
+/mob/living/carbon/proc/adjust_nutrition(var/amt)
+	set_nutrition(nutrition + amt)
 
 //generates realistic-ish pulse output based on preset levels
 /mob/living/carbon/proc/get_pulse(method)	//method 0 is for hands, 1 is for machines, more accurate
@@ -686,15 +707,43 @@
 /mob/living/carbon/proc/crawl_in_blood(obj/effect/decal/cleanable/blood/floor_blood,amount)
 	return
 
-/mob/living/carbon/vomit(punched = FALSE)
-	if(head && (head.flags & HEADCOVERSMOUTH))
-		return FALSE
+/mob/living/carbon/proc/vomit(var/toxvomit = 0, var/timevomit = 1, var/level = 3)
+	set waitfor = 0
+	if(!check_has_mouth() || isSynthetic() || !timevomit || !level)
+		return
+	level = Clamp(level, 1, 3)
+	timevomit = Clamp(timevomit, 1, 10)
+	if(stat == DEAD)
+		return
+	if(!lastpuke)
+		lastpuke = 1
+		to_chat(src, "<span class='warning'>You feel nauseous...</span>")
+		if(level > 1)
+			sleep(150 / timevomit)	//15 seconds until second warning
+			to_chat(src, "<span class='warning'>You feel like you are about to throw up!</span>")
+			if(level > 2)
+				sleep(100 / timevomit)	//and you have 10 more for mad dash to the bucket
+				Stun(3)
+				if(nutrition < 40)
+					custom_emote(1,"dry heaves.")
+				else
+					for(var/a in stomach_contents)
+						var/atom/movable/A = a
+						A.forceMove(get_turf(src))
+						stomach_contents.Remove(a)
+						if(src.species.gluttonous & GLUT_PROJECTILE_VOMIT)
+							A.throw_at(get_edge_target_turf(src,src.dir),7,7,src)
 
-	. = ..()
-	if(.)
-		if(reagents.total_volume > 0)
-			var/datum/reagents/R = new(10)
-			reagents.trans_to(R, 10)
-			R.reaction(loc)
-		else
-			adjustToxLoss(-10)
+					src.visible_message("<span class='warning'>[src] throws up!</span>","<span class='warning'>You throw up!</span>")
+					playsound(loc, 'sound/effects/splat.ogg', 50, 1)
+
+					adjust_hygiene(-25)
+					add_event("hygiene", /datum/happiness_event/hygiene/vomitted)
+
+					var/turf/location = loc
+					if (istype(location, /turf/simulated))
+						location.add_vomit_floor(src, toxvomit)
+					ingested.remove_any(5)
+					nutrition -= 30
+		sleep(350)	//wait 35 seconds before next volley
+		lastpuke = 0

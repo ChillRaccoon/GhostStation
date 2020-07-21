@@ -621,3 +621,12 @@ var/const/INGEST = 2
 /atom/proc/create_reagents(max_vol)
 	reagents = new/datum/reagents(max_vol)
 	reagents.my_atom = src
+
+/datum/reagent/proc/touch_turf(var/turf/target)
+	if(!target || !istype(target) || !target.simulated)
+		return
+
+	for(var/datum/reagent/current in reagent_list)
+		current.touch_turf(target, current.volume)
+
+	update_total()

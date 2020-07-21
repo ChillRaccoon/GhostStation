@@ -488,12 +488,10 @@
 	if(istype(M, /atom/movable))
 		if(do_teleport(M, target, 3))
 			if(isliving(M))
-				var/mob/living/L = M
-				L.Weaken(3)
-				if(ishuman(L))
-					shake_camera(L, 20, 1)
-					spawn owner.vomit()
-
+				var/mob/living/carbon/C = M
+				C.Weaken(3)
+				if(ishuman(C))
+					shake_camera(C, 20, 1)
 
 
 /**********************Resonator**********************/

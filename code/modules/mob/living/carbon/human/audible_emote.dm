@@ -6,7 +6,7 @@
 	var/message = null
 
 	if(ishuman(src))
-		var/mob/living/carbon/human/H
+//		var/mob/living/carbon/human/H
 		if(!muzzled)
 //			if(H.isMonkey())
 //				screamsound = "sound/voice/monkey_pain[rand(1,3)].ogg"
@@ -61,7 +61,7 @@
 
 	var/muzzled = istype(src.wear_mask, /obj/item/clothing/mask/muzzle)
 	if(ishuman(src))
-		var/mob/living/carbon/human/H
+//		var/mob/living/carbon/human/H
 		if(!muzzled)
 //			if(H.isMonkey())
 //				return

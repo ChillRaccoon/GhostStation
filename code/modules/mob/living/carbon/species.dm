@@ -12,6 +12,9 @@
 	var/eyes = list("default" = "eyes")                                    // Possible icons for eyes.
 	var/eye_glow = FALSE
 
+	// Body vars
+	var/species_flags = 0         // Various specific features.
+
 	// Combat vars.
 	var/total_health = 100                               // Point at which the mob will enter crit.
 	var/unarmed                                          // For empty hand harm-intent attack

@@ -277,7 +277,7 @@
 	..()
 	data++
 	if(data > 10)
-		M.vomit()
+		H.vomit()
 		data -= rand(0, 10)
 
 /datum/reagent/anti_toxin
