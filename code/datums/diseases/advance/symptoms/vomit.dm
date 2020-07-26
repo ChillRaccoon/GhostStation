@@ -72,13 +72,13 @@ Bonus
 	transmittable = 1
 	level = 4
 
-/datum/symptom/vomit/blood/Vomit(mob/living/carbon/human/H)
-	H.vomit()
+/datum/symptom/vomit/blood/Vomit(mob/living/M)
+	M.vomit()
 
 	// They lose blood and health.
-	var/brute_dam = H.getBruteLoss()
+	var/brute_dam = M.getBruteLoss()
 	if(brute_dam < 50)
-		H.adjustBruteLoss(3)
+		M.adjustBruteLoss(3)
 
-	var/turf/simulated/pos = get_turf(H)
-	pos.add_blood_floor(H)
+	var/turf/simulated/pos = get_turf(M)
+	pos.add_blood_floor(M)

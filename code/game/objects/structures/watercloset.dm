@@ -78,7 +78,7 @@
 						user.attack_log += "\[[time_stamp()]\] <font color='orange'>Swirled [swirlie.name] ([swirlie.ckey])</font>"
 						swirlie.attack_log += "\[[time_stamp()]\] <font color='red'>Was given a swirle by [user.name] ([user.ckey])</font>"
 						msg_admin_attack("[user.name] has given a swirle to the [swirlie.name] (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[user.x];Y=[user.y];Z=[user.z]'>JMP</a>)")
-						if(!GM.internal)
+						if(!GM.internals)
 							GM.adjustOxyLoss(5)
 					swirlie = null
 				else
@@ -104,6 +104,7 @@
 		add_fingerprint(user)
 		to_chat(user, "You carefully place \the [I] into the cistern.")
 		return
+
 
 
 
