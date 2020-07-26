@@ -493,14 +493,14 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 	<BR><B>Head:</B> <A href='?src=\ref[src];item=head'>[(head && !(head.flags&ABSTRACT)) ? head : "Nothing"]</A>
 	<BR><B>Shoes:</B> <A href='?src=\ref[src];item=shoes'>[(shoes && !(shoes.flags&ABSTRACT)) ? shoes : "Nothing"]</A>
 	<BR><B>Belt:</B> <A href='?src=\ref[src];item=belt'>[(belt ? belt : "Nothing")]</A> [((istype(wear_mask, /obj/item/clothing/mask) && istype(belt, /obj/item/weapon/tank) && !( internal )) ? text(" <A href='?src=\ref[];item=internal'>Set Internal</A>", src) : "")]
-	<BR><B>Uniform:</B> <A href='?src=\ref[src];item=uniform'>[(w_uniform && !(w_uniform.flags&ABSTRACT)) ? w_uniform : "Nothing"]</A> [(suit) ? ((suit.has_sensor == 1) ? text(" <A href='?src=\ref[];item=sensor'>Sensors</A>", src) : "") :]
+	<BR><B>Uniform:</B> <A href='?src=\ref[src];item=uniform'>[(w_uniform && !(w_uniform.flags&ABSTRACT)) ? w_uniform : "Nothing"]</A> [(suit) ? ((suit.has_sensor == 1) ? text(" <A href='?src=\ref[];item=sensor'>Sensors</A>", src) : "") : ""]
 	<BR><B>(Exo)Suit:</B> <A href='?src=\ref[src];item=suit'>[(wear_suit && !(wear_suit.flags&ABSTRACT)) ? wear_suit : "Nothing"]</A>
 	<BR><B>Back:</B> <A href='?src=\ref[src];item=back'>[(back && !(back.flags&ABSTRACT)) ? back : "Nothing"]</A> [((istype(wear_mask, /obj/item/clothing/mask) && istype(back, /obj/item/weapon/tank) && !( internal )) ? text(" <A href='?src=\ref[];item=internal'>Set Internal</A>", src) : "")]
 	<BR><B>ID:</B> <A href='?src=\ref[src];item=id'>[(wear_id ? wear_id : "Nothing")]</A>
 	<BR><B>Suit Storage:</B> <A href='?src=\ref[src];item=s_store'>[(s_store ? s_store : "Nothing")]</A> [((istype(wear_mask, /obj/item/clothing/mask) && istype(s_store, /obj/item/weapon/tank) && !( internal )) ? text(" <A href='?src=\ref[];item=internal'>Set Internal</A>", src) : "")]
 	<BR>[(handcuffed ? text("<A href='?src=\ref[src];item=handcuff'>Handcuffed</A>") : text("<A href='?src=\ref[src];item=handcuff'>Not Handcuffed</A>"))]
 	<BR>[(legcuffed ? text("<A href='?src=\ref[src];item=legcuff'>Legcuffed</A>") : text(""))]
-	<BR>[(suit) ? ((suit.accessories.len) ? text(" <A href='?src=\ref[];item=tie'>Remove Accessory</A>", src) : "") :]
+	<BR>[(suit) ? ((suit.accessories.len) ? text(" <A href='?src=\ref[];item=tie'>Remove Accessory</A>", src) : "") : ""]
 	<BR>[(internal ? text("<A href='?src=\ref[src];item=internal'>Remove Internal</A>") : "")]
 	<BR><A href='?src=\ref[src];item=bandages'>Remove Bandages</A>
 	<BR><A href='?src=\ref[src];item=splints'>Remove Splints</A>
@@ -1002,15 +1002,6 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 			xylophone=0
 	return
 
-/mob/living/carbon/human/vomit(punched = FALSE)
-	if(species.flags[IS_SYNTHETIC] || species.flags[IS_IMMATERIAL])
-		return FALSE //Machines don't throw up. Neither do beings out of this plane of existance... (If more flags seem to pile up here, add NO_VOMIT flag instead) ~Luduk.
-
-	if(wear_mask && (wear_mask.flags & MASKCOVERSMOUTH))
-		return FALSE
-
-	return ..()
-
 /mob/living/carbon/human/proc/force_vomit(mob/living/carbon/human/H)
 	if(H.species.flags[IS_SYNTHETIC] || H.species.flags[IS_IMMATERIAL])
 		to_chat(src, "<span class='warning'>Wait... Where is the mouth?")
@@ -1050,46 +1041,6 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 		else
 			break
 
-/mob/living/carbon/human/proc/vomit(var/toxvomit = 0, var/timevomit = 1, var/level = 3)
-	set waitfor = 0
-	if(!check_has_mouth() || isSynthetic() || !timevomit || !level)
-		return
-	level = Clamp(level, 1, 3)
-	timevomit = Clamp(timevomit, 1, 10)
-	if(stat == DEAD)
-		return
-	if(!lastpuke)
-		lastpuke = 1
-		to_chat(src, "<span class='warning'>You feel nauseous...</span>")
-		if(level > 1)
-			sleep(150 / timevomit)	//15 seconds until second warning
-			to_chat(src, "<span class='warning'>You feel like you are about to throw up!</span>")
-			if(level > 2)
-				sleep(100 / timevomit)	//and you have 10 more for mad dash to the bucket
-				Stun(3)
-				if(nutrition < 40)
-					custom_emote(1,"dry heaves.")
-				else
-					for(var/a in stomach_contents)
-						var/atom/movable/A = a
-						A.forceMove(get_turf(src))
-						stomach_contents.Remove(a)
-						if(src.species.gluttonous & GLUT_PROJECTILE_VOMIT)
-							A.throw_at(get_edge_target_turf(src,src.dir),7,7,src)
-
-					src.visible_message("<span class='warning'>[src] throws up!</span>","<span class='warning'>You throw up!</span>")
-					playsound(loc, 'sound/effects/splat.ogg', 50, 1)
-
-					adjust_hygiene(-25)
-					add_event("hygiene", /datum/happiness_event/hygiene/vomitted)
-
-					var/turf/location = loc
-					if (istype(location, /turf/simulated))
-						location.add_vomit_floor(src, toxvomit)
-					ingested.remove_any(5)
-					nutrition -= 30
-		sleep(350)	//wait 35 seconds before next volley
-		lastpuke = 0
 
 /mob/living/carbon/human/proc/morph()
 	set name = "Morph"
@@ -1926,9 +1877,11 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 				to_chat(src, "<span class='warning'>Not enough static charge.</span>")
 				return FALSE
 
-/mob/living/carbon/human/proc/handle_decay()
+/*
+mob/living/carbon/human/proc/handle_decay(mob/living/carbon/human/H)
 	var/decaytime = world.time - timeofdeath
 	var/image/flies = image('icons/effects/effects.dmi', "rotten")//This is a hack, there has got to be a safer way to do this but I don't know it at the moment.
+	var/decaylevel = 0
 
 	if(isSynthetic())
 		return
@@ -1951,11 +1904,11 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 		decaylevel = 4
 		overlays -= flies
 		flies = null
-		ChangeToSkeleton()
+		H.set_species(SKELETON)
 		return //Скелеты уже не должны вонять!
 
 
-	for(var/mob/living/carbon/human/H in range(decaylevel, src))
+	if(ishuman(H))
 		if(prob(2))
 			if(istype(loc,/obj/item/bodybag))
 				return
@@ -1968,6 +1921,7 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 			if(prob(75))
 				H.vomit()
 
+/*
 //So that people will stop shitting in the fucking hallways all the time. Actually this will probably encourage them.
 /mob/living/carbon/human/proc/handle_smelly_things()
 	if(wear_mask)
@@ -1989,7 +1943,8 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 			add_event("disgust", /datum/happiness_event/disgust/verygross)
 			if(prob(50))
 				vomit()
-
+*/
+*/
 
 /mob/living/carbon/human/proc/handle_gas_mask_sound()
 	//var/soundcooldown = world.time

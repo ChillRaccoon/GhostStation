@@ -12,6 +12,9 @@
 	var/eyes = list("default" = "eyes")                                    // Possible icons for eyes.
 	var/eye_glow = FALSE
 
+	// Body vars
+	var/species_flags = 0         // Various specific features.
+
 	// Combat vars.
 	var/total_health = 100                               // Point at which the mob will enter crit.
 	var/unarmed                                          // For empty hand harm-intent attack
@@ -1255,9 +1258,11 @@
 	H.ventcrawler = TRUE
 	H.verbs += /mob/living/carbon/human/proc/toggle_sphere
 	H.verbs += /mob/living/carbon/human/proc/metal_bend
+	/*
 	H.verbs += /mob/living/carbon/human/proc/toggle_telepathy_hear
 	H.verbs += /mob/living/carbon/human/proc/quick_telepathy_say
 	H.verbs += /mob/living/carbon/human/proc/force_telepathy_say
+	*/
 	H.verbs += /mob/living/carbon/human/proc/breath_from_tank
 	H.toggle_sphere_icon = new /obj/screen/tycheon_ability/toggle_sphere(null, H)
 	H.toggle_sphere_icon.screen_loc = "EAST-2:-8,SOUTH+1:-5"
@@ -1282,9 +1287,10 @@
 	H.ventcrawler = FALSE
 	H.verbs -= /mob/living/carbon/human/proc/toggle_sphere
 	H.verbs -= /mob/living/carbon/human/proc/metal_bend
-	H.verbs -= /mob/living/carbon/human/proc/toggle_telepathy_hear
+	/*H.verbs -= /mob/living/carbon/human/proc/toggle_telepathy_hear
 	H.verbs -= /mob/living/carbon/human/proc/quick_telepathy_say
 	H.verbs -= /mob/living/carbon/human/proc/force_telepathy_say
+	*/
 	H.verbs -= /mob/living/carbon/human/proc/breath_from_tank
 	if(H.hud_used)
 		if(H.toggle_sphere_icon)
@@ -1327,6 +1333,7 @@
 			language.on_message_hear(message, M, source)
 		M.telepathy_hear(verb, message, source)
 
+/*
 /mob/living/carbon/human/proc/toggle_telepathy_hear((mob/M in (view() + remote_hearing))) // Makes us hear what they hear.
 	set name = "Toggle Telepathy Hear"
 	set desc = "Hear anything this mob hears."
@@ -1357,6 +1364,7 @@
 		remote_hearing += M
 		M.remote_hearers += src
 		to_chat(src, "<span class='notice'>You start telepathically eavesdropping on [M]")
+		
 
 /mob/living/carbon/human/proc/quick_telepathy_say((mob/living/M in (view() + remote_hearing)))
 	set name = "Project Mind(Q)"
@@ -1458,6 +1466,7 @@
 	set name = "Project Mind"
 	set desc = "Make them hear what you desire."
 	set category = "Tycheon"
+*/
 
 	if(typing)
 		return

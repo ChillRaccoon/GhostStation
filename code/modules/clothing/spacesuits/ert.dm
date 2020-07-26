@@ -109,10 +109,10 @@
 	icon_state = "rig0-ert_medical"
 	item_color = "ert_medical"
 
-	/obj/item/clothing/head/helmet/space/rig/ert/medical/atom_init()
-		. = ..()
-		holochip = new /obj/item/holochip/ert/medical(src)
-		holochip.holder = src
+/obj/item/clothing/head/helmet/space/rig/ert/medical/atom_init()
+	. = ..()
+	holochip = new /obj/item/holochip/ert/medical(src)
+	holochip.holder = src
 
 /obj/item/clothing/suit/space/rig/ert/medical
 	name = "emergency response team medical suit"

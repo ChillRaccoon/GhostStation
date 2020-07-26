@@ -1,41 +1,40 @@
-# Gamma Station
-
-[![Discord](https://img.shields.io/badge/dynamic/json.svg?label=Discord&uri=https%3A%2F%2Fdiscordapp.com%2Fapi%2Fguilds%2F401030271417188353%2Fwidget.json&query=members.length&colorB=%237289db&suffix=%20online&logo=discord)](https://discord.gg/V92ZHwY)
-
----
-
-### Maintainers WANTED
-
-Проекту остро необходимы мейнтейнеры для поддержания развития. Если у вас есть время и желание, опыт - пишите в ``#rnd`` канал в Дискорде с меншоном на ``@Build Maintainer``
+# GHOST STATION - STER-01
+Очерденой мрачнобилд с фичами от разных серверов, сшит на базе Gamma Station.
+Из кодербасса - Jhnazar, HailRakes, ChillRaccoon (на подсобке и лиде)
+Сервер представлен от сообщества к сообществу, официальный проект серверов не приветствует грифон и нарушение геймплея, а так же разрушение атмосферы и шуссогриф.
+Идея получена на сшитии иных билдов, а так же скрещивание кинемотографичных произведений.
 
 ---
 
-[Baystation12](http://baystation12.net/)-based build with many changes from another upstream and sibling builds like:  
-* [/tg/station13](https://tgstation13.org/)
-* [ParadiseSS13](http://nanotrasen.se/phpBB3/index.php)
-* [/vg/station13](http://ss13.pomf.se/)
-* [Goonstation](http://goonhub.com/)
-* [Tau Ceti Classic](https://github.com/TauCetiStation/TauCetiClassic)
+#### STER - 01, MOST NBY FRIENDLY SERVER OF OUR PROJECT
+
+Открытая лицензия на распространение не комерчесского характера.
+
+#### VENDEROVO, MOST UNFRIENDLY TO NBY SERVER OF OUR PROJECT
 
 ---
 
-### ВНЕСТИ ВКЛАД (CONTRIBUTING)
-
-Обязательно прочитайте [CONTRIBUTING.md](https://github.com/GammaStation/Gamma-Station/blob/master/CONTRIBUTING.md).
+### Gamma Station
+BASED ON THIS:
+[![OldHorizon](https://img.shields.io/badge/dynamic/json.svg?label=Discord&uri=https%3A%2F%2Fdiscordapp.com%2Fapi%2Fguilds%2F401030271417188353%2Fwidget.json&query=members.length&colorB=%237289db&suffix=%20online&logo=discord)](https://discord.gg/V92ZHwY)
+FROM RU, TO RU
 
 ---
 
-### LICENSE
-Build is licensed under the GNU Affero General Public License version 3, which can be found in full in LICENSE-AGPL3.txt.
+#### Подробное описание:
+Мы пытаемся сделать всё возможное, чтобы наш билд являлся сложным и более приближенвм к реальности.
+Сервер Ghost Station является NBY friendly mostly, а точнее наиболее дружелюбный для новичков из наших серверов.
+Сервер VENDEROVO | CTHULHU S1|2|3 является NBY non friendly, а точнее не дружелюбным к новичкам, является наиболее приближеным к реальности с закрытым кодом и доступом, чтобы получить доступ на вход туда, требуется показать свои способности в RP, а так же доказать свою информативню ценность для сообщества.
 
-Commits with a git authorship date prior to `1417392000 +0000` (2014/12/01 00:00) are licensed under the GNU General Public License version 3, which can be found in full in LICENSE-GPL3.txt.
+GStation - сервер от русского сообщества, все идеи и наработки напрямую связаны с ним, почти каждое нововедение проводится голосованием сообщества.
+VENDEROVO | CTHULHU - сервер сделаный для того чтобы показать всю истинную сущность космических станций и колоний в реальной жизни, в планах сделать сложный билд для ветеранов или же "узревших истину". Будем пробовать максимально приблизиться к реальным ситуациям, уровням технологий, уровню здоровья, того времени которое указано в лоре.
 
-All commits whose authorship dates are not prior to `1417392000 +0000` are assumed to be licensed under AGPL v3, if you wish to license under GPL v3 please make this clear in the commit message and any added files.
+#### Лор, описание:
+События на колонии STER-01 разворачиваются в годах далёкого антиутопичного будущего, в котором после одного из происшествий, земля потеряла всё население людей, оставшиеся выжившие покинули её и улетели в космос.
+Изменённые корпорации, увеличеное количество антаганистов. Убогие технологии и опасность криогенации. Важность каждого члена экипажа. Важность ИИ или же КМСК, как и почему он яаляется одним из важнейших расписано подробнее в лоре нашего дискорд сервера.
+Разбиение одной вселенной на мультивселенные, благодарим одного из антаганистов и богов. Переодичная сбойность временной петли, что меняет конструкцию кораблей (не расписано)
 
-If you wish to develop and host this codebase in a closed source manner you may use all commits prior to `1417392000 +0000`, which are licensed under GPL v3.  The major change here is that if you host a server using any code licensed under AGPLv3 you are required to provide full source code for your servers users as well including addons and modifications you have made.
+---
 
-tgui clientside is licensed as a subproject under the MIT license. Font Awesome font files, used by tgui, are licensed under the SIL Open Font License v1.1 tgui assets are licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.
-
-See tgui/LICENSE.md for the MIT license. See tgui/assets/fonts/SIL-OFL-1.1-LICENSE.md for the SIL Open Font License.
-
-All assets including icons and sound are under a Creative Commons 3.0 BY-SA license unless otherwise indicated.
+# VENDEROVO | CTHULHU
+#### CLOSED SOURCE, IN DEEP DEVELOPMENT [ALKAALPHA]

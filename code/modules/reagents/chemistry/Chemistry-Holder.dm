@@ -621,3 +621,4 @@ var/const/INGEST = 2
 /atom/proc/create_reagents(max_vol)
 	reagents = new/datum/reagents(max_vol)
 	reagents.my_atom = src
+

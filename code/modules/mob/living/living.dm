@@ -1209,3 +1209,4 @@
 
 	nutrition -= 40
 	return TRUE
+

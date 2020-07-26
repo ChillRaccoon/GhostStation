@@ -10,6 +10,7 @@
 	// Damage vars.
 	var/min_bruised_damage = 10 // Damage before considered bruised
 	var/damage = 0              // Amount of damage to the organ
+	var/max_damage = 0
 
 	// Will be moved, removed or refactored.
 	var/process_accuracy = 0    // Damage multiplier for organs, that have damage values.

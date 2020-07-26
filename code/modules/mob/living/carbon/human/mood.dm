@@ -64,11 +64,13 @@
 		else
 			to_chat(src, "<span class='info'>My mood gets better.</span>")
 
+/*
 /mob/proc/flash_sadness()
 	if(prob(2))
 		flick("sadness",pain)
 		var/spoopysound = pick('sound/effects/badmood1.ogg','sound/effects/badmood2.ogg','sound/effects/badmood3.ogg','sound/effects/badmood4.ogg')
 		sound_to(src, spoopysound)
+
 
 /mob/living/carbon/proc/handle_happiness()
 	switch(happiness)
@@ -84,7 +86,7 @@
 			crit_mood_modifier = 5
 		if(MOOD_LEVEL_HAPPY4 to INFINITY)
 			crit_mood_modifier = 10
-
+*/
 
 /mob/living/carbon/proc/add_event(category, type) //Category will override any events in the same category, should be unique unless the event is based on the same thing like hunger.
 	var/datum/happiness_event/the_event

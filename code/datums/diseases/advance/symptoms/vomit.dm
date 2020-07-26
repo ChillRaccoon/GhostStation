@@ -40,8 +40,8 @@ Bonus
 
 	return
 
-/datum/symptom/vomit/proc/Vomit(mob/living/M)
-	M.vomit()
+/datum/symptom/vomit/proc/Vomit(mob/living/carbon/human/H)
+	H.vomit()
 
 /*
 //////////////////////////////////////

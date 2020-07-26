@@ -492,8 +492,7 @@
 				L.Weaken(3)
 				if(ishuman(L))
 					shake_camera(L, 20, 1)
-					spawn owner.vomit()
-
+					L.vomit()
 
 
 /**********************Resonator**********************/
