@@ -1877,6 +1877,7 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 				to_chat(src, "<span class='warning'>Not enough static charge.</span>")
 				return FALSE
 
+/*
 mob/living/carbon/human/proc/handle_decay(mob/living/carbon/human/H)
 	var/decaytime = world.time - timeofdeath
 	var/image/flies = image('icons/effects/effects.dmi', "rotten")//This is a hack, there has got to be a safer way to do this but I don't know it at the moment.
@@ -1920,6 +1921,7 @@ mob/living/carbon/human/proc/handle_decay(mob/living/carbon/human/H)
 			if(prob(75))
 				H.vomit()
 
+/*
 //So that people will stop shitting in the fucking hallways all the time. Actually this will probably encourage them.
 /mob/living/carbon/human/proc/handle_smelly_things()
 	if(wear_mask)
@@ -1941,7 +1943,8 @@ mob/living/carbon/human/proc/handle_decay(mob/living/carbon/human/H)
 			add_event("disgust", /datum/happiness_event/disgust/verygross)
 			if(prob(50))
 				vomit()
-
+*/
+*/
 
 /mob/living/carbon/human/proc/handle_gas_mask_sound()
 	//var/soundcooldown = world.time

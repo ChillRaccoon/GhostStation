@@ -118,7 +118,7 @@
 			hud_used.hide_actions_toggle.screen_loc = hud_used.ButtonNumberToScreenCoords(button_number+1)
 			//hud_used.SetButtonCoords(hud_used.hide_actions_toggle,button_number+1)
 		client.screen += hud_used.hide_actions_toggle
-
+/*
 /mob/living/carbon/human/handle_random_events()
 	// Puke if toxloss is too high
 	var/vomit_score = 0
@@ -136,14 +136,8 @@
 		vomit_score += 10
 	if(stat != DEAD && vomit_score > 25 && prob(10))
 		spawn vomit(1, vomit_score, vomit_score/25)
-
-/*
-	//0.1% chance of playing a scary sound to someone who's in complete darkness
-	if(isturf(loc) && rand(1,1000) == 1)
-		var/turf/T = loc
-		if(T.get_lumcount() <= LIGHTING_SOFT_THRESHOLD)
-			playsound_local(src,pick(GLOB.scarySounds),50, 1, -1)
 */
+
 
 	var/area/A = get_area(src)
 	if(client && world.time >= client.played + 600)
