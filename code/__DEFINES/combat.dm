@@ -69,3 +69,6 @@
 #define HOSTILE_STANCE_RUSHING 	 6
 
 #define UPGRADE_COOLDOWN	40
+
+//THIEF-ed | Effects
+#define EFFECT_EYE_BLUR		"eye_blur"

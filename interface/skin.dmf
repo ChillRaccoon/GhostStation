@@ -230,7 +230,8 @@ window "chat"
 		can-resize = false
 		is-pane = true
 		image = 'icons\\GhostStation\\phonts\\Phontk.jpg'
-		image-mode = tile
+		image-mode = center
+		outer-size = 654x494
 	elem "output1"
 		type = OUTPUT
 		pos = 0,0
@@ -245,7 +246,6 @@ window "chat"
 		saved-params = "max-lines"
 		link-color = #a1221f
 		visited-color = #ff7370
-		style = "height:20;\nwidth:400;\nfont-size:20pt;\nfont-weight:bold;\nfilter:DropShadow(Color=#C0C0C0, OffX=3, OffY=3)"
 		enable-http-images = true
 		max-lines = 0
 		image = 'icons\\GhostStation\\phonts\\Phontk.jpg'
@@ -436,7 +436,7 @@ window "mainwindow"
 		saved-params = "splitter"
 		right = "rpane"
 		is-vert = true
-		splitter = 70
+		splitter = 72
 	elem "tooltip"
 		type = BROWSER
 		pos = 720,1
@@ -447,7 +447,6 @@ window "mainwindow"
 		background-color = #000000
 		is-visible = false
 		saved-params = ""
-		auto-format = false
 
 window "mapwindow"
 	elem "mapwindow"
@@ -486,10 +485,12 @@ window "rpane"
 		background-color = #000000
 		saved-params = "pos;size;is-minimized;is-maximized"
 		is-pane = true
+		outer-size = 656x538
+		inner-size = 640x499
 	elem "rpanewindow"
 		type = CHILD
-		pos = 0,-11
-		size = 644x491
+		pos = 0,0
+		size = 644x464
 		anchor1 = 0,0
 		anchor2 = 100,100
 		background-color = #350c0c
@@ -497,36 +498,14 @@ window "rpane"
 		right = "chat"
 		is-vert = false
 		splitter = 40
-	elem "label1"
-		type = LABEL
-		pos = 24,0
-		size = 600x32
-		anchor1 = none
-		anchor2 = none
-		font-style = "bold"
-		text-color = #5a2e2e
-		background-color = #210a0a
-		saved-params = ""
-		text = "VENDEROVO -- BETA TEST (STER-09)"
-		allow-html = true
 	elem "hosttracker"
 		type = BROWSER
 		pos = 392,25
 		size = 1x1
 		anchor1 = none
 		anchor2 = none
+		background-color = none
 		saved-params = ""
-	elem "label2"
-		type = LABEL
-		pos = 184,32
-		size = 280x20
-		anchor1 = none
-		anchor2 = none
-		font-style = "bold"
-		text-color = #5a2020
-		background-color = #270000
-		saved-params = ""
-		text = "CTHULHU"
 
 window "browserwindow"
 	elem "browserwindow"
@@ -557,14 +536,39 @@ window "infowindow"
 		size = 640x480
 		anchor1 = none
 		anchor2 = none
-		background-color = #000000
+		background-color = #350c0c
 		saved-params = "pos;size;is-minimized;is-maximized"
 		title = "Info"
 		is-pane = true
+		outer-size = 656x538
+		inner-size = 640x499
+	elem "label2"
+		type = LABEL
+		pos = 16,40
+		size = 240x20
+		anchor1 = none
+		anchor2 = none
+		font-style = "bold"
+		text-color = #961313
+		background-color = #350c0c
+		saved-params = ""
+		text = "1 Name 2 Name"
+		align = left
+	elem "label1"
+		type = LABEL
+		pos = 328,0
+		size = 312x104
+		anchor1 = none
+		anchor2 = none
+		background-color = #350c0c
+		saved-params = ""
+		text = ""
+		image = 'interface\\ui.png'
+		image-mode = stretch
 	elem "info"
 		type = INFO
-		pos = 0,40
-		size = 640x440
+		pos = 0,104
+		size = 640x376
 		anchor1 = 0,0
 		anchor2 = 100,100
 		font-style = "bold"
