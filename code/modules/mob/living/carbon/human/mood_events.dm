@@ -22,8 +22,6 @@
 	description = "<span class='danger'>I need water!</span>\n"
 	happiness = -14
 
-
-
 //nutrition
 /datum/happiness_event/nutrition/fat
 	description = "<span class='warning'><B>I'm so fat..</B></span>\n" //muh fatshaming

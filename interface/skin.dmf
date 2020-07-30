@@ -242,13 +242,23 @@ window "chat"
 		text-color = #c0c0c0
 		background-color = #000000
 		is-default = true
-		border = line
 		saved-params = "max-lines"
 		link-color = #a1221f
 		visited-color = #ff7370
+		style = "  <style>\n   .shadowtext {\n    text-shadow: 1px 1px 2px black, 0 0 1em red; /* Параметры тени */\n    color: grey; /* Серый цвет текста */\n    font-size: 2em; /* Размер надписи */\n   }"
 		enable-http-images = true
 		max-lines = 0
 		image = 'icons\\GhostStation\\phonts\\Phontk.jpg'
+	elem "bar1"
+		type = BAR
+		pos = 64,456
+		size = 488x2
+		anchor1 = none
+		anchor2 = none
+		background-color = #000000
+		saved-params = ""
+		is-slider = false
+		dir = east
 	elem "hotkey_toggle"
 		type = BUTTON
 		pos = 536,464
@@ -410,13 +420,11 @@ window "mainwindow"
 		is-default = true
 		saved-params = "pos;size;is-minimized;is-maximized"
 		title = "VENDEROVO"
-		titlebar = false
-		can-minimize = false
 		is-maximized = true
 		icon = 'icons\\ss13_64.png'
 		macro = "macro"
-		outer-size = 1934x1094
-		inner-size = 1920x1080
+		outer-size = 1936x1066
+		inner-size = 1920x1027
 	elem "asset_cache_browser"
 		type = BROWSER
 		pos = 424,208
@@ -428,8 +436,8 @@ window "mainwindow"
 		saved-params = ""
 	elem "mainvsplit"
 		type = CHILD
-		pos = -4,-1
-		size = 636x441
+		pos = 0,0
+		size = 648x440
 		anchor1 = 0,0
 		anchor2 = 100,100
 		background-color = #1f0f0f
@@ -437,10 +445,11 @@ window "mainwindow"
 		right = "rpane"
 		is-vert = true
 		splitter = 72
+		show-splitter = false
 	elem "tooltip"
 		type = BROWSER
-		pos = 720,1
-		size = 999x999
+		pos = 664,0
+		size = 999x1007
 		anchor1 = none
 		anchor2 = none
 		text-color = #ffffff
@@ -452,9 +461,10 @@ window "mapwindow"
 	elem "mapwindow"
 		type = MAIN
 		pos = 281,0
-		size = 640x480
+		size = 792x480
 		anchor1 = none
 		anchor2 = none
+		background-color = none
 		saved-params = "pos;size;is-minimized;is-maximized"
 		titlebar = false
 		statusbar = false
@@ -462,14 +472,17 @@ window "mapwindow"
 		can-minimize = false
 		can-resize = false
 		is-pane = true
+		outer-size = 806x494
+		inner-size = 792x480
 	elem "map"
 		type = MAP
 		pos = 0,0
-		size = 640x480
+		size = 792x480
 		anchor1 = 0,0
 		anchor2 = 100,100
 		font-family = "Arial"
 		font-size = 7
+		background-color = #2e0000
 		is-default = true
 		saved-params = "icon-size"
 		on-show = ".winset\"mainwindow.mainvsplit.left=mapwindow\""
@@ -479,18 +492,18 @@ window "rpane"
 	elem "rpane"
 		type = MAIN
 		pos = 281,0
-		size = 640x480
+		size = 640x625
 		anchor1 = none
 		anchor2 = none
 		background-color = #000000
 		saved-params = "pos;size;is-minimized;is-maximized"
 		is-pane = true
-		outer-size = 656x538
-		inner-size = 640x499
+		outer-size = 656x683
+		inner-size = 640x644
 	elem "rpanewindow"
 		type = CHILD
 		pos = 0,0
-		size = 644x464
+		size = 644x625
 		anchor1 = 0,0
 		anchor2 = 100,100
 		background-color = #350c0c
@@ -514,9 +527,12 @@ window "browserwindow"
 		size = 640x480
 		anchor1 = none
 		anchor2 = none
+		background-color = none
 		saved-params = "pos;size;is-minimized;is-maximized"
 		title = "Browser"
 		is-pane = true
+		outer-size = 656x538
+		inner-size = 640x499
 	elem "browser"
 		type = BROWSER
 		pos = 0,0
@@ -533,18 +549,18 @@ window "infowindow"
 	elem "infowindow"
 		type = MAIN
 		pos = 281,0
-		size = 640x480
+		size = 640x794
 		anchor1 = none
 		anchor2 = none
 		background-color = #350c0c
 		saved-params = "pos;size;is-minimized;is-maximized"
 		title = "Info"
 		is-pane = true
-		outer-size = 656x538
-		inner-size = 640x499
+		outer-size = 656x852
+		inner-size = 640x813
 	elem "label2"
 		type = LABEL
-		pos = 16,40
+		pos = 40,136
 		size = 240x20
 		anchor1 = none
 		anchor2 = none
@@ -556,19 +572,19 @@ window "infowindow"
 		align = left
 	elem "label1"
 		type = LABEL
-		pos = 328,0
+		pos = 288,88
 		size = 312x104
 		anchor1 = none
 		anchor2 = none
 		background-color = #350c0c
 		saved-params = ""
 		text = ""
-		image = 'interface\\ui.png'
+		image = 'interface\\ui.gif'
 		image-mode = stretch
 	elem "info"
 		type = INFO
-		pos = 0,104
-		size = 640x376
+		pos = 0,192
+		size = 640x602
 		anchor1 = 0,0
 		anchor2 = 100,100
 		font-style = "bold"
