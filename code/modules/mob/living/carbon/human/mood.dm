@@ -1,14 +1,16 @@
+#define CRIT_SUCCESS_NORM 1
+
 /mob/living/carbon/proc/print_happiness()
-	var/msg = "<span class='info'>*---------*\n<EM>Current mood</EM>\n"
+	var/msg = "<span class='info'>#--------------------#</EM>\n"
 	for(var/i in events)
 		var/datum/happiness_event/event = events[i]
 		msg += event.description
 
 	if(!events.len)
-		msg += "<span class='info'>I feel indifferent.</span>\n"
+		msg += "<span class='info'>Вполне живу.</span>\n"
 
 
-	msg += "<span class='info'>*---------*</span>"
+	msg += "<span class='info'>#--------------------#</span>"
 	to_chat(src, msg)
 
 /mob/living/carbon/proc/update_happiness()
@@ -60,17 +62,15 @@
 
 	if(old_icon && old_icon != happiness_icon.icon_state)
 		if(old_happiness > happiness)
-			to_chat(src, "<span class='warning'>My mood gets worse.</span>")
+			to_chat (src, "<span class='warning'>Моё настроение ухудшилось...</span>")
 		else
-			to_chat(src, "<span class='info'>My mood gets better.</span>")
+			to_chat (src, "<span class='info'>Моё настроение стало чуть лучше.</span>")
 
-/*
 /mob/proc/flash_sadness()
 	if(prob(2))
 		flick("sadness",pain)
 		var/spoopysound = pick('sound/effects/badmood1.ogg','sound/effects/badmood2.ogg','sound/effects/badmood3.ogg','sound/effects/badmood4.ogg')
 		sound_to(src, spoopysound)
-
 
 /mob/living/carbon/proc/handle_happiness()
 	switch(happiness)
@@ -86,7 +86,6 @@
 			crit_mood_modifier = 5
 		if(MOOD_LEVEL_HAPPY4 to INFINITY)
 			crit_mood_modifier = 10
-*/
 
 /mob/living/carbon/proc/add_event(category, type) //Category will override any events in the same category, should be unique unless the event is based on the same thing like hunger.
 	var/datum/happiness_event/the_event

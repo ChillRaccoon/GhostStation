@@ -122,7 +122,7 @@
 	else
 		return
 
-/mob/living/carbon/human/vrhuman/ghost()
+/mob/living/carbon/human/vrhuman/proc/ghost()
 	return
 
 /mob/living/carbon/human/vrhuman/verb/OpenShopMenu()

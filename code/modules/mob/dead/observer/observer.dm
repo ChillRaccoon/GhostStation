@@ -106,7 +106,7 @@ var/global/list/image/ghost_sightless_images = list() //this is a list of images
 			ManualFollow(target)
 
 	if(href_list["ghostplayerobservejump"])
-		var/atom/movable/target = locate(href_list["ghostplayerobservejump"])
+		var/atom/movable/target = locate(href_list["ghostplayerobservejump"])         ---Оно им не нужно
 		if(!target)
 			return
 
@@ -202,11 +202,11 @@ Works together with spawning an observer, noted above.
 /*
 This is the proc mobs get to turn into a ghost. Forked from ghostize due to compatibility issues.
 */
-/mob/living/verb/ghost()
+/*/mob/living/verb/ghost()
 	set category = "OOC"
-	set name = "Ghost"
+	set name = "Ghost"                                                         ---Запрещаем педикам абузить
 	set desc = "Relinquish your life and enter the land of the dead."
-
+*/
 	if(!(ckey in admin_datums) && jobban_isbanned(src, "Observer"))
 		to_chat(src, "<span class='red'>You have been banned from observing.</span>")
 		return
@@ -447,10 +447,10 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	set hidden = 1
 	to_chat(src, "<span class='red'>You are dead! You have no mind to store memory!</span>")
 
-/mob/dead/observer/verb/analyze_air()
+/*/mob/dead/observer/verb/analyze_air()
 	set name = "Analyze Air"
 	set category = "Ghost"
-
+*/
 	if(!istype(usr, /mob/dead/observer)) return
 
 	var/turf/t = get_turf(src)
@@ -670,7 +670,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 /mob/dead/observer/IsAdvancedToolUser()
 	return IsAdminGhost(src)
 
-/mob/dead/observer/verb/change_icon()
+/*/mob/dead/observer/verb/change_icon()
 	set name = "Change Dead Icon"
 	set category = "Ghost"
 	if(!config.allow_donators)
@@ -680,7 +680,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		if(config.donate_info_url)
 			to_chat(src, "<span class='warning'>This only for donators, more info <a href='[config.donate_info_url]' target='_blank'>here</a>.</span>")
 		else
-			to_chat(src, "<span class='warning'>This only for donators, sorry.</span>")
+			to_chat(src, "<span class='warning'>This only for donators, sorry.</span>")                            ----А нахуя им это? Бесполезное говно чтобы засорить код..
 		return
 	var/new_icon_state = input("Please choose a new appearance","Changing Appearance") in icon_states('icons/mob/donators.dmi')
 	if(!new_icon_state)
@@ -694,3 +694,4 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	ghostimage = image(icon, src, icon_state)
 	ghost_darkness_images |= ghostimage
 	updateallghostimages()
+	*/

@@ -208,3 +208,7 @@
 #define ENTITY_TAB "&nbsp;&nbsp;&nbsp;&nbsp;"
 
 #define any2ref(x) "\ref[x]"
+
+//Yeah, that again thiefed, text redaction + blur --CRaccoon
+#define AMBIENT_OCCLUSION filter(type="drop_shadow", x=0, y=-2, size=4, color="#04080FAA")
+#define GAUSSIAN_BLUR(filter_size) filter(type="blur", size=filter_size)

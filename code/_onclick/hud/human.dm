@@ -174,13 +174,6 @@
 	using.alpha = ui_alpha
 	src.adding += using
 
-	mymob.happiness_icon = new /obj/screen()
-	mymob.happiness_icon.name = "mood"
-	mymob.happiness_icon.icon = ui_style
-	mymob.happiness_icon.icon_state = "mood4"
-	mymob.happiness_icon.screen_loc = ui_happiness
-	hud_elements |= mymob.happiness_icon
-
 	inv_box = new /obj/screen/inventory()
 	inv_box.name = "id"
 	inv_box.icon = ui_style
@@ -447,7 +440,7 @@
 	if(mymob.metal_bend_icon)
 		adding += mymob.metal_bend_icon
 
-	//Handle the gun settings buttons
+/*	//Handle the gun settings buttons
 	mymob.gun_setting_icon = new /obj/screen/gun/mode(null)
 	if (mymob.client)
 		if (mymob.client.gun_mode) // If in aim mode, correct the sprite
@@ -458,7 +451,7 @@
 			if (mymob.client.target_can_click)
 				mymob.item_use_icon.icon_state = "gun0"
 			src.adding += mymob.item_use_icon
-			mymob.gun_move_icon = new /obj/screen/gun/move(null)
+			mymob.gun_move_icon = new /obj/screen/gun/move(null)                ---------Вырезано нахуй из-за юзлесс, заменено на прок mood - настроение
 			if (mymob.client.target_can_move)
 				mymob.gun_move_icon.icon_state = "gun0"
 				mymob.gun_run_icon = new /obj/screen/gun/run(null)
@@ -466,7 +459,13 @@
 					mymob.gun_run_icon.icon_state = "gun0"
 				src.adding += mymob.gun_run_icon
 			src.adding += mymob.gun_move_icon
-
+*/
+	mymob.happiness_icon = new /obj/screen()
+	mymob.happiness_icon.name = "mood"
+	mymob.happiness_icon.icon = ui_style
+	mymob.happiness_icon.icon_state = "mood4"
+	mymob.happiness_icon.screen_loc = ui_happiness
+	hud_elements |= mymob.happiness_icon
 
 	mymob.client.screen = list()
 

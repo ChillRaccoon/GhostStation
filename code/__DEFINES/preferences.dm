@@ -2,7 +2,7 @@
 #define SOUND_ADMINHELP	1
 #define SOUND_MIDI		2
 #define SOUND_AMBIENCE	4
-#define SOUND_LOBBY		8
+#define SOUND_LOBBY		12
 #define SHOW_ANIMATIONS	16
 #define SHOW_PROGBAR	32
 #define SOUND_STREAMING	64

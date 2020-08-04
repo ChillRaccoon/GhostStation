@@ -1424,6 +1424,7 @@
 #include "code\modules\mob\living\carbon\human\mood.dm"
 #include "code\modules\mob\living\carbon\human\mood_events.dm"
 #include "code\modules\mob\living\carbon\human\say.dm"
+#include "code\modules\mob\living\carbon\human\stats-skills.dm"
 #include "code\modules\mob\living\carbon\human\update_icons.dm"
 #include "code\modules\mob\living\carbon\human\whisper.dm"
 #include "code\modules\mob\living\carbon\human\zombie.dm"

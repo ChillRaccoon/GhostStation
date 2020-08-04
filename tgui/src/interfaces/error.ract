@@ -1,3 +1,3 @@
 ﻿<ui-notice>
-  <span>The requested interface ({{config.interface}}) was not found. Does it exist?</span>
+  <span>Запрошеный ({{config.interface}}) не был найден. А это нормально, сис. админ? Я вот тоже не ебу..</span>
 </ui-notice>

@@ -84,7 +84,7 @@
 			</div>
 		</div>
 		<script>
-			document.body.innerHTML = document.body.innerHTML.replace(/¶/g, "ÿ");<!-- omg its so weird --!>
+			document.body.innerHTML = document.body.innerHTML.replace(/ï¿½/g, "ï¿½");<!-- omg its so weird --!>
 		</script>
 	</body>
 </html>"}
