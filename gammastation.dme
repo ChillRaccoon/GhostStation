@@ -911,6 +911,7 @@
 #include "code\game\objects\WalterJ_Items_Pack\SPORT\sport.dm"
 #include "code\game\objects\WalterJ_Items_Pack\UNATHI BLING\Unathi bling.dm"
 #include "code\game\objects\WalterJ_Items_Pack\WERMAHT UNIFORMS\WJ_Wermaht_uniforms.dm"
+#include "code\game\turfs\lifeweb.dm"
 #include "code\game\turfs\simulated.dm"
 #include "code\game\turfs\turf.dm"
 #include "code\game\turfs\unsimulated.dm"
