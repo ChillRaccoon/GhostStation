@@ -231,7 +231,6 @@ window "chat"
 		is-pane = true
 		image = 'icons\\GhostStation\\phonts\\Phontk.jpg'
 		image-mode = center
-		outer-size = 654x494
 	elem "output1"
 		type = OUTPUT
 		pos = 0,0
@@ -443,7 +442,7 @@ window "mainwindow"
 		background-color = #1f0f0f
 		saved-params = "splitter"
 		right = "rpane"
-		is-vert = true
+		is-vert = false
 		splitter = 72
 		show-splitter = false
 	elem "tooltip"
@@ -464,7 +463,6 @@ window "mapwindow"
 		size = 792x480
 		anchor1 = none
 		anchor2 = none
-		background-color = none
 		saved-params = "pos;size;is-minimized;is-maximized"
 		titlebar = false
 		statusbar = false
@@ -472,8 +470,6 @@ window "mapwindow"
 		can-minimize = false
 		can-resize = false
 		is-pane = true
-		outer-size = 806x494
-		inner-size = 792x480
 	elem "map"
 		type = MAP
 		pos = 0,0
@@ -527,12 +523,9 @@ window "browserwindow"
 		size = 640x480
 		anchor1 = none
 		anchor2 = none
-		background-color = none
 		saved-params = "pos;size;is-minimized;is-maximized"
 		title = "Browser"
 		is-pane = true
-		outer-size = 656x538
-		inner-size = 640x499
 	elem "browser"
 		type = BROWSER
 		pos = 0,0
@@ -556,8 +549,6 @@ window "infowindow"
 		saved-params = "pos;size;is-minimized;is-maximized"
 		title = "Info"
 		is-pane = true
-		outer-size = 656x852
-		inner-size = 640x813
 	elem "label2"
 		type = LABEL
 		pos = 40,136

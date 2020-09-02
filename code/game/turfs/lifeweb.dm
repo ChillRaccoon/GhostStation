@@ -24,5 +24,5 @@
 	density = 1
 	blocks_air = 1
 
-	thermal_conductivity = WALL_HEAT_TRANSFER_COEFFICIENT
-	heat_capacity = 425500
+	var/thermal_conductivity = WALL_HEAT_TRANSFER_COEFFICIENT
+	var/heat_capacity = 425500
