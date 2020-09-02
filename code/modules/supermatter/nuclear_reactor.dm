@@ -110,7 +110,7 @@ Based on SM shard!
 				lastwarning = world.timeofday
 
 			else if(damage >= damage_archived) // The damage is still going up
-				radio.autosay(addtext(warning_alert," Instability: ",stability,"%"), "Консоль управления реактором")
+				radio.autosay(addtext(warning_alert," ПРОЧНОСТЬ В.К: ",stability,"%"), "Консоль управления реактором")
 				lastwarning = world.timeofday - 150
 
 			else                                                 // Phew, we're safe

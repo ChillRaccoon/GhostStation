@@ -442,7 +442,7 @@ window "mainwindow"
 		background-color = #1f0f0f
 		saved-params = "splitter"
 		right = "rpane"
-		is-vert = false
+		is-vert = true
 		splitter = 72
 		show-splitter = false
 	elem "tooltip"
@@ -494,8 +494,6 @@ window "rpane"
 		background-color = #000000
 		saved-params = "pos;size;is-minimized;is-maximized"
 		is-pane = true
-		outer-size = 656x683
-		inner-size = 640x644
 	elem "rpanewindow"
 		type = CHILD
 		pos = 0,0
@@ -513,7 +511,6 @@ window "rpane"
 		size = 1x1
 		anchor1 = none
 		anchor2 = none
-		background-color = none
 		saved-params = ""
 
 window "browserwindow"

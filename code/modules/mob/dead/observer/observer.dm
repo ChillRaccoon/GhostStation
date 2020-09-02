@@ -107,7 +107,7 @@ var/global/list/image/ghost_sightless_images = list() //this is a list of images
 			ManualFollow(target)
 
 	if(href_list["ghostplayerobservejump"])
-		var/atom/movable/target = locate(href_list["ghostplayerobservejump"])         ---Оно им не нужно
+		var/atom/movable/target = locate(href_list["ghostplayerobservejump"])         //---Оно им не нужно
 		if(!target)
 			return
 
@@ -455,7 +455,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 /mob/dead/observer/verb/analyze_air()
 	set name = "Analyze Air"
 	set category = "Ghost"
-*/
+
 	if(!istype(usr, /mob/dead/observer)) return
 
 	var/turf/t = get_turf(src)

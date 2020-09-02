@@ -1895,7 +1895,6 @@
 #include "code\modules\stock_market\stockmarket.dm"
 #include "code\modules\stock_market\stocks.dm"
 #include "code\modules\supermatter\LaserComputer.dm"
-#include "code\modules\supermatter\nuclear_reactor.dm"
 #include "code\modules\supermatter\supermatter.dm"
 #include "code\modules\supermatter\ZeroPointLaser.dm"
 #include "code\modules\surgery\appendix.dm"
