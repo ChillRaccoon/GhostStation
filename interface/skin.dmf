@@ -422,15 +422,12 @@ window "mainwindow"
 		is-maximized = true
 		icon = 'icons\\ss13_64.png'
 		macro = "macro"
-		outer-size = 1936x1066
-		inner-size = 1920x1027
 	elem "asset_cache_browser"
 		type = BROWSER
 		pos = 424,208
 		size = 1x1
 		anchor1 = none
 		anchor2 = none
-		background-color = none
 		is-visible = false
 		saved-params = ""
 	elem "mainvsplit"
@@ -463,6 +460,7 @@ window "mapwindow"
 		size = 792x480
 		anchor1 = none
 		anchor2 = none
+		background-color = none
 		saved-params = "pos;size;is-minimized;is-maximized"
 		titlebar = false
 		statusbar = false
@@ -470,6 +468,8 @@ window "mapwindow"
 		can-minimize = false
 		can-resize = false
 		is-pane = true
+		outer-size = 806x494
+		inner-size = 792x480
 	elem "map"
 		type = MAP
 		pos = 0,0
@@ -478,7 +478,7 @@ window "mapwindow"
 		anchor2 = 100,100
 		font-family = "Arial"
 		font-size = 7
-		background-color = #2e0000
+		background-color = #00000f
 		is-default = true
 		saved-params = "icon-size"
 		on-show = ".winset\"mainwindow.mainvsplit.left=mapwindow\""
