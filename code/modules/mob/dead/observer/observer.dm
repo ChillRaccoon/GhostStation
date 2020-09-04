@@ -206,7 +206,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	set category = "OOC"
 	set name = "Ghost"                                                         ---Запрещаем педикам абузить
 	set desc = "Relinquish your life and enter the land of the dead."
-*/
+
 	if(!(ckey in admin_datums) && jobban_isbanned(src, "Observer"))
 		to_chat(src, "<span class='red'>You have been banned from observing.</span>")
 		return
@@ -232,7 +232,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		var/mob/dead/observer/ghost = ghostize(can_reenter_corpse = FALSE)						//0 parameter is so we can never re-enter our body, "Charlie, you can never come baaaack~" :3
 		ghost.timeofdeath = world.time // Because the living mob won't have a time of death and we want the respawn timer to work properly.
 	return
-
+*/
 
 /mob/dead/observer/Move(NewLoc, direct)
 	dir = direct
@@ -271,15 +271,6 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 				stat(null, "[gang_name("B")] Gang Takeover: [max(mode.B_timer, 0)]")
 
 /mob/dead/observer/verb/reenter_corpse()
-	set category = "Ghost"
-	set name = "Re-enter Corpse"
-	if(!client)	return
-	if(!(mind && mind.current && can_reenter_corpse))
-		to_chat(src, "<span class='warning'>You have no body.</span>")
-		return
-	if(mind.current.key && copytext(mind.current.key,1,2)!="@")	//makes sure we don't accidentally kick any clients
-		to_chat(usr, "<span class='warning'>Another consciousness is in your body... it is resisting you.</span>")
-		return
 	mind.current.key = key
 	return 1
 
@@ -457,7 +448,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	if(t)
 		print_atmos_analysis(src, atmosanalyzer_scan(t))
 
-/*/mob/dead/observer/verb/become_mouse()
+/mob/dead/observer/verb/become_mouse()
 	set name = "Become mouse"
 	set category = "Ghost"
 
@@ -507,8 +498,8 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		host.ckey = src.ckey
 		to_chat(host, "<span class='info'>You are now a mouse. Try to avoid interaction with players, and do not give hints away that you are more than a simple rodent.</span>")
 	return host
-
-/*/mob/dead/observer/proc/ianize()
+/*
+/mob/dead/observer/proc/ianize()
 	set name = "Become Ian"
 	set category = "Ghost"
 
