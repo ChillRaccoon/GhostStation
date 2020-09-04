@@ -469,7 +469,7 @@ INITIALIZE_IMMEDIATE(/mob/living/carbon/human/dummy)
 			for(var/mob/living/carbon/monkey/diona/V in contents)																RUNTIME
 				if(istype(V) && V.gestalt == src)
 					choices += V
-			var/mob/living/carbon/monkey/diona/V = input(D,"Who do wish you to expel from within?") in choices
+			var/mob/living/carbon/monkey/diona/V = input(D,"Who do wish you to expel from within?") in null|choices
 			if(V)
 				to_chat(D, "<span class='notice'>You wriggle [V] out of your insides.</span>")
 				V.splitting(D)

@@ -122,6 +122,9 @@
 	else
 		return
 
+/mob/living/carbon/human/vrhuman/proc/ghost()
+	return
+
 /mob/living/carbon/human/vrhuman/verb/OpenShopMenu()
 	set name = "Open Shop"
 	set category = "IC"

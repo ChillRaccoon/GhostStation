@@ -25,7 +25,6 @@ var/global/list/image/ghost_sightless_images = list() //this is a list of images
 	var/antagHUD = 0
 	universal_speak = 1
 	var/golem_rune = null //Used to check, if we already queued as a golem.
-	var/ghost_orbit = GHOST_ORBIT_CIRCLE
 
 	var/image/ghostimage = null //this mobs ghost image, for deleting and stuff
 	var/ghostvision = 1 //is the ghost able to see things humans can't?
@@ -99,7 +98,7 @@ var/global/list/image/ghost_sightless_images = list() //this is a list of images
 			return
 
 	return ..()
-
+/*
 /mob/dead/observer/Topic(href, href_list)
 	if(href_list["track"])
 		var/mob/target = locate(href_list["track"]) in mob_list
@@ -113,7 +112,7 @@ var/global/list/image/ghost_sightless_images = list() //this is a list of images
 
 		var/turf/T = get_turf(target)
 		forceMove(T)
-
+*/
 /mob/dead/attackby(obj/item/W, mob/user)
 	if(istype(W,/obj/item/weapon/book/tome))
 		user.SetNextMove(CLICK_CD_MELEE)
@@ -284,8 +283,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	mind.current.key = key
 	return 1
 
-/*
-/mob/dead/observer/verb/toggle_medHUD()
+/*/mob/dead/observer/verb/toggle_medHUD()
 	set category = "Ghost"
 	set name = "Toggle MedicHUD"
 	set desc = "Toggles Medical HUD allowing you to see how everyone is doing."
@@ -325,7 +323,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	else
 		M.antagHUD = 1
 		to_chat(src, "<span class='info'><B>AntagHUD Enabled</B></span>")
-*/
+
 /mob/dead/observer/proc/dead_tele(A in ghostteleportlocs)
 	set category = "Ghost"
 	set name = "Teleport"
@@ -400,7 +398,6 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	..()
 	pixel_y = 0
 
-/*
 /mob/dead/observer/verb/jumptomob() //Moves the ghost instead of just changing the ghosts's eye -Nodrak
 	set category = "Ghost"
 	set name = "Jump to Mob"
@@ -450,9 +447,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	set hidden = 1
 	to_chat(src, "<span class='red'>You are dead! You have no mind to store memory!</span>")
 
-
-/*
-/mob/dead/observer/verb/analyze_air()
+/*/mob/dead/observer/verb/analyze_air()
 	set name = "Analyze Air"
 	set category = "Ghost"
 
@@ -462,7 +457,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	if(t)
 		print_atmos_analysis(src, atmosanalyzer_scan(t))
 
-/mob/dead/observer/verb/become_mouse()
+/*/mob/dead/observer/verb/become_mouse()
 	set name = "Become mouse"
 	set category = "Ghost"
 
@@ -513,8 +508,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		to_chat(host, "<span class='info'>You are now a mouse. Try to avoid interaction with players, and do not give hints away that you are more than a simple rodent.</span>")
 	return host
 
-/*
-/mob/dead/observer/proc/ianize()
+/*/mob/dead/observer/proc/ianize()
 	set name = "Become Ian"
 	set category = "Ghost"
 
@@ -676,9 +670,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 /mob/dead/observer/IsAdvancedToolUser()
 	return IsAdminGhost(src)
 
-
-/*
-/mob/dead/observer/verb/change_icon()
+/*/mob/dead/observer/verb/change_icon()
 	set name = "Change Dead Icon"
 	set category = "Ghost"
 	if(!config.allow_donators)
@@ -702,4 +694,4 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	ghostimage = image(icon, src, icon_state)
 	ghost_darkness_images |= ghostimage
 	updateallghostimages()
-*/
+	*/
