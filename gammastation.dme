@@ -1421,8 +1421,6 @@
 #include "code\modules\mob\living\carbon\human\life.dm"
 #include "code\modules\mob\living\carbon\human\login.dm"
 #include "code\modules\mob\living\carbon\human\MedicalSideEffects.dm"
-#include "code\modules\mob\living\carbon\human\mood.dm"
-#include "code\modules\mob\living\carbon\human\mood_events.dm"
 #include "code\modules\mob\living\carbon\human\say.dm"
 #include "code\modules\mob\living\carbon\human\stats-skills.dm"
 #include "code\modules\mob\living\carbon\human\update_icons.dm"
